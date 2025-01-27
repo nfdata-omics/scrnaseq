@@ -281,23 +281,6 @@ workflow SCRNASEQ {
     ch_h5ads = MTX_TO_H5AD.out.h5ad
 
     //
-    // SUBWORKFLOW: Run h5ad conversion and concatenation
-    //
-    ch_emptydrops = Channel.empty()
-    H5AD_CONVERSION (
-        MTX_TO_H5AD.out.h5ad,
-        ch_input
-    )
-    ch_versions = ch_versions.mix(H5AD_CONVERSION.out.ch_versions)
-
-    //
-    // SUBWORKFLOW: Run normalization on the concatenated h5ad files
-    //
-    NORMALIZATION_AND_HVG (
-        H5AD_CONVERSION.out.h5ads
-    )
-
-    //
     // SUBWORKFLOW: Run cellbender remove background subworkflow
     //
     if ( !params.skip_cellbender && !(params.aligner in ['cellrangerarc']) ) {
@@ -317,6 +300,13 @@ workflow SCRNASEQ {
     H5AD_CONVERSION (
         ch_h5ads,
         ch_input
+    )
+
+    //
+    // SUBWORKFLOW: Run normalization on the concatenated h5ad files
+    //
+    NORMALIZATION_AND_HVG (
+        H5AD_CONVERSION.out.h5ads_concat
     )
 
     //
