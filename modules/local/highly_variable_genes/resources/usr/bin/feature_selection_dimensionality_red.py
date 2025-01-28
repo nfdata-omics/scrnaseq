@@ -4,21 +4,16 @@
 # ====================================================================================================================
 
 # MODULE IMPORT
-
 import warnings
-warnings.filterwarnings("ignore")
-
-
 import argparse                     # command line arguments parser
 import os                           # filesystem utilities
-import scanpy as sc                 # single-cell data processing
-import anndata as ad                # store annotated matrix as anndata object
-import matplotlib.pyplot as plt     # library for visualization
-import seaborn as sns               # library for statistical data visualization
-import pandas as pd                 # library for data analysis and manipulation 
 import pathlib                      # library for handle filesystem paths
+import matplotlib.pyplot as plt     # library for visualization
+import pandas as pd                 # library for data analysis and manipulation
+import scanpy as sc                 # single-cell data processing
 
 
+warnings.filterwarnings("ignore")
 # PARAMETERS
 
 # set script version number
@@ -37,9 +32,9 @@ def main():
 #                                          LIBRARY CONFIG
 # --------------------------------------------------------------------------------------------------------------------
 
-    sc.settings.verbosity = 3             # verbosity: errors (0), warnings (1), info (2), hints (3)
+    sc.settings.verbosity = 3 # verbosity: errors (0), warnings (1), info (2), hints (3)
     sc.logging.print_header()
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                          INPUT FROM COMMAND LINE
 # --------------------------------------------------------------------------------------------------------------------
@@ -54,8 +49,7 @@ def main():
                         help="name of the output h5ad file after dimensionality reduction")
     parser.add_argument('-csv', '--csv_out', metavar='CSV_TABLE',type=pathlib.Path, default="UMAP_coordinates.csv",
                         help="csv tabel with UMAP coordinates for each cell")
-    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'), 
-                        help="directory to save the results files (default is the current directory)")
+    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
 
@@ -68,26 +62,21 @@ def main():
     output = args.out
     output_csv=args.csv_out
 
-    
-    # print info on the available matrices
+# print info on the available matrices
     print("Reading combined count matrix from the following file:")
-    print("-File {}:".format(str(input_h5ad_file)))
+    print(f"-File {input_h5ad_file}:")
 
 # --------------------------------------------------------------------------------------------------------------------
-#                                 READ H5AD FILES 
+#                                 READ H5AD FILES
 # --------------------------------------------------------------------------------------------------------------------
 
-    
-     # Read folders with the MTX combined count matrice and store datasets in a dictionary
-    
+    # Read folders with the MTX combined count matrice and store datasets in a dictionary
     print("\n===== READING COMBINED MATRIX =====")
     # read the count matrix for the combined samples and print some initial info
     print("\nProcessing count matrix in folder ... ", end ='')
-
     adata= sc.read_h5ad(input_h5ad_file)
-                
     print("Done!")
-    print("Count matrix for combined samples has {} cells and {} genes".format(adata.shape[0],adata.shape[1]))
+    print(f"Count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 FEATURE SELECTION & DIMENSIONALITY REDUCTION
@@ -114,13 +103,12 @@ def main():
     print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
     print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
     sc.tl.umap(adata,min_dist=0.5)
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Visualize UMAP plot 
-
+    # Visualize UMAP plot
     print("\nVisualized UMAP plot")
     sc.pl.umap(adata, color ='sample',legend_loc='on data',show=False)
     plt.savefig(os.path.join(args.results,'UMAP_plot.png'))
@@ -133,13 +121,13 @@ def main():
 
     print("\n===== SAVING OUTPUT FILE =====")
 
-    print("Saving h5ad data to file {}".format(output))
+    print(f"Saving h5ad data to file {output}")
     adata.write(output)
     print("Done!")
 
     df = pd.DataFrame(adata.obsm["X_umap"], index=adata.obs_names).rename(columns={0: "X_UMAP", 1: "Y_UMAP"})
     df.index.name = 'cell_barcodes'
-    print("Saving csv table with UMAP coordinates for each cell {}".format(output_csv))
+    print(f"Saving csv table with UMAP coordinates for each cell {output_csv}")
     df.to_csv(output_csv)
     print("Done!")
 
