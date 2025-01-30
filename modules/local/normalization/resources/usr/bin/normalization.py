@@ -81,7 +81,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 NORMALIZATION
 # --------------------------------------------------------------------------------------------------------------------
-    #Saving count data before normalization
+    # Saving count data before normalization
     print("Saving count data before normalization in slot Count.")
     adata.layers["count"] = adata.X.copy()
 
@@ -117,4 +117,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-   
+    
