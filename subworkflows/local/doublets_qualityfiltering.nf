@@ -1,0 +1,35 @@
+/* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
+include { DOUBLETS } from '../../modules/local/doublets'
+include { QUALITY_FILTERING } from '../../modules/local/qualitymetrics'
+
+workflow DOUBLETS_QUALITYFILTERING {
+
+    take:
+    ch_convert_concat_filtered
+    ch_h5ad_concat_filtered
+    MT
+
+
+    main:
+        ch_versions = Channel.empty()
+
+        //
+        // MODULE: Compute doublet score for each sample in the concatenated rds file
+        //
+        DOUBLETS (
+            ch_convert_concat_filtered
+        )
+
+        //
+        // MODULE: Filtered cells of low quality in the concatenated h5ad file
+        //
+        QUALITY_FILTERING (
+            ch_h5ad_concat_filtered,DOUBLETS.out.doublets,MT
+        )
+        ch_versions = ch_versions.mix(QUALITY_FILTERING.out.versions.first())
+        
+    emit:
+    ch_versions
+    h5ads = QUALITY_FILTERING.out.h5ad
+
+}

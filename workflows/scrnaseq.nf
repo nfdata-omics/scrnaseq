@@ -23,7 +23,7 @@ include { GUNZIP as GUNZIP_FASTA                            } from '../modules/n
 include { GUNZIP as GUNZIP_GTF                              } from '../modules/nf-core/gunzip/main'
 include { H5AD_CONVERSION                                   } from '../subworkflows/local/h5ad_conversion'
 include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
-
+include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
 
 
 workflow SCRNASEQ {
@@ -302,11 +302,21 @@ workflow SCRNASEQ {
         ch_input
     )
 
+    // Quality filter param
+    params.MT = 20
+
+    //
+    // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
+    //
+    DOUBLETS_QUALITYFILTERING (
+        H5AD_CONVERSION.out.rds_concat, H5AD_CONVERSION.out.h5ads_concat,params.MT
+    )
+
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
     NORMALIZATION_AND_HVG (
-        H5AD_CONVERSION.out.h5ads_concat
+        DOUBLETS_QUALITYFILTERING.out.h5ads
     )
 
     //
