@@ -15,10 +15,8 @@ process QUALITY_FILTERING  {
     tuple val(meta), path("*.filtered.h5ad"), emit: h5ad
     path "Cells_before_filtering.png", emit: cells_beforefiltering
     path "Cells_after_filtering.png", emit: cells_afterfiltering
-    path "QC_Density_Sample_X_filtered.png", emit: QC_X
-    path "QC_Density_Sample_Y_filtered.png", emit: QC_Y
-    path "QC_Density_MT-Ribo_Sample_X_filtered.png", emit: mitochondrial_X
-    path "QC_Density_MT-Ribo_Sample_Y_filtered.png", emit: mitochondrial_Y
+    path "QC_Density_*.png", emit: qc_density
+    path "QC_Density_MT-Ribo*.png", emit: qc_density_mito
     path "versions.yml",  emit: versions
 
     when:
@@ -32,7 +30,7 @@ process QUALITY_FILTERING  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    qualitymetricsfilters.py -ad $input_h5ad -d $doublets_csv -f $MT
+    quality_metrics-filters.py -ad $input_h5ad -d $doublets_csv -f $MT
     
 
 
@@ -40,7 +38,7 @@ process QUALITY_FILTERING  {
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
     END_VERSIONS
-    qualitymetricsfilters.py --version >> versions.yml
+    quality_metrics-filters.py --version >> versions.yml
     
     """
     
