@@ -15,10 +15,10 @@ process QUALITY_FILTERING  {
     tuple val(meta), path("*.filtered.h5ad"), emit: h5ad
     path "Cells_before_filtering.png", emit: cells_beforefiltering
     path "Cells_after_filtering.png", emit: cells_afterfiltering
-    path "QC_Density_10k_PBMC_5pv2_nextgem_Chromium_X_gex_1_filtered.png", emit: QC_X
-    path "QC_Density_10k_PBMC_5pv2_nextgem_Chromium_X_gex_2_filtered.png", emit: QC_Y
-    path "QC_Density_MT-Ribo_10k_PBMC_5pv2_nextgem_Chromium_X_gex_1_filtered.png", emit: mitochondrial_X
-    path "QC_Density_MT-Ribo_10k_PBMC_5pv2_nextgem_Chromium_X_gex_2_filtered.png", emit: mitochondrial_Y
+    path "QC_Density_Sample_X_filtered.png", emit: QC_X
+    path "QC_Density_Sample_Y_filtered.png", emit: QC_Y
+    path "QC_Density_MT-Ribo_Sample_X_filtered.png", emit: mitochondrial_X
+    path "QC_Density_MT-Ribo_Sample_Y_filtered.png", emit: mitochondrial_Y
     path "versions.yml",  emit: versions
 
     when:
@@ -32,7 +32,7 @@ process QUALITY_FILTERING  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    quality_metrics-filters.py -ad $input_h5ad -d $doublets_csv -f $MT
+    qualitymetricsfilters.py -ad $input_h5ad -d $doublets_csv -f $MT
     
 
 
@@ -40,7 +40,7 @@ process QUALITY_FILTERING  {
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
     END_VERSIONS
-    quality_metrics-filters.py --version >> versions.yml
+    qualitymetricsfilters.py --version >> versions.yml
     
     """
     
