@@ -65,7 +65,7 @@ def main():
     input_h5ad_file = args.input_h5ad_files
     input_csv_table = args.input_csv_table
     output =args.out
-    mt_percentage = args.MT_PERCENTAGE
+    mt_percentage = args.mt_percentage
 
     # print info on the available matrices
     print("Reading combined count matrix from the following file:")
