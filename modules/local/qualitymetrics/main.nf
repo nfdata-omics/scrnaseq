@@ -30,7 +30,7 @@ process QUALITY_FILTERING  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    quality_metrics-filters.py -ad $input_h5ad -d $doublets_csv -f $MT
+    qualitymetricsfilters.py -ad $input_h5ad -d $doublets_csv -f $MT
     
 
 
@@ -38,7 +38,7 @@ process QUALITY_FILTERING  {
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
     END_VERSIONS
-    quality_metrics-filters.py --version >> versions.yml
+    qualitymetricsfilters.py --version >> versions.yml
     
     """
     
