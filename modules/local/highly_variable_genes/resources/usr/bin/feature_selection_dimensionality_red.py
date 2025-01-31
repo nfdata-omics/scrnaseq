@@ -86,11 +86,11 @@ def main():
     # select highly=variable genes for each sample
     print("\nSelecting highly-variable genes are selected within each batch separately and merged")
 
-    sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5, batch_key = 'sample',subset=False)
-
+    sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5,batch_key = 'sample',subset=False)
+    
     print("\n===== DIMENSIONALITY REDUCTION =====")
     print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
-    sc.tl.pca(adata,use_highly_variable = True, n_comps=50)
+    sc.tl.pca(adata,use_highly_variable = False, n_comps=8)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION
