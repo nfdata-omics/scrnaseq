@@ -47,7 +47,7 @@ def main():
                         required=True, help="paths of existing count matrix files in h5 format (including file names)")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.hvg.h5ad",
                         help="name of the output h5ad file after dimensionality reduction")
-    parser.add_argument('-csv', '--csv_out', metavar='CSV_TABLE',type=pathlib.Path, default="UMAP_coordinates.csv",
+    parser.add_argument('-csv', '--csv_out', metavar='CSV_TABLE',type=pathlib.Path, default="umap_coordinates.csv",
                         help="csv tabel with UMAP coordinates for each cell")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -111,7 +111,7 @@ def main():
     # Visualize UMAP plot
     print("\nVisualized UMAP plot")
     sc.pl.umap(adata, color ='sample',legend_loc='on data',show=False)
-    plt.savefig(os.path.join(args.results,'UMAP_plot.png'))
+    plt.savefig(os.path.join(args.results,'umap_plot.png'))
     plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
