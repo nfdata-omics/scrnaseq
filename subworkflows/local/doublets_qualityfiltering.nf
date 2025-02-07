@@ -7,8 +7,7 @@ workflow DOUBLETS_QUALITYFILTERING {
     take:
     ch_convert_concat_filtered
     ch_h5ad_concat_filtered
-    MT
-
+    mt
 
     main:
         ch_versions = Channel.empty()
@@ -24,7 +23,9 @@ workflow DOUBLETS_QUALITYFILTERING {
         // MODULE: Filtered cells of low quality in the concatenated h5ad file
         //
         QUALITY_FILTERING (
-            ch_h5ad_concat_filtered,DOUBLETS.out.doublets,MT
+            ch_h5ad_concat_filtered,
+            DOUBLETS.out.doublets,
+            mt
         )
         ch_versions = ch_versions.mix(QUALITY_FILTERING.out.versions.first())
         
