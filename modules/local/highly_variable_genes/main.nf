@@ -9,8 +9,8 @@ process HIGHLY_VARIABLE_GENES  {
 
     output:
     tuple val(meta), path("*.hvg.h5ad") , emit: h5ad
-    path "UMAP_coordinates.csv", emit: UMAP
-    path "UMAP_plot.png", emit: graph_UMAP
+    path "umap_coordinates.csv", emit: umap
+    path "umap_plot.png", emit: graph_umap
     path "versions.yml",  emit: versions
 
     when:
@@ -35,8 +35,8 @@ process HIGHLY_VARIABLE_GENES  {
     stub:
     """
     touch matrix.hvg.h5ad
-    touch UMAP_coordinates.csv
-    touch UMAP_plot.png
+    touch umap_coordinates.csv
+    touch umap_plot.png
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
