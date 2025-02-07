@@ -301,15 +301,15 @@ workflow SCRNASEQ {
         ch_h5ads,
         ch_input
     )
-
-    // Quality filter param
-    params.MT = 20
+    
 
     //
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
     DOUBLETS_QUALITYFILTERING (
-        H5AD_CONVERSION.out.rds_concat, H5AD_CONVERSION.out.h5ads_concat,params.MT
+        H5AD_CONVERSION.out.rds_concat, 
+        H5AD_CONVERSION.out.h5ads_concat,
+        params.mt
     )
 
     //
