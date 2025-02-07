@@ -28,8 +28,8 @@ workflow H5AD_CONVERSION {
     
     // Filter input_type:'filtered'
     ch_h5ad_concat_filtered = ch_h5ad_concat.filter { item ->
-    item[0].input_type == 'filtered'
-}
+        item[0].input_type == 'filtered'
+    }
 
     ch_versions = ch_versions.mix(CONCAT_H5AD.out.versions.first())
 
@@ -43,8 +43,8 @@ workflow H5AD_CONVERSION {
 
 
     ch_convert_concat_filtered = ch_convert_concat.filter {item ->
-    item[0].id == 'combined' && item[0].input_type == 'filtered'
-}
+        item[0].id == 'combined' && item[0].input_type == 'filtered'
+    }
 
     ch_versions = ch_versions.mix(ANNDATAR_CONVERT.out.versions.first())
 
