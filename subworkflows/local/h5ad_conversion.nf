@@ -12,7 +12,6 @@ workflow H5AD_CONVERSION {
 
     ch_versions = Channel.empty()
 
-    
     // Concat all raw and unfiltered h5ad files
     //
     ch_concat_h5ad_input = ch_h5ads
