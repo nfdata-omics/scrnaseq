@@ -6,11 +6,12 @@
 # MODULE IMPORT
 
 import warnings
-warnings.filterwarnings("ignore")
-
-import pathlib                      # library for handle filesystem paths
 import argparse                     # command line arguments parser
+import pathlib                      # library for handle filesystem paths
 import scanpy as sc                 # single-cell data processing
+
+
+warnings.filterwarnings("ignore")
 
 # PARAMETERS
 # set script version number
@@ -80,7 +81,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 NORMALIZATION
 # --------------------------------------------------------------------------------------------------------------------
-    #Saving count data before normalization
+    # Saving count data before normalization
     print("Saving count data before normalization in slot Count.")
     adata.layers["count"] = adata.X.copy()
 
@@ -107,7 +108,7 @@ def main():
     #Saving count data before normalization
     print("Saving lognormalized data in slot normalized")
     adata.layers["normalized"] = adata.X.copy()
-    print("Saving h5ad data to file {}".format(output))
+    print(f"Saving h5ad data to file {output}")
     adata.write(output)
     print("Done!")
 
@@ -116,4 +117,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
+    
