@@ -309,7 +309,7 @@ workflow SCRNASEQ {
     DOUBLETS_QUALITYFILTERING (
         H5AD_CONVERSION.out.rds_concat, 
         H5AD_CONVERSION.out.h5ads_concat,
-        params.mt
+        params.mt_threshold
     )
 
     //

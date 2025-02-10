@@ -49,7 +49,7 @@ def main():
                         required=True, help="paths of existing count matrix files in h5ad format (including file names)")
     parser.add_argument('-d','--input-csv-doublets',metavar= 'CSV_DOUBLETS_TABLE', type=pathlib.Path, dest='input_csv_table',
                         required=True, help="paths of existing count matrix files in h5ad format (including file names)")
-    parser.add_argument('-f', '--filter',dest='mt_percentage',type=float,default=15,help="parameters used to filter cells based on mithocondrial gene content")
+    parser.add_argument('-f', '--filter',dest='mt_threshold',type=float,default=15,help="parameters used to filter cells based on mithocondrial gene content")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered.h5ad",
                         help="path and name of the output h5ad file")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
@@ -65,7 +65,7 @@ def main():
     input_h5ad_file = args.input_h5ad_files
     input_csv_table = args.input_csv_table
     output =args.out
-    mt_percentage = args.mt_percentage
+    mt_threshold = args.mt_threshold
 
     # print info on the available matrices
     print("Reading combined count matrix from the following file:")
@@ -160,7 +160,7 @@ def main():
         print(f"\nVisualize density plot showing fraction of mitochondrial and ribosomal genes in {sample}")
         ax1 = plt.subplot(1, 2, 1)
         sns.histplot(adata[adata.obs['sample']== sample].obs['pct_counts_mt'], stat="count", bins=100, kde=True, color='limegreen', ax=ax1)
-        plt.axvline(mt_percentage, 0, 1, c='red', linestyle='--')
+        plt.axvline(mt_threshold, 0, 1, c='red', linestyle='--')
         ax1.set_xlim([0., 25.])
         ax2 = plt.subplot(1, 2, 2)
         sns.histplot(adata[adata.obs['sample']== sample].obs['pct_counts_ribo'], stat="count", bins=100, kde=True, color='deepskyblue', ax=ax2)
@@ -185,9 +185,9 @@ def main():
     print(f"Count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes after filtering")
     
     #Filter based on MT_PERCENTAGE
-    cell_number =adata[adata.obs.pct_counts_mt >= mt_percentage].shape[0]
-    print(f'''filter out {cell_number} cells for which the expression of mithocondrial genes is more than {mt_percentage}%''')
-    adata = adata[adata.obs.pct_counts_mt < mt_percentage, :]
+    cell_number =adata[adata.obs.pct_counts_mt >= mt_threshold].shape[0]
+    print(f'''filter out {cell_number} cells for which the expression of mithocondrial genes is more than {mt_threshold}%''')
+    adata = adata[adata.obs.pct_counts_mt < mt_threshold, :]
 
     #Filter based on number of cells
     min_cells = round(1/100 * adata.shape[0])

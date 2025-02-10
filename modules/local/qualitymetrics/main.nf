@@ -7,7 +7,7 @@ process QUALITY_FILTERING  {
     input:
     tuple val(meta), path(input_h5ad)
     path doublets_csv
-    val mt
+    val mt_threshold
     
     output:
     tuple val(meta), path("*.filtered.h5ad"), emit: h5ad
@@ -26,7 +26,7 @@ process QUALITY_FILTERING  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    qualitymetricsfilters.py -ad $input_h5ad -d $doublets_csv -f $mt
+    qualitymetricsfilters.py -ad $input_h5ad -d $doublets_csv -f $mt_threshold
     
     echo "" >> versions.yml
     cat <<-END_VERSIONS >> versions.yml
