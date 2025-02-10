@@ -2,10 +2,10 @@
 include { NORMALIZATION } from '../../modules/local/normalization'
 include { HIGHLY_VARIABLE_GENES } from '../../modules/local/highly_variable_genes'
 
-workflow H5AD_CONVERSION {
+workflow NORMALIZATION_AND_HVG {
 
     take:
-    ch_h5ads
+    h5ads
 
     main:
         ch_versions = Channel.empty()
@@ -14,7 +14,7 @@ workflow H5AD_CONVERSION {
         // MODULE: Normalize count matrices contained in the concatenated h5ad file
         //
         NORMALIZATION (
-            ch_h5ads
+            h5ads
         )
         ch_versions = ch_versions.mix(NORMALIZATION.out.versions.first())
 

@@ -23,7 +23,7 @@ include { GUNZIP as GUNZIP_FASTA                            } from '../modules/n
 include { GUNZIP as GUNZIP_GTF                              } from '../modules/nf-core/gunzip/main'
 include { H5AD_CONVERSION                                   } from '../subworkflows/local/h5ad_conversion'
 include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
-
+include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
 
 
 workflow SCRNASEQ {
@@ -281,23 +281,6 @@ workflow SCRNASEQ {
     ch_h5ads = MTX_TO_H5AD.out.h5ad
 
     //
-    // SUBWORKFLOW: Run h5ad conversion and concatenation
-    //
-    ch_emptydrops = Channel.empty()
-    H5AD_CONVERSION (
-        MTX_TO_H5AD.out.h5ad,
-        ch_input
-    )
-    ch_versions = ch_versions.mix(H5AD_CONVERSION.out.ch_versions)
-
-    //
-    // SUBWORKFLOW: Run normalization on the concatenated h5ad files
-    //
-    NORMALIZATION_AND_HVG (
-        H5AD_CONVERSION.out.h5ads
-    )
-
-    //
     // SUBWORKFLOW: Run cellbender remove background subworkflow
     //
     if ( !params.skip_cellbender && !(params.aligner in ['cellrangerarc']) ) {
@@ -317,6 +300,23 @@ workflow SCRNASEQ {
     H5AD_CONVERSION (
         ch_h5ads,
         ch_input
+    )
+    
+
+    //
+    // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
+    //
+    DOUBLETS_QUALITYFILTERING (
+        H5AD_CONVERSION.out.rds_concat, 
+        H5AD_CONVERSION.out.h5ads_concat,
+        params.mt_threshold
+    )
+
+    //
+    // SUBWORKFLOW: Run normalization on the concatenated h5ad files
+    //
+    NORMALIZATION_AND_HVG (
+        DOUBLETS_QUALITYFILTERING.out.h5ads
     )
 
     //

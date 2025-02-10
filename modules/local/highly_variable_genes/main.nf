@@ -1,18 +1,16 @@
 process HIGHLY_VARIABLE_GENES  {
     tag "$meta.id"
-
-    publishDir "results/table", pattern: "*.csv", mode:'copy'
-    publishDir "results/figures", pattern: "*.png", mode:'copy'
+    label 'process_single'
 
     container = 'docker.io/nfdata/sc_rnaseq:v1.0.0'
 
     input:
-    tuple val(run_id), path(counts_filtered)
+    tuple val(meta), path(input_h5ad)
 
     output:
-    tuple val(run_id), path("combined_matrix_DR.h5ad") , emit: h5ad
-    path "UMAP_coordinates.csv", emit: UMAP
-    path "UMAP_plot.png", emit: graph_UMAP
+    tuple val(meta), path("*.hvg.h5ad") , emit: h5ad
+    path "umap_coordinates.csv", emit: umap
+    path "umap_plot.png", emit: graph_umap
     path "versions.yml",  emit: versions
 
     when:
@@ -24,7 +22,7 @@ process HIGHLY_VARIABLE_GENES  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    feature_selection_dimensionality_red.py -ad $counts_filtered
+    feature_selection_dimensionality_red.py -ad $input_h5ad
 
     echo "" >> versions.yml
     cat <<-END_VERSIONS >> versions.yml
@@ -36,9 +34,9 @@ process HIGHLY_VARIABLE_GENES  {
 
     stub:
     """
-    touch combined_matrix_DR.h5ad
-    touch UMAP_coordinates.csv
-    touch UMAP_plot.png
+    touch matrix.hvg.h5ad
+    touch umap_coordinates.csv
+    touch umap_plot.png
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

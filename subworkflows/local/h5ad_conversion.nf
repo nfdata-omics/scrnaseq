@@ -12,7 +12,6 @@ workflow H5AD_CONVERSION {
 
     ch_versions = Channel.empty()
 
-    //
     // Concat all raw and unfiltered h5ad files
     //
     ch_concat_h5ad_input = ch_h5ads
@@ -25,17 +24,33 @@ workflow H5AD_CONVERSION {
     )
 
     ch_h5ad_concat = CONCAT_H5AD.out.h5ad
+    
+    // Filter input_type:'filtered'
+    ch_h5ad_concat_filtered = ch_h5ad_concat.filter { item ->
+        item[0].input_type == 'filtered'
+    }
+
     ch_versions = ch_versions.mix(CONCAT_H5AD.out.versions.first())
 
-    //
     // MODULE: Convert to RDS with AnndataR package
     //
     ANNDATAR_CONVERT (
         ch_h5ads.mix(ch_h5ad_concat)
     )
+    
+    ch_convert_concat = ANNDATAR_CONVERT.out.rds
+
+
+    ch_convert_concat_filtered = ch_convert_concat.filter {item ->
+        item[0].id == 'combined' && item[0].input_type == 'filtered'
+    }
+
     ch_versions = ch_versions.mix(ANNDATAR_CONVERT.out.versions.first())
 
+    
     emit:
     ch_versions
     h5ads = ch_h5ads
+    h5ads_concat = ch_h5ad_concat_filtered
+    rds_concat = ch_convert_concat_filtered
 }
