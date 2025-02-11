@@ -22,6 +22,8 @@ include { GTF_GENE_FILTER                                   } from '../modules/l
 include { GUNZIP as GUNZIP_FASTA                            } from '../modules/nf-core/gunzip/main'
 include { GUNZIP as GUNZIP_GTF                              } from '../modules/nf-core/gunzip/main'
 include { H5AD_CONVERSION                                   } from '../subworkflows/local/h5ad_conversion'
+include { CONCATENATE_VDJ                                   } from '../modules/local/concatenate_vdj'
+include { CONVERT_MUDATA                                    } from '../modules/local/convert'
 include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
 include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
 
@@ -302,22 +304,38 @@ workflow SCRNASEQ {
         ch_input
     )
     
+    //
+    // MODULE: Concat vdj samples and save as h5ad format
+    //
+
+    CONCATENATE_VDJ (
+        CELLRANGER_MULTI_ALIGN.out.cellranger_vdj
+        )
+
+    //
+    // SUBWORKFLOW: Concat GEX, VDJ and CITE data and save as MuData object
+    //
+
+    CONVERT_MUDATA(
+        H5AD_CONVERSION.out.h5ads_concat,
+        CONCATENATE_VDJ.out.h5ad
+        )
 
     //
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
-    DOUBLETS_QUALITYFILTERING (
-        H5AD_CONVERSION.out.rds_concat, 
-        H5AD_CONVERSION.out.h5ads_concat,
-        params.mt_threshold
-    )
+    //DOUBLETS_QUALITYFILTERING (
+    //    H5AD_CONVERSION.out.rds_concat, 
+    //    H5AD_CONVERSION.out.h5ads_concat,
+    //    params.mt_threshold
+    //)
 
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
-    NORMALIZATION_AND_HVG (
-        DOUBLETS_QUALITYFILTERING.out.h5ads
-    )
+    //NORMALIZATION_AND_HVG (
+    //    DOUBLETS_QUALITYFILTERING.out.h5ads
+    //)
 
     //
     // Collate and save software versions
