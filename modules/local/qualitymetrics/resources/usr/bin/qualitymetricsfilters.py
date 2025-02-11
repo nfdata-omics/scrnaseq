@@ -76,7 +76,7 @@ def main():
 #                                 READ H5AD FILES
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Read folders with the MTX combined count matrice and store datasets in a dictionary
+    # Read folders with the combined count matrice and store datasets in a dictionary
     print("\n===== READING COMBINED MATRIX =====")
     # read the count matrix for the combined samples and print some initial info
     print(f"\nProcessing MuData object in folder {input_h5mu_file} ... ", end ='')
