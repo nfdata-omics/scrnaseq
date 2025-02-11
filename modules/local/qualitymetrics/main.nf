@@ -5,12 +5,12 @@ process QUALITY_FILTERING  {
     container = 'docker.io/nfdata/sc_rnaseq:v1.0.0'
 
     input:
-    tuple val(meta), path(input_h5ad)
+    tuple val(meta), path(input_h5mu)
     path doublets_csv
     val mt_threshold
     
     output:
-    tuple val(meta), path("*.filtered.h5ad"), emit: h5ad
+    tuple val(meta), path("*.filtered.h5ad"), emit: h5mu
     path "Cells_before_filtering.png", emit: cells_before_filtering
     path "Cells_after_filtering.png", emit: cells_after_filtering
     path "QC_Density_*.png", emit: qc_density
@@ -26,7 +26,7 @@ process QUALITY_FILTERING  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    qualitymetricsfilters.py -ad $input_h5ad -d $doublets_csv -f $mt_threshold
+    qualitymetricsfilters.py -ad $input_h5mu -d $doublets_csv -f $mt_threshold
     
     echo "" >> versions.yml
     cat <<-END_VERSIONS >> versions.yml

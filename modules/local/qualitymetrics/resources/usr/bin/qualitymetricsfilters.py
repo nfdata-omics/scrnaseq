@@ -15,6 +15,7 @@ import scanpy as sc                 # single-cell data processing
 import matplotlib.pyplot as plt     # library for visualization
 import seaborn as sns               # library for statistical data visualization
 import mudata as md
+import muon as mu
 
 warnings.filterwarnings("ignore")
 # PARAMETERS
@@ -44,14 +45,14 @@ def main():
 
 #Define command line arguments with argparse
     parser = argparse.ArgumentParser(prog='QC_filter', usage='%(prog)s [options]', description = "QC metrics and filtering",
-                                    epilog = "This function calculates common quality control (QC) metrics for each sample, inspects QC plots for each sample and filters cells based on QC plots.",
+                                    epilog = "This function calculates common quality control (QC) metrics for each sample and modality, inspects QC plots for each sample and filters cells based on QC plots.",
                                     )
     parser.add_argument('-ad','--input-h5mu-combined',metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
-                        required=True, help="paths of existing count matrix files in h5mu format (including file names)")
+                        required=True, help="paths of existing matrix files in h5mu format (including file names)")
     parser.add_argument('-d','--input-csv-doublets',metavar= 'CSV_DOUBLETS_TABLE', type=pathlib.Path, dest='input_csv_table',
-                        required=True, help="paths of existing count matrix files in h5ad format (including file names)")
+                        required=True, help="paths of existing doublets table in csv format (including file names)")
     parser.add_argument('-f', '--filter',dest='mt_threshold',type=float,default=15,help="parameters used to filter cells based on mithocondrial gene content")
-    parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered.h5ad",
+    parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered.h5mu",
                         help="path and name of the output h5ad file")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
                         help="directory to save the results files (default is the current directory)")
@@ -69,7 +70,7 @@ def main():
     mt_threshold = args.mt_threshold
 
     # print info on the available matrices
-    print("Reading combined count matrix from the following file:")
+    print("Reading combined matix from the following file:")
     print(f"-File {input_h5mu_file}")
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ H5AD FILES
@@ -78,11 +79,11 @@ def main():
     # Read folders with the MTX combined count matrice and store datasets in a dictionary
     print("\n===== READING COMBINED MATRIX =====")
     # read the count matrix for the combined samples and print some initial info
-    print(f"\nProcessing count matrix in folder {input_h5mu_file} ... ", end ='')
+    print(f"\nProcessing MuData object in folder {input_h5mu_file} ... ", end ='')
 
-    mdata= md.read_h5ad(input_h5mu_file)
+    mdata= md.read(input_h5mu_file)
     print("Done!")
-    print(f"Count matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes")
+    print(f"MuData matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -94,10 +95,8 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 GEX MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
-  
+    print("\n===== GEX MODALITY DATA =====")
     gex = mdata.mod['gex']
-    print(gex)
-    print(mdata)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 FILTER DOUBLETS
@@ -107,7 +106,7 @@ def main():
     #print("\n===== FILTER OUT DOUBLETS =====")
     #Filter based on doublet score
     cell_doublets =gex[gex.obs["doublets"] == 'doublet'].shape[0]
-    print('''filter out {cell_doublets} cells which are doublets''')
+    print(f'''filter out {cell_doublets} cells which are doublets''')
     gex = gex[gex.obs.doublets != 'doublet', :]
     del gex.obs["doublets"]
     del gex.obs["doublet_score"]
@@ -119,7 +118,7 @@ def main():
     # Compute the fraction of mitochondrial, ribosomal and hemoglobin genes
 
     print("\n===== COMPUTE QUALITY METRICS {} =====")
-    print(f"\nCompute fraction of mitochondrial, ribosomal and hemoglobin genes for {input_h5ad_file}")
+    print(f"\nCompute fraction of mitochondrial, ribosomal and hemoglobin genes for {input_h5mu_file}")
 
     gex.var["mt"] = gex.var_names.str.startswith("MT-") | gex.var_names.str.startswith("mt-")
     gex.var["ribo"] = gex.var_names.str.startswith(("RPS", "RPL")) | gex.var_names.str.startswith(("rps", "rpl"))
@@ -189,24 +188,23 @@ def main():
 
     #Filter based on MIN_COUNT
     mu.pp.filter_obs(gex, 'total_counts',lambda x: x >= percentiles['total_counts'][5])
-    
+
     #Filter based on MIN_GENES
     mu.pp.filter_obs(gex, 'n_genes_by_counts',lambda x: x >= percentiles['n_genes_by_counts'][5])
 
-    print("Count matrix for combined samples has {} cells and {} genes after filtering".format(gex.shape[0],gex.shape[1]))
+    print(f"Count matrix for combined samples has {gex.shape[0]} cells and {gex.shape[1]} genes after filtering")
     #Filter based on MT_PERCENTAGE
-    cell_number =gex[gex.obs.pct_counts_mt >= MT_PERCENTAGE].shape[0]
+    cell_number =gex[gex.obs.pct_counts_mt >= mt_threshold].shape[0]
     print(cell_number)
-    print('filter out {} cells for which the expression of mithocondrial genes is more than {}%'.format(cell_number,MT_PERCENTAGE))
-    mu.pp.filter_obs(gex,'pct_counts_mt', lambda x: x < MT_PERCENTAGE)
-    
+    print(f'filter out {cell_number} cells for which the expression of mithocondrial genes is more than {mt_threshold}%')
+    mu.pp.filter_obs(gex,'pct_counts_mt', lambda x: x < mt_threshold)
 
     #Filter based on number of cells
-    MIN_CELLS = round(1/100 * gex.shape[0])
-    mu.pp.filter_var(gex, 'n_cells_by_counts', lambda x: x >= MIN_CELLS)
+    min_cells = round(1/100 * gex.shape[0])
+    mu.pp.filter_var(gex, 'n_cells_by_counts', lambda x: x >= min_cells)
 
 
-    print("Count matrix has {} cells and {} genes".format(gex.shape[0],gex.shape[1]))
+    print(f"Count matrix has {gex.shape[0]} cells and {gex.shape[1]} genes")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE QUALITY METRICS
@@ -229,9 +227,8 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
-    
     print("\n===== SAVING OUTPUT FILE =====")
-    print("Saving h5ad data to file {}".format(output))
+    print(f"Saving h5ad data to file {output}")
     mdata.write(output)
     print("Done!")
 
