@@ -6,7 +6,7 @@ workflow DOUBLETS_QUALITYFILTERING {
 
     take:
     ch_convert_concat_filtered
-    ch_h5ad_concat_filtered
+    ch_h5mu_concat_filtered
     mt_threshold
 
     main:
@@ -23,7 +23,7 @@ workflow DOUBLETS_QUALITYFILTERING {
         // MODULE: Filtered cells of low quality in the concatenated h5ad file
         //
         QUALITY_FILTERING (
-            ch_h5ad_concat_filtered,
+            ch_h5mu_concat_filtered,
             DOUBLETS.out.doublets,
             mt_threshold
         )

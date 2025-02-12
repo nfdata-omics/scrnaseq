@@ -17,6 +17,7 @@ import seaborn as sns               # library for statistical data visualization
 import mudata as md
 import muon as mu
 
+
 warnings.filterwarnings("ignore")
 # PARAMETERS
 # set script version number
@@ -53,7 +54,7 @@ def main():
                         required=True, help="paths of existing doublets table in csv format (including file names)")
     parser.add_argument('-f', '--filter',dest='mt_threshold',type=float,default=15,help="parameters used to filter cells based on mithocondrial gene content")
     parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered.h5mu",
-                        help="path and name of the output h5ad file")
+                        help="path and name of the output h5mu file")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
                         help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -63,7 +64,7 @@ def main():
 #                                 DEFINE SAMPLES AND MTX PATHS
 # --------------------------------------------------------------------------------------------------------------------
 
-    print("\n===== INPUT H5AD FILES =====")
+    print("\n===== INPUT H5MU FILES =====")
     input_h5mu_file = args.input_h5mu_files
     input_csv_table = args.input_csv_table
     output =args.out
@@ -73,7 +74,7 @@ def main():
     print("Reading combined matix from the following file:")
     print(f"-File {input_h5mu_file}")
 # --------------------------------------------------------------------------------------------------------------------
-#                                 READ H5AD FILES
+#                                 READ H5MU FILES
 # --------------------------------------------------------------------------------------------------------------------
 
     # Read folders with the combined count matrice and store datasets in a dictionary
@@ -228,7 +229,7 @@ def main():
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING OUTPUT FILE =====")
-    print(f"Saving h5ad data to file {output}")
+    print(f"Saving h5mu data to file {output}")
     mdata.write(output)
     print("Done!")
 
