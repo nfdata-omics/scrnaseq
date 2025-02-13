@@ -10,7 +10,6 @@ import argparse                     # command line arguments parser
 import pathlib                      # library for handle filesystem paths
 import scanpy as sc                 # single-cell data processing
 import mudata as md
-import muon as mu
 
 warnings.filterwarnings("ignore")
 
@@ -77,7 +76,7 @@ def main():
     mdata= md.read(input_h5mu_files)
 
     print("Done!")
-    print(f"Count matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes")
+    print(f"Count matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -122,7 +121,7 @@ def main():
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING OUTPUT FILE =====")
-    print(f"Saving h5ad data to file {output}")
+    print(f"Saving h5mu data to file {output}")
     mdata.write(output)
     print("Done!")
 

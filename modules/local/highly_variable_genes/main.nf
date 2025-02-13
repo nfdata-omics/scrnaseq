@@ -2,13 +2,13 @@ process HIGHLY_VARIABLE_GENES  {
     tag "$meta.id"
     label 'process_single'
 
-    container = 'docker.io/nfdata/sc_rnaseq:v1.0.0'
+    container = 'quay.io/biocontainers/scirpy:0.20.1--pyhdfd78af_0'
 
     input:
-    tuple val(meta), path(input_h5ad)
+    tuple val(meta), path(input_h5mu)
 
     output:
-    tuple val(meta), path("*.hvg.h5ad") , emit: h5ad
+    tuple val(meta), path("*.hvg.h5mu") , emit: h5mu
     path "umap_coordinates.csv", emit: umap
     path "umap_plot.png", emit: graph_umap
     path "versions.yml",  emit: versions
@@ -22,7 +22,7 @@ process HIGHLY_VARIABLE_GENES  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    feature_selection_dimensionality_red.py -ad $input_h5ad
+    feature_selection_dimensionality_red.py -ad $input_h5mu
 
     echo "" >> versions.yml
     cat <<-END_VERSIONS >> versions.yml
@@ -34,7 +34,7 @@ process HIGHLY_VARIABLE_GENES  {
 
     stub:
     """
-    touch matrix.hvg.h5ad
+    touch matrix.hvg.h5mu
     touch umap_coordinates.csv
     touch umap_plot.png
 

@@ -5,7 +5,7 @@ include { HIGHLY_VARIABLE_GENES } from '../../modules/local/highly_variable_gene
 workflow NORMALIZATION_AND_HVG {
 
     take:
-    h5ads
+    h5mus
 
     main:
         ch_versions = Channel.empty()

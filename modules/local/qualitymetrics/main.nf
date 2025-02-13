@@ -2,7 +2,8 @@ process QUALITY_FILTERING  {
     tag "$meta.id"
     label 'process_single'
 
-    container = 'docker.io/nfdata/sc_rnaseq:v1.0.0'
+    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.1'
+    
 
     input:
     tuple val(meta), path(input_h5mu)
@@ -10,7 +11,7 @@ process QUALITY_FILTERING  {
     val mt_threshold
     
     output:
-    tuple val(meta), path("*.filtered.h5ad"), emit: h5mu
+    tuple val(meta), path("*.filtered.h5mu"), emit: h5mu
     path "Cells_before_filtering.png", emit: cells_before_filtering
     path "Cells_after_filtering.png", emit: cells_after_filtering
     path "QC_Density_*.png", emit: qc_density
@@ -38,7 +39,7 @@ process QUALITY_FILTERING  {
     
     stub:
     """
-    touch matrix.filtered.h5ad
+    touch matrix.filtered.h5mu
     touch cells_before_filtering.png
     touch cells_after_filtering.png
 
