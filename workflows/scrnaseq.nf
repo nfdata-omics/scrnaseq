@@ -324,18 +324,18 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
-    //DOUBLETS_QUALITYFILTERING (
-    //    H5AD_CONVERSION.out.rds_concat, 
-    //    H5AD_CONVERSION.out.h5ads_concat,
-    //    params.mt_threshold
-    //)
+    DOUBLETS_QUALITYFILTERING (
+        H5AD_CONVERSION.out.rds_concat, 
+        CONVERT_MUDATA.out.h5mu,
+        params.mt_threshold
+    )
 
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
-    //NORMALIZATION_AND_HVG (
-    //    DOUBLETS_QUALITYFILTERING.out.h5ads
-    //)
+    NORMALIZATION_AND_HVG (
+        DOUBLETS_QUALITYFILTERING.out.h5mus
+    )
 
     //
     // Collate and save software versions
