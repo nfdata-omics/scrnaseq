@@ -45,8 +45,6 @@ def main():
                         help="paths of existing count matrix files in h5ad format (including file names)")
     parser.add_argument('-ai', '--input-vdj-file', metavar='VDJ_INPUT_FILES',type=pathlib.Path, dest='input_vdj_files',
                         help="paths of existing vdj matrix files in h5ad format (including file names)")
-    parser.add_argument('-p', '--input-prot-file', metavar='AB_INPUT_FILES',type=pathlib.Path, dest='input_ab_files',
-                        help="paths of existing ab matrix files in h5ad format (including file names)")
     parser.add_argument('-o', '--out', metavar='MUDATA_OUTPUT_FILE', type=pathlib.Path, default="matrix.mudata.h5mu",
                         help="name of the muData object")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -59,7 +57,6 @@ def main():
     print("\n===== INPUT GEX and VDJ FILES =====")
     input_gex_file = args.input_gex_files
     input_vdj_file = args.input_vdj_files
-    input_ab_file = args.input_ab_files
     output = args.out
 
     # print info on the available matrices
@@ -69,20 +66,18 @@ def main():
     print("Reading filtered annotation table from the following file:")
     print(f"-File {input_vdj_file}")
 
-    print("Reading combined ab count matrix from the following file:")
-    print(f"-File {input_ab_file}")
-
 # --------------------------------------------------------------------------------------------------------------------
-#                                 READ GEX FILES
+#                                 READ GEX AND AB FILES
 # --------------------------------------------------------------------------------------------------------------------
     if input_gex_file:
         # Read folders with the MTX combined count matrice and store datasets in a dictionary
         print("\n===== READING COMBINED MATRIX =====")
         # read the gex count matrix for the combined samples and print some initial info
         print("\nProcessing count matrix in folder ... ", end ='')
-        adata_gex= sc.read_h5ad(input_gex_file)
+        adata= sc.read_h5ad(input_gex_file)
         print("Done!")
-        print(f"Gex count matrix for combined samples has {adata_gex.shape[0]} cells and {adata_gex.shape[1]} genes")
+        print(adata.var["feature_types"].unique())
+        print(f"Gex count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes")
     else:
         print("No valid input file provided. Skipping reading of the count matrix.")
 
@@ -100,30 +95,18 @@ def main():
         print("No valid input file provided. Skipping reading of the vdj annotation.")
 
 # --------------------------------------------------------------------------------------------------------------------
-#                                 READ AB FILES
-# --------------------------------------------------------------------------------------------------------------------
-    if input_ab_file:
-        # Read folders with the contigue annotation and store datasets in a dictionary
-        print("\n===== READING CONTIGUE ANNOTATION MATRIX =====")
-        # read the ab count matrix for the combined samples and print some initial info
-        print("\nProcessing count matrix in folder ... ", end ='')
-        adata_ab= sc.read_10x_h5(input_ab_file)
-        print("Done!")
-        print(f"ab count matrix for combined samples has {adata_ab.shape[0]} cells and {adata_ab.shape[1]} genes")
-    else:
-        print("No valid input file provided. Skipping reading of the ab count matrix.")
-
-
-# --------------------------------------------------------------------------------------------------------------------
 #                                 CREATE MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
     #Creates dictionary to store all modalities
     dati = {}
-
     try:
         # Add 'gex' modality if defined
-        if adata_gex is not None:
-            dati["gex"] = adata_gex
+        if adata[:, adata.var["feature_types"] == "Gene Expression"].shape[1] > 0:
+            dati["gex"] = adata[:, adata.var["feature_types"] == "Gene Expression"]
+        
+        # Add 'pro' modality if defined
+        if adata[:, adata.var["feature_types"] == "Antibody Capture"].shape[1] > 0:
+            dati["pro"] = adata[:, adata.var["feature_types"] == "Antibody Capture"]
     except NameError:
         pass
 
@@ -131,13 +114,6 @@ def main():
         # Add 'airr' modality if defined
         if adata_vdj is not None:
             dati["airr"] = adata_vdj
-    except NameError:
-        pass
-
-    try:
-        # Add 'pro' modality if defined
-        if adata_ab is not None:
-            dati["pro"] = adata_ab
     except NameError:
         pass
 
