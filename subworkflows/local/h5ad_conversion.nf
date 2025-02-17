@@ -29,7 +29,11 @@ workflow H5AD_CONVERSION {
     ch_h5ad_concat_filtered = ch_h5ad_concat.filter { item ->
         item[0].input_type == 'filtered'
     }
-
+    // Filter input_type:'raw'
+    ch_h5ad_concat_raw = ch_h5ad_concat.filter { item ->
+        item[0].input_type == 'raw'
+    }
+    
     ch_versions = ch_versions.mix(CONCAT_H5AD.out.versions.first())
 
     // MODULE: Convert to RDS with AnndataR package
@@ -52,5 +56,6 @@ workflow H5AD_CONVERSION {
     ch_versions
     h5ads = ch_h5ads
     h5ads_concat = ch_h5ad_concat_filtered
+    h5ads_concat_raw = ch_h5ad_concat_raw
     rds_concat = ch_convert_concat_filtered
 }
