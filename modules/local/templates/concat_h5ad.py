@@ -66,9 +66,7 @@ if __name__ == "__main__":
     all_var = pd.concat(all_var, join="outer")
     # remove duplicates
     all_var = all_var[~all_var.index.duplicated()]
-    print(all_var)
     adata.var = all_var.loc[adata.var_names]
-    print(adata.var)
 
     # merge with data.frame, on sample information
     adata.obs = adata.obs.join(df_samplesheet, on="sample", how="left").astype(str)
