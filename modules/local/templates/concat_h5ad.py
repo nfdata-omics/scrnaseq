@@ -58,7 +58,17 @@ if __name__ == "__main__":
     dict_of_h5ad = {str(path).replace("_matrix.h5ad", ""): sc.read_h5ad(path) for path in Path(".").rglob("*.h5ad")}
 
     # concat h5ad files
-    adata = ad.concat(dict_of_h5ad, label="sample", merge="unique", index_unique="_")
+    adata = ad.concat(dict_of_h5ad, label="sample",join="outer", index_unique="_")
+
+    # grab all var DataFrames from dictionary
+    all_var = [x.var for x in dict_of_h5ad.values()]
+    # concatenate them
+    all_var = pd.concat(all_var, join="outer")
+    # remove duplicates
+    all_var = all_var[~all_var.index.duplicated()]
+    print(all_var)
+    adata.var = all_var.loc[adata.var_names]
+    print(adata.var)
 
     # merge with data.frame, on sample information
     adata.obs = adata.obs.join(df_samplesheet, on="sample", how="left").astype(str)
