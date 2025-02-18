@@ -2,10 +2,11 @@ process NORMALIZATION   {
     tag "$meta.id"
     label 'process_single'
 
-    container = 'quay.io/biocontainers/scirpy:0.20.1--pyhdfd78af_0'
+    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.1'
 
     input:
     tuple val(meta), path(input_h5mu)
+    tuple val(meta), path(input_raw_h5ad)
 
     output:
     tuple val(meta), path("*.norm.h5mu"), emit: h5mu
@@ -20,7 +21,7 @@ process NORMALIZATION   {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    normalization.py -ad $input_h5mu
+    normalization.py -ad $input_h5mu -r $input_raw_h5ad
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":

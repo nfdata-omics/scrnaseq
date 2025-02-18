@@ -6,6 +6,7 @@ workflow NORMALIZATION_AND_HVG {
 
     take:
     h5mus
+    ch_h5ad_concat_raw
 
     main:
         ch_versions = Channel.empty()
@@ -14,7 +15,8 @@ workflow NORMALIZATION_AND_HVG {
         // MODULE: Normalize count matrices contained in the concatenated h5ad file
         //
         NORMALIZATION (
-            h5mus
+            h5mus,
+            ch_h5ad_concat_raw
         )
         ch_versions = ch_versions.mix(NORMALIZATION.out.versions.first())
 
