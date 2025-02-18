@@ -16,6 +16,7 @@ process QUALITY_FILTERING  {
     path "Cells_after_filtering.png", emit: cells_after_filtering
     path "QC_Density_*.png", emit: qc_density
     path "QC_Density_MT-Ribo*.png", emit: qc_density_mito
+    path "ADTs_Distribution_*.png", emit: adts_distribution
     path "versions.yml",  emit: versions
 
     when:
