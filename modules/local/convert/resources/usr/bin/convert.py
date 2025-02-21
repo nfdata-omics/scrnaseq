@@ -76,7 +76,6 @@ def main():
         print("\nProcessing count matrix in folder ... ", end ='')
         adata= sc.read_h5ad(input_gex_file)
         print("Done!")
-        print(adata.var["feature_types"].unique())
         print(f"Gex count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes")
     else:
         print("No valid input file provided. Skipping reading of the count matrix.")
@@ -103,10 +102,11 @@ def main():
         # Add 'gex' modality if defined
         if adata[:, adata.var["feature_types"] == "Gene Expression"].shape[1] > 0:
             dati["gex"] = adata[:, adata.var["feature_types"] == "Gene Expression"]
-        
+            print(dati["gex"])
         # Add 'pro' modality if defined
         if adata[:, adata.var["feature_types"] == "Antibody Capture"].shape[1] > 0:
             dati["pro"] = adata[:, adata.var["feature_types"] == "Antibody Capture"]
+            print(dati["pro"])
     except NameError:
         pass
 

@@ -93,6 +93,7 @@ def main():
     #print("\n===== READING DOUBLETS TABLE =====")
     input_csv_table_file=pd.read_csv(input_csv_table,index_col=0)
 
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 GEX MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
@@ -227,7 +228,6 @@ def main():
         print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
         mdata.mod['gex'] = gex
         mdata.update()
-    
     else:
         print("GEX modality does not exist in mdata.mod.")
 
@@ -257,19 +257,20 @@ def main():
 # Visualize quality metrics: distribution of ADTs.....
 #Added filters on samples with Antibody Capture feature type
 
-        fig, ax = plt.subplots(figsize=(40,10))
-
         print("\nVisualized the distribution of ADTs per cell over all samples before filtering")
         for sample in pro.obs['sample'].unique():
-            #if 'Antibody Capture' in pro[pro.obs['sample']== sample].var['feature_types']:
-            print(f"\nVisualized the distribution of ADTs per cell per {sample} before filtering ")
-            ax1 = plt.subplot(1, 2, 1)
-            sns.histplot(pro[pro.obs['sample']== sample].obs.n_genes_by_counts)
-            ax2 = plt.subplot(1, 2, 2)
-            sns.histplot(pro[pro.obs['sample']== sample].obs.total_counts)
-            plt.tight_layout()
-            plt.savefig(os.path.join(args.results, f'ADTs_Distribution_{sample}.png'))
-            plt.close()
+            if (pro[pro.obs['sample'] == sample].obs["feature_type"].str.contains("ab")).any():
+                print(f"\nVisualized the distribution of ADTs per cell per {sample} before filtering ")
+                ax1 = plt.subplot(1, 2, 1)
+                sns.histplot(pro[pro.obs['sample']== sample].obs.total_counts,ax=ax1)
+                ax1.set_xlim([0., 1000.])
+                ax2 = plt.subplot(1, 2, 2)
+                sns.histplot(pro[pro.obs['sample']== sample].obs.n_genes_by_counts,ax=ax2)
+                ax2.set_xlim([0., 100.])
+                plt.savefig(os.path.join(args.results, f'ADTs_Distribution_{sample}.png'))
+                plt.close()
+            else:
+                print(f"\nNo Antibody Capture feature type in {sample}")
     else:
         print("CITE modality does not exist in mdata.mod.")
 
