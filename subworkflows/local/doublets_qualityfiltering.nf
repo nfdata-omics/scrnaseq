@@ -31,6 +31,6 @@ workflow DOUBLETS_QUALITYFILTERING {
         
     emit:
     ch_versions
-    h5mus = QUALITY_FILTERING.out.h5mu
+    h5mu = QUALITY_FILTERING.out.h5mu
 
 }

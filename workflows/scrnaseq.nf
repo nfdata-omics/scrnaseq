@@ -23,7 +23,7 @@ include { GUNZIP as GUNZIP_FASTA                            } from '../modules/n
 include { GUNZIP as GUNZIP_GTF                              } from '../modules/nf-core/gunzip/main'
 include { H5AD_CONVERSION                                   } from '../subworkflows/local/h5ad_conversion'
 include { CONCATENATE_VDJ                                   } from '../modules/local/concatenate_vdj'
-include { CONVERT_MUDATA                                    } from '../modules/local/convert'
+include { CONVERT_MUDATA                                    } from '../modules/local/convert_mudata'
 include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
 include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
 
@@ -309,7 +309,7 @@ workflow SCRNASEQ {
     //
 
     CONCATENATE_VDJ (
-        CELLRANGER_MULTI_ALIGN.out.cellranger_vdj
+        CELLRANGER_MULTI_ALIGN.out.vdj
         )
 
     //
@@ -317,7 +317,7 @@ workflow SCRNASEQ {
     //
 
     CONVERT_MUDATA(
-        H5AD_CONVERSION.out.h5ads_concat,
+        H5AD_CONVERSION.out.h5ad,
         CONCATENATE_VDJ.out.h5ad
         )
 
@@ -334,8 +334,8 @@ workflow SCRNASEQ {
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
     NORMALIZATION_AND_HVG (
-        DOUBLETS_QUALITYFILTERING.out.h5mus,
-        H5AD_CONVERSION.out.h5ads_concat_raw
+        DOUBLETS_QUALITYFILTERING.out.h5mu,
+        H5AD_CONVERSION.out.h5ad_raw
 
     )
 

@@ -55,7 +55,7 @@ workflow H5AD_CONVERSION {
     emit:
     ch_versions
     h5ads = ch_h5ads
-    h5ads_concat = ch_h5ad_concat_filtered
-    h5ads_concat_raw = ch_h5ad_concat_raw
+    h5ad = ch_h5ad_concat_filtered
+    h5ad_raw = ch_h5ad_concat_raw
     rds_concat = ch_convert_concat_filtered
 }

@@ -232,7 +232,7 @@ workflow CELLRANGER_MULTI_ALIGN {
         cellrangermulti_out          = CELLRANGER_MULTI.out.outs
         cellrangermulti_mtx_raw      = ch_matrices_raw
         cellrangermulti_mtx_filtered = ch_matrices_filtered
-        cellranger_vdj               = ch_transformed_channel
+        vdj                          = ch_transformed_channel
 }
 
 def parse_demultiplexed_output_channels(in_ch, pattern) {

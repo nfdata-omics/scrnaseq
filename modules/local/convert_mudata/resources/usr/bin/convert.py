@@ -97,28 +97,26 @@ def main():
 #                                 CREATE MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
     #Creates dictionary to store all modalities
-    dati = {}
+    modalities = {}
     try:
         # Add 'gex' modality if defined
         if adata[:, adata.var["feature_types"] == "Gene Expression"].shape[1] > 0:
-            dati["gex"] = adata[:, adata.var["feature_types"] == "Gene Expression"]
-            print(dati["gex"])
+            modalities["gex"] = adata[:, adata.var["feature_types"] == "Gene Expression"]
         # Add 'pro' modality if defined
         if adata[:, adata.var["feature_types"] == "Antibody Capture"].shape[1] > 0:
-            dati["pro"] = adata[:, adata.var["feature_types"] == "Antibody Capture"]
-            print(dati["pro"])
+            modalities["pro"] = adata[:, adata.var["feature_types"] == "Antibody Capture"]
     except NameError:
         pass
 
     try:
         # Add 'airr' modality if defined
         if adata_vdj is not None:
-            dati["airr"] = adata_vdj
+            modalities["airr"] = adata_vdj
     except NameError:
         pass
 
     # Creates MuData object
-    mdata = MuData(dati)
+    mdata = MuData(modalities)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
