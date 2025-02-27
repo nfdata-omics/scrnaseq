@@ -202,7 +202,7 @@ workflow CELLRANGER_MULTI_ALIGN {
         ch_matrices_filtered = parse_demultiplexed_output_channels( CELLRANGER_MULTI.out.outs, "filtered_feature_bc_matrix" )
         ch_matrices_raw      = parse_demultiplexed_output_channels( CELLRANGER_MULTI.out.outs, "raw_feature_bc_matrix"      )
 
-        // Extract filtered_contig_annotation file for each sample to computre the concatenation.
+        // Extract filtered_contig_annotation file for each sample to compute the concatenation.
         ch_vdj_files =
             CELLRANGER_MULTI.out.outs.map { meta, outs ->
             def desired_files = outs.findAll { it.name == "filtered_contig_annotations.csv" }

@@ -310,7 +310,7 @@ workflow SCRNASEQ {
 
     CONCATENATE_VDJ (
         CELLRANGER_MULTI_ALIGN.out.vdj
-        )
+    )
 
     //
     // SUBWORKFLOW: Concat GEX, VDJ and CITE data and save as MuData object
@@ -336,9 +336,8 @@ workflow SCRNASEQ {
     NORMALIZATION_AND_HVG (
         DOUBLETS_QUALITYFILTERING.out.h5mu,
         H5AD_CONVERSION.out.h5ad_raw
-
     )
-
+    
     //
     // Collate and save software versions
     //
