@@ -22,6 +22,8 @@ include { GTF_GENE_FILTER                                   } from '../modules/l
 include { GUNZIP as GUNZIP_FASTA                            } from '../modules/nf-core/gunzip/main'
 include { GUNZIP as GUNZIP_GTF                              } from '../modules/nf-core/gunzip/main'
 include { H5AD_CONVERSION                                   } from '../subworkflows/local/h5ad_conversion'
+include { CONCATENATE_VDJ                                   } from '../modules/local/concatenate_vdj'
+include { CONVERT_MUDATA                                    } from '../modules/local/convert_mudata'
 include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
 include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
 
@@ -301,23 +303,44 @@ workflow SCRNASEQ {
         ch_h5ads,
         ch_input
     )
-    
+    ch_versions = ch_versions.mix(H5AD_CONVERSION.out.ch_versions)
 
+    //
+    // MODULE: Concat vdj samples and save as h5ad format
+    //
+
+    CONCATENATE_VDJ (
+        CELLRANGER_MULTI_ALIGN.out.vdj
+    )
+    ch_versions = ch_versions.mix(CONCATENATE_VDJ.out.versions)
+
+    //
+    // SUBWORKFLOW: Concat GEX, VDJ and CITE data and save as MuData object
+    //
+
+    CONVERT_MUDATA(
+        H5AD_CONVERSION.out.h5ad,
+        CONCATENATE_VDJ.out.h5ad
+        )
+    ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
     //
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
     DOUBLETS_QUALITYFILTERING (
         H5AD_CONVERSION.out.rds_concat, 
-        H5AD_CONVERSION.out.h5ads_concat,
+        CONVERT_MUDATA.out.h5mu,
         params.mt_threshold
     )
+    ch_versions = ch_versions.mix(DOUBLETS_QUALITYFILTERING.out.ch_versions)
 
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
     NORMALIZATION_AND_HVG (
-        DOUBLETS_QUALITYFILTERING.out.h5ads
+        DOUBLETS_QUALITYFILTERING.out.h5mu,
+        H5AD_CONVERSION.out.h5ad_raw
     )
+    ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
 
     //
     // Collate and save software versions

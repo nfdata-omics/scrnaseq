@@ -11,6 +11,7 @@ import pathlib                      # library for handle filesystem paths
 import matplotlib.pyplot as plt     # library for visualization
 import pandas as pd                 # library for data analysis and manipulation
 import scanpy as sc                 # single-cell data processing
+import mudata as md
 
 
 warnings.filterwarnings("ignore")
@@ -43,9 +44,9 @@ def main():
 
     parser = argparse.ArgumentParser(prog='DimRed', usage='%(prog)s [options]',description = "Feature selection and dimensionality reduction",
         epilog = "This function reduce the dimensionality of the dataset and only include the most informative genes.")
-    parser.add_argument('-ad','--input-h5ad-file',metavar= 'H5AD_INPUT_FILES', type=pathlib.Path, dest='input_h5ad_files',
+    parser.add_argument('-ad','--input-h5mu-file',metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
                         required=True, help="paths of existing count matrix files in h5 format (including file names)")
-    parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.hvg.h5ad",
+    parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.hvg.h5mu",
                         help="name of the output h5ad file after dimensionality reduction")
     parser.add_argument('-csv', '--csv_out', metavar='CSV_TABLE',type=pathlib.Path, default="umap_coordinates.csv",
                         help="csv tabel with UMAP coordinates for each cell")
@@ -58,13 +59,13 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
     print("\n===== INPUT H5AD FILES =====")
-    input_h5ad_file = args.input_h5ad_files
+    input_h5mu_file = args.input_h5mu_files
     output = args.out
     output_csv=args.csv_out
 
 # print info on the available matrices
     print("Reading combined count matrix from the following file:")
-    print(f"-File {input_h5ad_file}:")
+    print(f"-File {input_h5mu_file}:")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ H5AD FILES
@@ -74,9 +75,15 @@ def main():
     print("\n===== READING COMBINED MATRIX =====")
     # read the count matrix for the combined samples and print some initial info
     print("\nProcessing count matrix in folder ... ", end ='')
-    adata= sc.read_h5ad(input_h5ad_file)
+    mdata= md.read(input_h5mu_file)
     print("Done!")
-    print(f"Count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes")
+    print(f"Count matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 GEX MODALITY DATA
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== GEX MODALITY DATA =====")
+    gex = mdata.mod['gex']
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 FEATURE SELECTION & DIMENSIONALITY REDUCTION
@@ -85,12 +92,11 @@ def main():
     print("\n===== FEATURE SELECTION =====")
     # select highly=variable genes for each sample
     print("\nSelecting highly-variable genes are selected within each batch separately and merged")
-
-    sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5,batch_key = 'sample',subset=False)
-    
+    sc.pp.highly_variable_genes(gex, min_mean=0.0125, max_mean=3, min_disp=0.5,batch_key = 'sample',subset=False)
+ 
     print("\n===== DIMENSIONALITY REDUCTION =====")
     print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
-    sc.tl.pca(adata,use_highly_variable = False, n_comps=8)
+    sc.tl.pca(gex,use_highly_variable = False, n_comps=50)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION
@@ -98,11 +104,11 @@ def main():
 
     print("\n===== NEAREST NEIGHBOR GRAPH CONSTRUCTION =====")
     print("\nConstruction of the nearest neighbor graph")
-    sc.pp.neighbors(adata,n_neighbors=15)
+    sc.pp.neighbors(gex,n_neighbors=15)
 
     print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
     print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
-    sc.tl.umap(adata,min_dist=0.5)
+    sc.tl.umap(gex,min_dist=0.5)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
@@ -110,22 +116,26 @@ def main():
 
     # Visualize UMAP plot
     print("\nVisualized UMAP plot")
-    sc.pl.umap(adata, color ='sample',legend_loc='on data',show=False)
+    sc.pl.umap(gex, color ='sample',legend_loc='on data',show=False)
     plt.savefig(os.path.join(args.results,'umap_plot.png'))
     plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
+#                           SAVE GEX DATA INTO MUDATA OBJECT
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
+    mdata.mod['gex'] = gex
+    mdata.update()
+
+# --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
-
-
     print("\n===== SAVING OUTPUT FILE =====")
-
-    print(f"Saving h5ad data to file {output}")
-    adata.write(output)
+    print(f"Saving h5mu data to file {output}")
+    mdata.write(output)
     print("Done!")
 
-    df = pd.DataFrame(adata.obsm["X_umap"], index=adata.obs_names).rename(columns={0: "X_UMAP", 1: "Y_UMAP"})
+    df = pd.DataFrame(gex.obsm["X_umap"], index=gex.obs_names).rename(columns={0: "X_UMAP", 1: "Y_UMAP"})
     df.index.name = 'cell_barcodes'
     print(f"Saving csv table with UMAP coordinates for each cell {output_csv}")
     df.to_csv(output_csv)
