@@ -2,13 +2,14 @@ process NORMALIZATION   {
     tag "$meta.id"
     label 'process_single'
 
-    container 'docker.io/nfdata/sc_rnaseq:v1.0.0'
+    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.1'
 
     input:
-    tuple val(meta), path(input_h5ad)
+    tuple val(meta), path(input_h5mu)
+    tuple val(meta), path(input_raw_h5ad)
 
     output:
-    tuple val(meta), path("*.norm.h5ad"), emit: h5ad
+    tuple val(meta), path("*.norm.h5mu"), emit: h5mu
     path "versions.yml",  emit: versions
 
     when:
@@ -20,22 +21,22 @@ process NORMALIZATION   {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    normalization.py -ad $input_h5ad
+    normalization.py -ad $input_h5mu -r $input_raw_h5ad
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
+        normalization.py --version >> versions.yml
     END_VERSIONS
-    normalization.py --version >> versions.yml
     """
 
     stub:
     """
-    touch matrix.norm.h5ad
+    touch matrix.norm.h5mu
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
+        normalization.py --version >> versions.yml
     END_VERSIONS
-    normalization.py --version >> versions.yml
     """
 
 }

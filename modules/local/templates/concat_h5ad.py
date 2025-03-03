@@ -5,7 +5,9 @@ import os
 
 os.environ["NUMBA_CACHE_DIR"] = "."
 
-import scanpy as sc, anndata as ad, pandas as pd
+import scanpy as sc
+import anndata as ad
+import pandas as pd
 from pathlib import Path
 import platform
 
@@ -13,6 +15,7 @@ import platform
 def read_samplesheet(samplesheet):
     df = pd.read_csv(samplesheet)
     df.set_index("sample")
+    df['feature_type'] = df['feature_type'].fillna('unknown').astype(str)
 
     # samplesheet may contain replicates, when it has,
     # group information from replicates and collapse with commas
@@ -58,10 +61,20 @@ if __name__ == "__main__":
     dict_of_h5ad = {str(path).replace("_matrix.h5ad", ""): sc.read_h5ad(path) for path in Path(".").rglob("*.h5ad")}
 
     # concat h5ad files
-    adata = ad.concat(dict_of_h5ad, label="sample", merge="unique", index_unique="_")
+    adata = ad.concat(dict_of_h5ad, label="sample",join="outer", index_unique="_")
+
+    # grab all var DataFrames from dictionary
+    all_var = [x.var for x in dict_of_h5ad.values()]
+    # concatenate them
+    all_var = pd.concat(all_var, join="outer")
+    # remove duplicates
+    all_var = all_var[~all_var.index.duplicated()]
+    adata.var = all_var.loc[adata.var_names]
 
     # merge with data.frame, on sample information
+    adata.obs['sample'] = adata.obs['sample'].str.replace('_filtered', '', regex=False).str.strip()
     adata.obs = adata.obs.join(df_samplesheet, on="sample", how="left").astype(str)
+    print(adata.obs)
     adata.write_h5ad("${meta.id}_${meta.input_type}_matrix.h5ad")
 
     print("Wrote h5ad file to {}".format("${meta.id}_${meta.input_type}_matrix.h5ad"))
