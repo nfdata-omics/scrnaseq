@@ -20,9 +20,8 @@ process DOUBLETS  {
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
+        doublets.R --version >> versions.yml
     END_VERSIONS
-    doublets.R --version >> versions.yml
-
     """
     
     stub:
@@ -31,8 +30,7 @@ process DOUBLETS  {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
+        doublets.R --version >> versions.yml  
     END_VERSIONS
-    doublets.R --version >> versions.yml  
-    
     """
 }

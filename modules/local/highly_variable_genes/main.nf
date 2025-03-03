@@ -24,12 +24,10 @@ process HIGHLY_VARIABLE_GENES  {
 
     feature_selection_dimensionality_red.py -ad $input_h5mu
 
-    echo "" >> versions.yml
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
+        feature_selection_dimensionality_red.py --version >> versions.yml
     END_VERSIONS
-    feature_selection_dimensionality_red.py --version >> versions.yml
-
     """
 
     stub:
@@ -40,8 +38,7 @@ process HIGHLY_VARIABLE_GENES  {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
+        feature_selection_dimensionality_red.py --version >> versions.yml
     END_VERSIONS
-    feature_selection_dimensionality_red.py --version >> versions.yml
-
     """
 }

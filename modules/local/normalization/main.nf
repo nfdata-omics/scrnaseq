@@ -25,8 +25,8 @@ process NORMALIZATION   {
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
+        normalization.py --version >> versions.yml
     END_VERSIONS
-    normalization.py --version >> versions.yml
     """
 
     stub:
@@ -35,8 +35,8 @@ process NORMALIZATION   {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
+        normalization.py --version >> versions.yml
     END_VERSIONS
-    normalization.py --version >> versions.yml
     """
 
 }

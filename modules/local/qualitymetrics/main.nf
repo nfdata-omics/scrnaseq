@@ -30,12 +30,10 @@ process QUALITY_FILTERING  {
 
     qualitymetricsfilters.py -ad $input_h5mu -d $doublets_csv -f $mt_threshold
     
-    echo "" >> versions.yml
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
+        qualitymetricsfilters.py --version >> versions.yml
     END_VERSIONS
-    qualitymetricsfilters.py --version >> versions.yml
-    
     """
     
     stub:
@@ -46,8 +44,7 @@ process QUALITY_FILTERING  {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
+        qualitymetricsfilters.py --version >> versions.yml
     END_VERSIONS
-    qualitymetricsfilters.py --version >> versions.yml
-    
     """
 }
