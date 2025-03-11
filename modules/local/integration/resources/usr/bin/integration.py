@@ -1,0 +1,195 @@
+#!/usr/bin/env python3
+# ====================================================================================================================
+#                                          PRELIMINARIES
+# ====================================================================================================================
+
+# MODULE IMPORT
+import warnings
+import argparse                     # command line arguments parser
+import os                           # filesystem utilities
+import pathlib                      # library for handle filesystem paths
+import matplotlib.pyplot as plt     # library for visualization
+import seaborn as sns               # library for statistical data visualization
+import pandas as pd                 # library for data analysis and manipulation
+import scanpy as sc                 # single-cell data processing
+import anndata as ad                # store annotated matrix as anndata object
+import mudata as md
+import pandas as pd                 # library for data analysis and manipulation 
+import pathlib                      # library for handle filesystem paths
+import scanpy.external as sce       # library for harmony integration
+
+warnings.filterwarnings("ignore")
+# PARAMETERS
+
+# set script version number
+VERSION = "0.0.1"
+
+# ====================================================================================================================
+#                                          MAIN FUNCTION
+# ====================================================================================================================
+
+def main():
+    """
+    This function integrates single-cell data from multiple experiments.
+    """
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                          LIBRARY CONFIG
+# --------------------------------------------------------------------------------------------------------------------
+
+    sc.settings.verbosity = 3             # verbosity: errors (0), warnings (1), info (2), hints (3)
+    sc.logging.print_header()
+    
+# --------------------------------------------------------------------------------------------------------------------
+#                                          INPUT FROM COMMAND LINE
+# --------------------------------------------------------------------------------------------------------------------
+
+# Define command line arguments with argparse
+
+    parser = argparse.ArgumentParser(prog='Int',usage='%(prog)s [options]',description = "Data integration",
+        epilog = "This function integrate the single-cell dataset based on run_id.")
+    parser.add_argument('-ad','--input-h5mu-file',metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
+                        required=True, help="paths of existing count matrix files in h5 format (including file names)")
+    parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.integrated.h5mu",
+                        help="name of the output h5ad file after integration")
+    parser.add_argument('-csv', '--csv_out', metavar='CSV_TABLE',type=pathlib.Path,default="Harmony_UMAP_coordinates_GEX.csv",
+                        help="path and name of csv tabel with UMAP coordinates for each cell")
+    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),help="directory to save the results files (default is the current directory)")
+    parser.add_argument('-v', '--version', action='version', version=VERSION)
+    args = parser.parse_args()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 DEFINE SAMPLES AND MTX PATHS
+# --------------------------------------------------------------------------------------------------------------------
+
+    print("\n===== INPUT H5AD FILES =====")
+    input_h5mu_file = args.input_h5mu_files
+    output = args.out
+    output_csv=args.csv_out
+
+# print info on the available matrices
+    print("Reading combined count matrix from the following file:")
+    print(f"-File {input_h5mu_file}:")
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 READ H5AD FILES
+# --------------------------------------------------------------------------------------------------------------------
+
+    # Read folders with the MTX combined count matrice and store datasets in a dictionary
+    print("\n===== READING COMBINED MATRIX =====")
+    # read the count matrix for the combined samples and print some initial info
+    print("\nProcessing count matrix in folder ... ", end ='')
+    mdata= md.read(input_h5mu_file)
+    print("Done!")
+    print(f"Count matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 GEX MODALITY DATA
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== GEX MODALITY DATA =====")
+    gex = mdata.mod['gex']
+
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 DATA INTEGRATION
+# --------------------------------------------------------------------------------------------------------------------
+
+    print("\n===== DATA INTEGRATION =====")
+    # Integrate data using Harmony algorithm
+    print("\nData integration by using Harmony algorith")
+
+    #sce.pp.harmony_integrate(gex, 'sample')
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 CALCULATING NEIGHBORS AND BATCH-CORRECTED UMAP
+# --------------------------------------------------------------------------------------------------------------------
+
+    print("\n===== BATCH-CORRECTED UMAP =====")
+    # Compute neighbors and UMAP 
+    sc.pp.neighbors(gex, n_neighbors=20, use_rep="X_pca")
+    #sc.pp.neighbors(gex, n_neighbors=20, use_rep="X_pca_harmony_GEX")
+    sc.tl.umap(gex,min_dist=0.5)
+    
+    
+# --------------------------------------------------------------------------------------------------------------------
+#                           VISUALIZE UMAP PLOT
+# --------------------------------------------------------------------------------------------------------------------
+
+    # Visualize batch-corrected UMAP plot 
+
+    print("\nVisualized batch-corrected UMAP plot")
+    sc.pl.umap(gex, color ='sample',legend_loc='on data',show=False)
+    plt.savefig(os.path.join(args.results,'Harmony-corrected_UMAP_plot_GEX.png'))
+    plt.close()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           SAVE GEX DATA INTO MUDATA OBJECT
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
+    mdata.mod['gex'] = gex
+    mdata.update()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 CITE MODALITY DATA
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== CITE MODALITY DATA =====")
+    pro = mdata.mod['pro']
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 DATA INTEGRATION
+# --------------------------------------------------------------------------------------------------------------------
+
+    print("\n===== DATA INTEGRATION =====")
+    # Integrate data using Harmony algorithm
+    print("\nData integration by using Harmony algorith")
+
+    #sce.pp.harmony_integrate(pro, 'sample')
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 CALCULATING NEIGHBORS AND BATCH-CORRECTED UMAP
+# --------------------------------------------------------------------------------------------------------------------
+
+    print("\n===== BATCH-CORRECTED UMAP =====")
+    # Compute neighbors and UMAP
+    sc.pp.neighbors(pro, n_neighbors=20, use_rep="X_pca")
+    #sc.pp.neighbors(pro, n_neighbors=20, use_rep="X_pca_harmony_ADT")
+    sc.tl.umap(pro,min_dist=0.5)
+    
+    
+# --------------------------------------------------------------------------------------------------------------------
+#                           VISUALIZE UMAP PLOT
+# --------------------------------------------------------------------------------------------------------------------
+
+    # Visualize batch-corrected UMAP plot 
+
+    print("\nVisualized batch-corrected UMAP plot")
+    sc.pl.umap(pro, color ='sample',legend_loc='on data',show=False)
+    plt.savefig(os.path.join(args.results,'Harmony-corrected_UMAP_plot_ADT.png'))
+    plt.close()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           SAVE ADT DATA INTO MUDATA OBJECT
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
+    mdata.mod['pro'] = pro
+    mdata.update()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           SAVE OUTPUT FILE
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== SAVING OUTPUT FILE =====")
+    print(f"Saving h5mu data to file {output}")
+    mdata.write(output)
+    print("Done!")
+
+    df = pd.DataFrame(gex.obsm["X_umap"], index=gex.obs_names).rename(columns={0: "X_UMAP", 1: "Y_UMAP"})
+    df.index.name = 'cell_barcodes'
+    print(f"Saving csv table with Harmony corrected UMAP coordinates for each cell {output_csv}")
+    df.to_csv(output_csv)
+    print("Done!")
+
+#####################################################################################################
+
+
+if __name__ == '__main__':
+    main()

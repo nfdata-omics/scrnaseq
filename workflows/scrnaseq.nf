@@ -24,9 +24,9 @@ include { GUNZIP as GUNZIP_GTF                              } from '../modules/n
 include { H5AD_CONVERSION                                   } from '../subworkflows/local/h5ad_conversion'
 include { CONCATENATE_VDJ                                   } from '../modules/local/concatenate_vdj'
 include { CONVERT_MUDATA                                    } from '../modules/local/convert_mudata'
-include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
 include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
-
+include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
+include { INTEGRATION_MODALITIES                            } from '../subworkflows/local/integration_modalities'
 
 workflow SCRNASEQ {
 
@@ -341,6 +341,15 @@ workflow SCRNASEQ {
         H5AD_CONVERSION.out.h5ad_raw
     )
     ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
+
+    //
+    // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
+    //
+    INTEGRATION_MODALITIES (
+        NORMALIZATION_AND_HVG.out.h5mu
+    )
+    ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
+    
 
     //
     // Collate and save software versions
