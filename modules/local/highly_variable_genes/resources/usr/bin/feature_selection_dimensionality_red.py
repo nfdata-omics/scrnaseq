@@ -84,6 +84,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== GEX MODALITY DATA =====")
     gex = mdata.mod['gex']
+    gex.var["feature_types"].value_counts()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 FEATURE SELECTION & DIMENSIONALITY REDUCTION
@@ -117,7 +118,7 @@ def main():
     # Visualize UMAP plot
     print("\nVisualized UMAP plot")
     sc.pl.umap(gex, color ='sample',legend_loc='on data',show=False)
-    plt.savefig(os.path.join(args.results,'umap_plot.png'))
+    plt.savefig(os.path.join(args.results,'umap_plot_GEX.png'))
     plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -125,6 +126,52 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
     mdata.mod['gex'] = gex
+    mdata.update()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 CITE MODALITY DATA
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== CITE MODALITY DATA =====")
+    pro = mdata.mod['pro']
+    pro.var["feature_types"].value_counts()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 DIMENSIONALITY REDUCTION
+# --------------------------------------------------------------------------------------------------------------------
+
+    print("\n===== DIMENSIONALITY REDUCTION =====")
+    print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
+    sc.pp.pca(pro, svd_solver="arpack")
+    sc.pl.pca_variance_ratio(pro, n_pcs=50)
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION
+# --------------------------------------------------------------------------------------------------------------------
+
+    print("\n===== NEAREST NEIGHBOR GRAPH CONSTRUCTION =====")
+    print("\nConstruction of the nearest neighbor graph")
+    sc.pp.neighbors(pro, n_pcs=20)
+
+    print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
+    print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
+    sc.tl.umap(pro)
+
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           VISUALIZE UMAP PLOT
+# --------------------------------------------------------------------------------------------------------------------
+
+    # Visualize UMAP plot
+    print("\nVisualized UMAP plot")
+    sc.pl.umap(pro, color ='sample',legend_loc='on data',show=False)
+    plt.savefig(os.path.join(args.results,'umap_plot_CITE.png'))
+    plt.close()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           SAVE CITE DATA INTO MUDATA OBJECT
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
+    mdata.mod['pro'] = pro
     mdata.update()
 
 # --------------------------------------------------------------------------------------------------------------------

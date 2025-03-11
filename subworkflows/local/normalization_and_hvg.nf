@@ -30,6 +30,6 @@ workflow NORMALIZATION_AND_HVG {
 
     emit:
     ch_versions
-    h5mus = HIGHLY_VARIABLE_GENES.out.h5mu
+    h5mu = HIGHLY_VARIABLE_GENES.out.h5mu
 
 }
