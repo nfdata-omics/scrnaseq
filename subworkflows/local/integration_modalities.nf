@@ -1,6 +1,6 @@
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
 include { INTEGRATION } from '../../modules/local/integration'
-include { WNN_INTEGRATION } from '../../modules/local/WNN_integration'
+include { MOFA_INTEGRATION } from '../../modules/local/MOFA_integration'
 
 workflow INTEGRATION_MODALITIES {
 
@@ -21,13 +21,13 @@ workflow INTEGRATION_MODALITIES {
         //
         // MODULE: Compute WNN graph for each modality
         //
-        WNN_INTEGRATION (
+        MOFA_INTEGRATION (
             INTEGRATION.out.h5mu
         )
-        ch_versions = ch_versions.mix(WNN_INTEGRATION.out.versions.first())
+        ch_versions = ch_versions.mix(MOFA_INTEGRATION.out.versions.first())
 
     emit:
     ch_versions
-    h5mu = WNN_INTEGRATION.out.h5mu
+    h5mu = MOFA_INTEGRATION.out.h5mu
 
 }
