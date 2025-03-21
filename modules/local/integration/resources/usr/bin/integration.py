@@ -9,14 +9,12 @@ import argparse                     # command line arguments parser
 import os                           # filesystem utilities
 import pathlib                      # library for handle filesystem paths
 import matplotlib.pyplot as plt     # library for visualization
-import seaborn as sns               # library for statistical data visualization
 import pandas as pd                 # library for data analysis and manipulation
 import scanpy as sc                 # single-cell data processing
-import anndata as ad                # store annotated matrix as anndata object
-import mudata as md
-import pandas as pd                 # library for data analysis and manipulation 
-import pathlib                      # library for handle filesystem paths
 import scanpy.external as sce       # library for harmony integration
+import mudata as md
+import muon as mu
+
 
 warnings.filterwarnings("ignore")
 # PARAMETERS
@@ -39,7 +37,7 @@ def main():
 
     sc.settings.verbosity = 3             # verbosity: errors (0), warnings (1), info (2), hints (3)
     sc.logging.print_header()
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                          INPUT FROM COMMAND LINE
 # --------------------------------------------------------------------------------------------------------------------
@@ -89,7 +87,6 @@ def main():
     print("\n===== GEX MODALITY DATA =====")
     gex = mdata.mod['gex']
 
-
 # --------------------------------------------------------------------------------------------------------------------
 #                                 DATA INTEGRATION
 # --------------------------------------------------------------------------------------------------------------------
@@ -97,7 +94,6 @@ def main():
     print("\n===== DATA INTEGRATION =====")
     # Integrate data using Harmony algorithm
     print("\nData integration by using Harmony algorith")
-
     #sce.pp.harmony_integrate(gex, 'sample')
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -105,20 +101,18 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
     print("\n===== BATCH-CORRECTED UMAP =====")
-    # Compute neighbors and UMAP 
+    # Compute neighbors and UMAP
     sc.pp.neighbors(gex, n_neighbors=20, use_rep="X_pca")
-    #sc.pp.neighbors(gex, n_neighbors=20, use_rep="X_pca_harmony_GEX")
+    #sc.pp.neighbors(gex, n_neighbors=20, use_rep="X_pca_harmony")
     sc.tl.umap(gex,min_dist=0.5)
-    
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Visualize batch-corrected UMAP plot 
-
+    # Visualize batch-corrected UMAP plot
     print("\nVisualized batch-corrected UMAP plot")
-    sc.pl.umap(gex, color ='sample',legend_loc='on data',show=False)
+    mu.pl.embedding(gex, color ='sample',basis= 'X_umap',legend_loc='on data',show=False)
     plt.savefig(os.path.join(args.results,'Harmony-corrected_UMAP_plot_GEX.png'))
     plt.close()
 
@@ -142,7 +136,6 @@ def main():
     print("\n===== DATA INTEGRATION =====")
     # Integrate data using Harmony algorithm
     print("\nData integration by using Harmony algorith")
-
     #sce.pp.harmony_integrate(pro, 'sample')
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -151,19 +144,18 @@ def main():
 
     print("\n===== BATCH-CORRECTED UMAP =====")
     # Compute neighbors and UMAP
-    sc.pp.neighbors(pro, n_neighbors=20, use_rep="X_pca")
-    #sc.pp.neighbors(pro, n_neighbors=20, use_rep="X_pca_harmony_ADT")
+    #sc.pp.neighbors(pro, n_neighbors=20, use_rep="X_pca_harmony")
+    sc.pp.neighbors(pro, n_neighbors=20,use_rep="X_pca")
     sc.tl.umap(pro,min_dist=0.5)
-    
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Visualize batch-corrected UMAP plot 
+    # Visualize batch-corrected UMAP plot
 
     print("\nVisualized batch-corrected UMAP plot")
-    sc.pl.umap(pro, color ='sample',legend_loc='on data',show=False)
+    mu.pl.embedding(pro, color ='sample',basis= 'X_umap',legend_loc='on data',show=False)
     plt.savefig(os.path.join(args.results,'Harmony-corrected_UMAP_plot_ADT.png'))
     plt.close()
 
@@ -189,7 +181,6 @@ def main():
     print("Done!")
 
 #####################################################################################################
-
 
 if __name__ == '__main__':
     main()
