@@ -124,10 +124,9 @@ def main():
         print("\n===== COMPUTE QUALITY METRICS {} =====")
         print(f"\nCompute fraction of mitochondrial, ribosomal and hemoglobin genes for {input_h5mu_file}")
 
-        gex.var["mt"] = gex.var_names.str.startswith("MT-") | gex.var_names.str.startswith("mt-")
-        gex.var["ribo"] = gex.var_names.str.startswith(("RPS", "RPL")) | gex.var_names.str.startswith(("rps", "rpl"))
-        gex.var["hb"] = gex.var_names.str.contains(("^HB[^(P)]")) | gex.var_names.str.contains(("^hb[^(p)]"))
-
+        gex.var["mt"] = gex.var_names.str.startswith("MT-") 
+        gex.var["ribo"] = gex.var_names.str.startswith(("RPS", "RPL")) 
+        gex.var["hb"] = gex.var_names.str.contains(("^HB[^(P)]"))
         sc.pp.calculate_qc_metrics(gex, qc_vars=["mt", "ribo", "hb"],percent_top=None, log1p=False, inplace=True)
 # --------------------------------------------------------------------------------------------------------------------
 #                           EVALUATE PERCENTILE
