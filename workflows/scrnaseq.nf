@@ -27,7 +27,7 @@ include { CONVERT_MUDATA                                    } from '../modules/l
 include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
 include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
 include { INTEGRATION_MODALITIES                            } from '../subworkflows/local/integration_modalities'
-//include { CLUSTERING                                        } from '../modules/local/clustering'
+include { CLUSTERING                                        } from '../modules/local/clustering'
 
 workflow SCRNASEQ {
 
@@ -346,18 +346,22 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
     //
-    INTEGRATION_MODALITIES (
-        NORMALIZATION_AND_HVG.out.h5mu
-    )
-    ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
-    
+
+    if (!params.skip_integration){
+        INTEGRATION_MODALITIES (
+            NORMALIZATION_AND_HVG.out.h5mu
+        )
+        ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
+    }
+
     //
     // MODULES: Run clustering for GEX and ADT indipendently and jointly
     //
-    //CLUSTERING (
-    //    INTEGRATION_MODALITIES.out.h5mu
-    //)
-    //ch_versions = ch_versions.mix(CLUSTERING.out.versions)
+    CLUSTERING (
+        INTEGRATION_MODALITIES.out.h5mu
+    )
+    ch_versions = ch_versions.mix(CLUSTERING.out.versions)
+    
 
     //
     // Collate and save software versions
