@@ -91,6 +91,10 @@
                 "skip_cellbender": {
                     "type": "boolean",
                     "description": "Skip cellbender empty drops filter subworkflow"
+                },
+                "skip_integration": {
+                    "type": "boolean",
+                    "description": "Skip integration subworkflow"
                 }
             }
         },
