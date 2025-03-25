@@ -14,6 +14,7 @@ import scanpy as sc                 # single-cell data processing
 import muon as mu
 from mudata import MuData
 import mudata as md
+#import mofapy2
 
 warnings.filterwarnings("ignore")
 
@@ -49,6 +50,8 @@ def main():
                         required=True, help="paths of existing matrix files in h5mu format (including file names)")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.mofa.h5mu",
                         help="path and name of the output h5mu file after filtering")
+    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
+                        help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
     parser.print_help()
@@ -101,7 +104,7 @@ def main():
     mu.tl.mofa(mdata_subset,use_obs='union')
     sc.pp.neighbors(mdata_subset, use_rep="X_mofa")
     print("Done!")
-
+    
     print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
     print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
     sc.tl.umap(mdata_subset)
@@ -112,6 +115,7 @@ def main():
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
 
+    fig, ax = plt.subplots(figsize=(20,10))
     # Visualize UMAP plot
     print("\nVisualized UMAP plot")
     mu.pl.embedding(mdata_subset, basis="umap_mofa",legend_loc="on data", show=False)
@@ -131,7 +135,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING OUTPUT FILE =====")
     print(f"Saving h5mu data to file {output}")
-    mdata.write(output)
+    mdata_subset.write(output)
     print("Done!")
 
 
