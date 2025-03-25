@@ -54,8 +54,8 @@ def main():
                         required=True, help="paths of existing count matrix files in h5 format (including file names)")
     parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.clustered.h5mu",
                         help="name of the output h5ad file after clustering")
-    #parser.add_argument('-e', '--excel_out', metavar='RANKED_GENES_XLSX', default="ranked_genes.xlsx",
-    #                    help="path and name of excel table with ranked marker genes for each cluster and resolution")
+    parser.add_argument('-e', '--excel_out', metavar='RANKED_GENES_XLSX', default="ranked_genes.xlsx",
+                        help="path and name of excel table with ranked marker genes for each cluster and resolution")
     parser.add_argument('-csv', '--csv_out', metavar='H5AD_OUTPUT_FILE', default="Metadata_final.csv",
                         help="path and name of csv tabel with UMAP coordinates for each cell")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'), 
@@ -70,7 +70,7 @@ def main():
     print("\n===== INPUT H5AD FILES =====")
     input_h5mu_file = args.input_h5mu_files
     output = args.out
-    #output_excel= args.excel_out
+    output_excel= args.excel_out
     output_csv= args.csv_out
     
     # print info on the available matrices
