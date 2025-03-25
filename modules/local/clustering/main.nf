@@ -8,11 +8,8 @@ process CLUSTERING  {
     tuple val(meta), path(input_h5mu)
 
     output:
-    //path "combined_matrix_C.h5ad", emit: h5ad
     tuple val(meta), path("*.clustered.h5mu"), emit: h5mu
-    //tuple val(run_id), path("combined_matrix_C.h5ad"), emit: h5ad
-    //path "ranked_genes.xlsx", emit: DEG
-    path "Metadata_final.csv", emit: metadata_final
+    tuple val(meta), path("Metadata_final.csv"), emit: metadata_final
     path "Leiden_clustering.png", emit: clusters
     path "versions.yml",  emit: versions
 
