@@ -14,7 +14,6 @@ import scanpy as sc                 # single-cell data processing
 import muon as mu
 from mudata import MuData
 import mudata as md
-#import mofapy2
 
 warnings.filterwarnings("ignore")
 
@@ -79,9 +78,7 @@ def main():
     print("\n===== READING COMBINED H5MU MATRIX =====")
     # read the count matrix for the combined samples and print some initial info
     print("\nProcessing filtered count matrix in folder ... ", end ='')
-
     mdata= md.read(input_h5mu_files)
-
     print("Done!")
     print(f"Count matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
 
@@ -118,7 +115,7 @@ def main():
     fig, ax = plt.subplots(figsize=(20,10))
     # Visualize UMAP plot
     print("\nVisualized UMAP plot")
-    mu.pl.embedding(mdata_subset, basis="umap_mofa",legend_loc="on data", show=False)
+    mu.pl.embedding(mdata_subset, basis="umap_mofa",color ='sample',legend_loc="on data", show=False)
     plt.savefig(os.path.join(args.results,'umap_plot_mofa.png'))
     plt.close()
 
