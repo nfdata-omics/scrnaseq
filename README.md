@@ -25,7 +25,7 @@
 
 This is a community effort in building a pipeline capable to support:
 
-- Alevin-Fry + AlevinQC
+- SimpleAF(Alevin-Fry) + AlevinQC
 - STARSolo
 - Kallisto + BUStools
 - Cellranger
@@ -42,7 +42,7 @@ The nf-core/scrnaseq pipeline comes with documentation about the pipeline [usage
 ## Usage
 
 > [!NOTE]
-> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow.Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
+> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
 
 First, prepare a samplesheet with your input data that looks as follows:
 
@@ -65,7 +65,7 @@ nextflow run nf-core/scrnaseq \
    --fasta GRCm38.p6.genome.chr19.fa \
    --gtf gencode.vM19.annotation.chr19.gtf \
    --protocol 10XV2 \
-   --aligner <alevin/kallisto/star/cellranger> \
+   --aligner <simpleaf/kallisto/star/cellranger> \
    --outdir <OUTDIR>
 ```
 

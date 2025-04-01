@@ -38,7 +38,7 @@ jobs:
         NXF_VER:
           - "24.04.2"
           - "latest-everything"
-        profile: ["alevin", "cellranger", "cellrangermulti", "kallisto", "star"]
+        profile: ["simpleaf", "cellranger", "cellrangermulti", "kallisto", "star", "cellrangerarc"]
 
     steps:
       - name: Disk space cleanup
@@ -46,6 +46,8 @@ jobs:
 
       - name: Check out pipeline code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v4
         with:
