@@ -352,12 +352,11 @@ workflow SCRNASEQ {
     // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
     //
 
-    if (!params.skip_integration){
-        INTEGRATION_MODALITIES (
-            NORMALIZATION_AND_HVG.out.h5mu
-        )
-        ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
-    }
+    INTEGRATION_MODALITIES (
+        NORMALIZATION_AND_HVG.out.h5mu
+    )
+    ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
+    
 
     //
     // MODULES: Run clustering for GEX
