@@ -24,8 +24,11 @@ include { GUNZIP as GUNZIP_GTF                              } from '../modules/n
 include { H5AD_CONVERSION                                   } from '../subworkflows/local/h5ad_conversion'
 include { CONCATENATE_VDJ                                   } from '../modules/local/concatenate_vdj'
 include { CONVERT_MUDATA                                    } from '../modules/local/convert_mudata'
-include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
 include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
+include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
+include { INTEGRATION_MODALITIES                            } from '../subworkflows/local/integration_modalities'
+include { CLUSTERING                                        } from '../modules/local/clustering'
+include { CLUSTREE                                          } from '../modules/local/clustree'
 
 
 workflow SCRNASEQ {
@@ -329,15 +332,17 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Concat GEX, VDJ and CITE data and save as MuData object
     //
-
+    
     CONVERT_MUDATA(
         H5AD_CONVERSION.out.h5ad,
         CONCATENATE_VDJ.out.h5ad
         )
     ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
+
     //
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
+
     DOUBLETS_QUALITYFILTERING (
         H5AD_CONVERSION.out.rds_concat, 
         CONVERT_MUDATA.out.h5mu,
@@ -348,12 +353,41 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
+
     NORMALIZATION_AND_HVG (
         DOUBLETS_QUALITYFILTERING.out.h5mu,
         H5AD_CONVERSION.out.h5ad_raw
     )
     ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
 
+    //
+    // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
+    //
+
+    INTEGRATION_MODALITIES (
+        NORMALIZATION_AND_HVG.out.h5mu
+    )
+    ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
+    
+
+    //
+    // MODULES: Run clustering for GEX
+    //
+
+    CLUSTERING (
+        INTEGRATION_MODALITIES.out.h5mu
+    )
+    ch_versions = ch_versions.mix(CLUSTERING.out.versions)
+    
+    //
+    // MODULES: Plot clustree graph
+    //
+
+    CLUSTREE (
+        CLUSTERING.out.metadata_final
+    )
+    ch_versions = ch_versions.mix(CLUSTREE.out.versions)
+    
     //
     // Collate and save software versions
     //

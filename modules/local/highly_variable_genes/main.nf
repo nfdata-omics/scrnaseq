@@ -10,7 +10,7 @@ process HIGHLY_VARIABLE_GENES  {
     output:
     tuple val(meta), path("*.hvg.h5mu") , emit: h5mu
     path "umap_coordinates.csv", emit: umap
-    path "umap_plot.png", emit: graph_umap
+    path "umap_plot_*.png", emit: graph_umap
     path "versions.yml",  emit: versions
 
     when:

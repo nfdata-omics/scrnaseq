@@ -11,7 +11,9 @@ import pathlib                      # library for handle filesystem paths
 import matplotlib.pyplot as plt     # library for visualization
 import pandas as pd                 # library for data analysis and manipulation
 import scanpy as sc                 # single-cell data processing
+import scanpy.external as sce       # library for harmony integration
 import mudata as md
+import muon as mu
 
 
 warnings.filterwarnings("ignore")
@@ -20,20 +22,20 @@ warnings.filterwarnings("ignore")
 # set script version number
 VERSION = "0.0.1"
 
-
 # ====================================================================================================================
 #                                          MAIN FUNCTION
 # ====================================================================================================================
 
 def main():
     """
-    This function perfors dimensionality reduction of dataset.
+    This function integrates single-cell data from multiple experiments.
     """
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                          LIBRARY CONFIG
 # --------------------------------------------------------------------------------------------------------------------
 
-    sc.settings.verbosity = 3 # verbosity: errors (0), warnings (1), info (2), hints (3)
+    sc.settings.verbosity = 3             # verbosity: errors (0), warnings (1), info (2), hints (3)
     sc.logging.print_header()
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -42,14 +44,14 @@ def main():
 
 # Define command line arguments with argparse
 
-    parser = argparse.ArgumentParser(prog='DimRed', usage='%(prog)s [options]',description = "Feature selection and dimensionality reduction",
-        epilog = "This function reduce the dimensionality of the dataset and only include the most informative genes.")
+    parser = argparse.ArgumentParser(prog='Int',usage='%(prog)s [options]',description = "Data integration",
+        epilog = "This function integrate the single-cell dataset based on run_id.")
     parser.add_argument('-ad','--input-h5mu-file',metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
                         required=True, help="paths of existing count matrix files in h5 format (including file names)")
-    parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.hvg.h5mu",
-                        help="name of the output h5ad file after dimensionality reduction")
-    parser.add_argument('-csv', '--csv_out', metavar='CSV_TABLE',type=pathlib.Path, default="umap_coordinates.csv",
-                        help="csv tabel with UMAP coordinates for each cell")
+    parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.integrated.h5mu",
+                        help="name of the output h5ad file after integration")
+    parser.add_argument('-csv', '--csv_out', metavar='CSV_TABLE',type=pathlib.Path,default="Harmony_UMAP_coordinates_GEX.csv",
+                        help="path and name of csv tabel with UMAP coordinates for each cell")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
@@ -63,7 +65,7 @@ def main():
     output = args.out
     output_csv=args.csv_out
 
-# print info on the available matrices
+    # print info on the available matrices
     print("Reading combined count matrix from the following file:")
     print(f"-File {input_h5mu_file}:")
 
@@ -84,41 +86,33 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== GEX MODALITY DATA =====")
     gex = mdata.mod['gex']
-    gex.var["feature_types"].value_counts()
 
 # --------------------------------------------------------------------------------------------------------------------
-#                                 FEATURE SELECTION & DIMENSIONALITY REDUCTION
+#                                 DATA INTEGRATION
 # --------------------------------------------------------------------------------------------------------------------
 
-    print("\n===== FEATURE SELECTION =====")
-    # select highly=variable genes for each sample
-    print("\nSelecting highly-variable genes are selected within each batch separately and merged")
-    sc.pp.highly_variable_genes(gex, min_mean=0.0125, max_mean=3, min_disp=0.5,batch_key = 'sample',subset=False)
- 
-    print("\n===== DIMENSIONALITY REDUCTION =====")
-    print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
-    sc.tl.pca(gex,use_highly_variable = False, n_comps=50)
+    print("\n===== DATA INTEGRATION =====")
+    # Integrate data using Harmony algorithm
+    print("\nData integration by using Harmony algorith")
+    sce.pp.harmony_integrate(gex, 'sample')
 
 # --------------------------------------------------------------------------------------------------------------------
-#                                 DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION
+#                                 CALCULATING NEIGHBORS AND BATCH-CORRECTED UMAP
 # --------------------------------------------------------------------------------------------------------------------
 
-    print("\n===== NEAREST NEIGHBOR GRAPH CONSTRUCTION =====")
-    print("\nConstruction of the nearest neighbor graph")
-    sc.pp.neighbors(gex,n_neighbors=15)
-
-    print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
-    print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
+    print("\n===== BATCH-CORRECTED UMAP =====")
+    # Compute neighbors and UMAP
+    sc.pp.neighbors(gex, n_neighbors=20, use_rep="X_pca_harmony")
     sc.tl.umap(gex,min_dist=0.5)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Visualize UMAP plot
-    print("\nVisualized UMAP plot")
-    sc.pl.umap(gex, color ='sample',legend_loc='on data',show=False)
-    plt.savefig(os.path.join(args.results,'umap_plot_GEX.png'))
+    # Visualize batch-corrected UMAP plot
+    print("\nVisualized batch-corrected UMAP plot")
+    mu.pl.embedding(gex, color ='sample',basis= 'X_umap',legend_loc='on data',show=False)
+    plt.savefig(os.path.join(args.results,'Harmony-corrected_UMAP_plot_GEX.png'))
     plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -131,49 +125,49 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CITE MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
-    print("\n===== CITE MODALITY DATA =====")
-    pro = mdata.mod['pro']
-    pro.var["feature_types"].value_counts()
+    if 'pro' in mdata.mod:
+        print("\n===== CITE MODALITY DATA =====")
+        pro = mdata.mod['pro']
 
 # --------------------------------------------------------------------------------------------------------------------
-#                                 DIMENSIONALITY REDUCTION
+#                                 DATA INTEGRATION
 # --------------------------------------------------------------------------------------------------------------------
 
-    print("\n===== DIMENSIONALITY REDUCTION =====")
-    print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
-    sc.pp.pca(pro, svd_solver="arpack")
-    sc.pl.pca_variance_ratio(pro, n_pcs=50)
+        print("\n===== DATA INTEGRATION =====")
+        # Integrate data using Harmony algorithm
+        print("\nData integration by using Harmony algorith")
+        sce.pp.harmony_integrate(pro, 'sample')
 
 # --------------------------------------------------------------------------------------------------------------------
-#                                 DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION
+#                                 CALCULATING NEIGHBORS AND BATCH-CORRECTED UMAP
 # --------------------------------------------------------------------------------------------------------------------
 
-    print("\n===== NEAREST NEIGHBOR GRAPH CONSTRUCTION =====")
-    print("\nConstruction of the nearest neighbor graph")
-    sc.pp.neighbors(pro, n_pcs=20)
-
-    print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
-    print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
-    sc.tl.umap(pro)
-
+        print("\n===== BATCH-CORRECTED UMAP =====")
+        # Compute neighbors and UMAP
+        sc.pp.neighbors(pro, n_neighbors=20, use_rep="X_pca_harmony")
+        sc.tl.umap(pro,min_dist=0.5)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Visualize UMAP plot
-    print("\nVisualized UMAP plot")
-    sc.pl.umap(pro, color ='sample',legend_loc='on data',show=False)
-    plt.savefig(os.path.join(args.results,'umap_plot_CITE.png'))
-    plt.close()
+        # Visualize batch-corrected UMAP plot
+
+        print("\nVisualized batch-corrected UMAP plot")
+        mu.pl.embedding(pro, color ='sample',basis= 'X_umap',legend_loc='on data',show=False)
+        plt.savefig(os.path.join(args.results,'Harmony-corrected_UMAP_plot_ADT.png'))
+        plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
-#                           SAVE CITE DATA INTO MUDATA OBJECT
+#                           SAVE ADT DATA INTO MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
-    print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
-    mdata.mod['pro'] = pro
-    mdata.update()
+        print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
+        mdata.mod['pro'] = pro
+        mdata.update()
 
+    else:
+        print("\n===== CITE MODALITY DATA NOT FOUND =====")
+    
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
@@ -184,13 +178,11 @@ def main():
 
     df = pd.DataFrame(gex.obsm["X_umap"], index=gex.obs_names).rename(columns={0: "X_UMAP", 1: "Y_UMAP"})
     df.index.name = 'cell_barcodes'
-    print(f"Saving csv table with UMAP coordinates for each cell {output_csv}")
+    print(f"Saving csv table with Harmony corrected UMAP coordinates for each cell {output_csv}")
     df.to_csv(output_csv)
     print("Done!")
 
-
 #####################################################################################################
-
 
 if __name__ == '__main__':
     main()
