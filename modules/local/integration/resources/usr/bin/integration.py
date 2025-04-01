@@ -65,7 +65,7 @@ def main():
     output = args.out
     output_csv=args.csv_out
 
-# print info on the available matrices
+    # print info on the available matrices
     print("Reading combined count matrix from the following file:")
     print(f"-File {input_h5mu_file}:")
 
@@ -94,7 +94,7 @@ def main():
     print("\n===== DATA INTEGRATION =====")
     # Integrate data using Harmony algorithm
     print("\nData integration by using Harmony algorith")
-    #sce.pp.harmony_integrate(gex, 'sample')
+    sce.pp.harmony_integrate(gex, 'sample')
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CALCULATING NEIGHBORS AND BATCH-CORRECTED UMAP
@@ -102,8 +102,7 @@ def main():
 
     print("\n===== BATCH-CORRECTED UMAP =====")
     # Compute neighbors and UMAP
-    sc.pp.neighbors(gex, n_neighbors=20, use_rep="X_pca")
-    #sc.pp.neighbors(gex, n_neighbors=20, use_rep="X_pca_harmony")
+    sc.pp.neighbors(gex, n_neighbors=20, use_rep="X_pca_harmony")
     sc.tl.umap(gex,min_dist=0.5)
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -126,46 +125,49 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CITE MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
-    print("\n===== CITE MODALITY DATA =====")
-    pro = mdata.mod['pro']
+    if 'pro' in mdata.mod:
+        print("\n===== CITE MODALITY DATA =====")
+        pro = mdata.mod['pro']
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 DATA INTEGRATION
 # --------------------------------------------------------------------------------------------------------------------
 
-    print("\n===== DATA INTEGRATION =====")
-    # Integrate data using Harmony algorithm
-    print("\nData integration by using Harmony algorith")
-    #sce.pp.harmony_integrate(pro, 'sample')
+        print("\n===== DATA INTEGRATION =====")
+        # Integrate data using Harmony algorithm
+        print("\nData integration by using Harmony algorith")
+        sce.pp.harmony_integrate(pro, 'sample')
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CALCULATING NEIGHBORS AND BATCH-CORRECTED UMAP
 # --------------------------------------------------------------------------------------------------------------------
 
-    print("\n===== BATCH-CORRECTED UMAP =====")
-    # Compute neighbors and UMAP
-    #sc.pp.neighbors(pro, n_neighbors=20, use_rep="X_pca_harmony")
-    sc.pp.neighbors(pro, n_neighbors=20,use_rep="X_pca")
-    sc.tl.umap(pro,min_dist=0.5)
+        print("\n===== BATCH-CORRECTED UMAP =====")
+        # Compute neighbors and UMAP
+        sc.pp.neighbors(pro, n_neighbors=20, use_rep="X_pca_harmony")
+        sc.tl.umap(pro,min_dist=0.5)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Visualize batch-corrected UMAP plot
+        # Visualize batch-corrected UMAP plot
 
-    print("\nVisualized batch-corrected UMAP plot")
-    mu.pl.embedding(pro, color ='sample',basis= 'X_umap',legend_loc='on data',show=False)
-    plt.savefig(os.path.join(args.results,'Harmony-corrected_UMAP_plot_ADT.png'))
-    plt.close()
+        print("\nVisualized batch-corrected UMAP plot")
+        mu.pl.embedding(pro, color ='sample',basis= 'X_umap',legend_loc='on data',show=False)
+        plt.savefig(os.path.join(args.results,'Harmony-corrected_UMAP_plot_ADT.png'))
+        plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE ADT DATA INTO MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
-    print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
-    mdata.mod['pro'] = pro
-    mdata.update()
+        print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
+        mdata.mod['pro'] = pro
+        mdata.update()
 
+    else:
+        print("\n===== CITE MODALITY DATA NOT FOUND =====")
+    
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
