@@ -16,14 +16,15 @@ process CONVERT_MUDATA  {
     task.ext.when == null || task.ext.when
 
     script:
+    def ai = input_vdj ? "-ai $input_vdj" : ''
+
     """
     export NUMBA_CACHE_DIR=/tmp
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    convert.py -ad $input_h5ad -ai $input_vdj
+    convert.py -ad $input_h5ad $ai
 
-    
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
         convert.py --version >> versions.yml
