@@ -323,26 +323,42 @@ workflow SCRNASEQ {
     //
     // MODULE: Concat vdj samples and save as h5ad format
     //
-
-    CONCATENATE_VDJ (
-        CELLRANGER_MULTI_ALIGN.out.vdj
-    )
-    ch_versions = ch_versions.mix(CONCATENATE_VDJ.out.versions)
-
+    
+    if (params.aligner == "cellrangermulti") {
+        CONCATENATE_VDJ (
+            CELLRANGER_MULTI_ALIGN.out.vdj
+        )
+        ch_versions = ch_versions.mix(CONCATENATE_VDJ.out.versions)
+    
+    
     //
     // SUBWORKFLOW: Concat GEX, VDJ and CITE data and save as MuData object
     //
-    
-    CONVERT_MUDATA(
-        H5AD_CONVERSION.out.h5ad,
-        CONCATENATE_VDJ.out.h5ad
-        )
-    ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
+        ch_vdj = CONCATENATE_VDJ.out.h5ad
+            .map { meta, file -> [meta, file] }
+            .ifEmpty { [[id: 'dummy'], []] }
+    } else {
+        ch_vdj = [[id: 'dummy'], []]
+    }
 
+    ch_h5ad_concat = H5AD_CONVERSION.out.h5ads
+
+    // Filter input_type:'filtered'
+    ch_h5ad_concat_filtered = ch_h5ad_concat.filter { item ->
+        item[0].input_type == 'filtered'
+    }
+
+    if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc") {
+        CONVERT_MUDATA(
+            ch_h5ad_concat_filtered,
+            ch_vdj
+        )
+        ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
+    } else {'nothing to convert to MuData'}
     //
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
-
+    
     DOUBLETS_QUALITYFILTERING (
         H5AD_CONVERSION.out.rds_concat, 
         CONVERT_MUDATA.out.h5mu,
