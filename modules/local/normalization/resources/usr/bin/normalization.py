@@ -126,39 +126,35 @@ def main():
     sc.pp.log1p(gex)
 
     print("Done!")
+    gex.layers["normalized_gex"] = gex.X.copy()
+    mdata.mod['gex'] = gex
+    mdata.update()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CITE MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
-    print("\n===== CITE MODALITY DATA =====")
-    pro = mdata.mod['pro']
-    print(pro.var)
-    print(pro_raw.var)
+    if 'pro' in mdata.mod:
+        print("\n===== CITE MODALITY DATA =====")
+        pro = mdata.mod['pro']
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 NORMALIZATION
 # --------------------------------------------------------------------------------------------------------------------
-    # Saving count data before normalization
-    print("Saving count data before normalization in slot Count.")
-    pro.layers["count"] = pro.X.copy()
-    print("\n===== NORMALIZATION =====")
-    # Denoising and normalizing protein expression with DSB (Denoised and Scaled by Background)
-    print("\nDenoising and normalize with Denoised and Scaled by Background method... ")
-    mu.prot.pp.dsb(pro, pro_raw)
+        # Saving count data before normalization
+        print("Saving count data before normalization in slot Count.")
+        pro.layers["count"] = pro.X.copy()
+        print("\n===== NORMALIZATION =====")
+        # Denoising and normalizing protein expression with DSB (Denoised and Scaled by Background)
+        print("\nDenoising and normalize with Denoised and Scaled by Background method... ")
+        mu.prot.pp.dsb(pro, pro_raw)
 
-    print("Done!")
+        pro.layers["normalized_pro"] = pro.X.copy()
+        mdata.mod['pro'] = pro
+        mdata.update()
 
-# --------------------------------------------------------------------------------------------------------------------
-#                           SAVE GEX DATA INTO MUDATA OBJECT
-# --------------------------------------------------------------------------------------------------------------------
-    print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
-    #Saving count data before normalization
-    print("Saving normalized data in slot normalized for GEX and CITE data")
-    gex.layers["normalized_gex"] = gex.X.copy()
-    pro.layers["normalized_pro"] = pro.X.copy()
-    mdata.mod['gex'] = gex
-    mdata.mod['pro'] = pro
-    mdata.update()
+        print("Done!")
+    else:
+        print("CITE modality does not exist in mdata.mod.")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
