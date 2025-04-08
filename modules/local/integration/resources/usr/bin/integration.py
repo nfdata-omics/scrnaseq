@@ -121,52 +121,6 @@ def main():
     print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
     mdata.mod['gex'] = gex
     mdata.update()
-
-# --------------------------------------------------------------------------------------------------------------------
-#                                 CITE MODALITY DATA
-# --------------------------------------------------------------------------------------------------------------------
-    if 'pro' in mdata.mod:
-        print("\n===== CITE MODALITY DATA =====")
-        pro = mdata.mod['pro']
-
-# --------------------------------------------------------------------------------------------------------------------
-#                                 DATA INTEGRATION
-# --------------------------------------------------------------------------------------------------------------------
-
-        print("\n===== DATA INTEGRATION =====")
-        # Integrate data using Harmony algorithm
-        print("\nData integration by using Harmony algorith")
-        sce.pp.harmony_integrate(pro, 'sample')
-
-# --------------------------------------------------------------------------------------------------------------------
-#                                 CALCULATING NEIGHBORS AND BATCH-CORRECTED UMAP
-# --------------------------------------------------------------------------------------------------------------------
-
-        print("\n===== BATCH-CORRECTED UMAP =====")
-        # Compute neighbors and UMAP
-        sc.pp.neighbors(pro, n_neighbors=20, use_rep="X_pca_harmony")
-        sc.tl.umap(pro,min_dist=0.5)
-
-# --------------------------------------------------------------------------------------------------------------------
-#                           VISUALIZE UMAP PLOT
-# --------------------------------------------------------------------------------------------------------------------
-
-        # Visualize batch-corrected UMAP plot
-
-        print("\nVisualized batch-corrected UMAP plot")
-        mu.pl.embedding(pro, color ='sample',basis= 'X_umap',legend_loc='on data',show=False)
-        plt.savefig(os.path.join(args.results,'Harmony-corrected_UMAP_plot_ADT.png'))
-        plt.close()
-
-# --------------------------------------------------------------------------------------------------------------------
-#                           SAVE ADT DATA INTO MUDATA OBJECT
-# --------------------------------------------------------------------------------------------------------------------
-        print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
-        mdata.mod['pro'] = pro
-        mdata.update()
-
-    else:
-        print("\n===== CITE MODALITY DATA NOT FOUND =====")
     
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
