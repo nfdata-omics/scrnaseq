@@ -9,7 +9,7 @@ process MOFA_INTEGRATION {
 
     output:
     tuple val(meta), path("*.mofa.h5mu"), emit: h5mu
-    path "umap_plot_mofa.png", emit: graph_UMAP_mofa
+    path "umap_mofa.png", emit: graph_UMAP_mofa
     path "versions.yml",  emit: versions
 
     when:
