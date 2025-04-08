@@ -56,7 +56,7 @@ def main():
                         help="name of the output h5ad file after clustering")
     parser.add_argument('-e', '--excel_out', metavar='RANKED_GENES_XLSX', default="ranked_genes.xlsx",
                         help="path and name of excel table with ranked marker genes for each cluster and resolution")
-    parser.add_argument('-csv', '--csv_out', metavar='H5AD_OUTPUT_FILE', default="Metadata_final.csv",
+    parser.add_argument('-csv', '--csv_out', metavar='H5AD_OUTPUT_FILE', default="final_metadata.csv",
                         help="path and name of csv tabel with UMAP coordinates for each cell")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'), 
                         help="directory to save the results files (default is the current directory)")
