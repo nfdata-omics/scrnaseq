@@ -86,17 +86,14 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 MOFA CALCULATION ON SELECTED MODALITIES
 # --------------------------------------------------------------------------------------------------------------------
-    gex= mdata.mod['gex']
-    pro= mdata.mod['pro']
     modalities = {}
-    modalities["gex"] = gex
-    modalities["pro"] = pro
+    modalities["gex"] = mdata.mod['gex']
+    if 'pro' in mdata.mod:
+        modalities["pro"] = mdata.mod['pro']
     mdata_subset = MuData(modalities)
 
     print("\n===== MOFA CALCULATION =====")
     # MOFA calculation
-    #sc.pp.neighbors(mdata_subset['gex'])
-    #sc.pp.neighbors(mdata_subset['pro'])
     print("\nCalculating MOFA ... ")
     mu.tl.mofa(mdata_subset,use_obs='union')
     sc.pp.neighbors(mdata_subset, use_rep="X_mofa")
@@ -115,8 +112,8 @@ def main():
     fig, ax = plt.subplots(figsize=(20,10))
     # Visualize UMAP plot
     print("\nVisualized UMAP plot")
-    mu.pl.embedding(mdata_subset, basis="umap_mofa",color ='sample',legend_loc="on data", show=False)
-    plt.savefig(os.path.join(args.results,'umap_plot_mofa.png'))
+    mu.pl.embedding(mdata_subset, basis="umap_mofa",legend_loc="on data", show=False)
+    plt.savefig(os.path.join(args.results,'umap_mofa.png'))
     plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -124,7 +121,8 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
     mdata.mod['gex'] = mdata_subset.mod['gex']
-    mdata.mod['pro'] = mdata_subset.mod['pro']
+    if 'pro' in mdata_subset.mod:
+        mdata.mod['pro'] = mdata_subset.mod['pro']
     mdata.update()
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -132,7 +130,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING OUTPUT FILE =====")
     print(f"Saving h5mu data to file {output}")
-    mdata_subset.write(output)
+    mdata.write(output)
     print("Done!")
 
 
