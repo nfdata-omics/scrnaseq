@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
-"""Automatically rename staged files for input into cellranger count.
+"""
+Automatically rename staged files for input into cellranger count.
 
 Copyright (c) Gregor Sturm 2023 - MIT License
 """
 
-import re
-import shlex
-from pathlib import Path
 from subprocess import run
+from pathlib import Path
 from textwrap import dedent
+import shlex
+import re
 
 
 def chunk_iter(seq, size):
-    """Iterate over `seq` in chunks of `size`."""
+    """iterate over `seq` in chunks of `size`"""
     return (seq[pos : pos + size] for pos in range(0, len(seq), size))
 
 

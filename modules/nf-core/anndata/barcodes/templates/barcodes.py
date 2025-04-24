@@ -15,7 +15,6 @@ def format_yaml_like(data: dict, indent: int = 0) -> str:
 
     Returns:
         str: A string formatted as YAML.
-
     """
     yaml_str = ""
     for key, value in data.items():

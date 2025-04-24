@@ -1,5 +1,9 @@
 line-length = 120
 extend-include = [ "*.ipynb" ]
+exclude = [
+  "modules/nf-core/*",
+  "subworkflows/nf-core/*",
+]
 
 format.docstring-code-format = true
 lint.select = [
