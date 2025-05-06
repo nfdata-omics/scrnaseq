@@ -16,6 +16,8 @@ import matplotlib.pyplot as plt     # library for visualization
 import seaborn as sns               # library for statistical data visualization
 import mudata as md
 import muon as mu
+from muon import atac as ac
+
 
 
 warnings.filterwarnings("ignore")
@@ -51,7 +53,7 @@ def main():
     parser.add_argument('-ad','--input-h5mu-combined',metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
                         required=True, help="paths of existing matrix files in h5mu format (including file names)")
     parser.add_argument('-d','--input-csv-doublets',metavar= 'CSV_DOUBLETS_TABLE', type=pathlib.Path, dest='input_csv_table',
-                        required=True, help="paths of existing doublets table in csv format (including file names)")
+                        required=True, help="paths of existing doublets table in csv format")
     parser.add_argument('-f', '--filter',dest='mt_threshold',type=float,default=15,help="parameters used to filter cells based on mithocondrial gene content")
     parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered.h5mu",
                         help="path and name of the output h5mu file")
@@ -70,9 +72,11 @@ def main():
     output =args.out
     mt_threshold = args.mt_threshold
 
+
     # print info on the available matrices
-    print("Reading combined matix from the following file:")
+    print("Reading combined matrix from the following file:")
     print(f"-File {input_h5mu_file}")
+    
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ H5MU FILES
 # --------------------------------------------------------------------------------------------------------------------
@@ -123,11 +127,12 @@ def main():
 
         print("\n===== COMPUTE QUALITY METRICS {} =====")
         print(f"\nCompute fraction of mitochondrial, ribosomal and hemoglobin genes for {input_h5mu_file}")
-
-        gex.var["mt"] = gex.var_names.str.startswith("MT-") 
-        gex.var["ribo"] = gex.var_names.str.startswith(("RPS", "RPL")) 
-        gex.var["hb"] = gex.var_names.str.contains(("^HB[^(P)]"))
+        gex.var["mt"] = gex.var["gene_symbols"].str.startswith("MT-")
+        gex.var["ribo"] = gex.var["gene_symbols"].str.startswith(("RPS", "RPL")) 
+        gex.var["hb"] = gex.var["gene_symbols"].str.startswith(("^HB[^(P)]"))
         sc.pp.calculate_qc_metrics(gex, qc_vars=["mt", "ribo", "hb"],percent_top=None, log1p=False, inplace=True)
+        print(gex.obs[['pct_counts_mt', 'pct_counts_ribo']].head())
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           EVALUATE PERCENTILE
 # --------------------------------------------------------------------------------------------------------------------
@@ -251,12 +256,13 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE QUALITY METRICS
 # --------------------------------------------------------------------------------------------------------------------
-# Visualize quality metrics: distribution of ADTs.....
-#Added filters on samples with Antibody Capture feature type
+# Visualize quality metrics: distribution of ADTs
+# Added filters on samples with Antibody Capture feature type
 
+        fig, ax = plt.subplots(figsize=(40,10))
         print("\nVisualized the distribution of ADTs per cell over all samples before filtering")
         for sample in pro.obs['sample'].unique():
-            if (pro[pro.obs['sample'] == sample].obs["feature_type"].str.contains("ab")).any():
+            if (pro[pro.obs['sample'] == sample].obs["feature_type"].str.contains("ab|ADT")).any():
                 print(f"\nVisualized the distribution of ADTs per cell per {sample} before filtering ")
                 ax1 = plt.subplot(1, 2, 1)
                 sns.histplot(pro[pro.obs['sample']== sample].obs.total_counts,ax=ax1)
@@ -271,7 +277,8 @@ def main():
     else:
         print("CITE modality does not exist in mdata.mod.")
 
-
+#
+    
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
