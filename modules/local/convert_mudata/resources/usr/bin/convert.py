@@ -71,6 +71,7 @@ def main():
     
     print("Reading combined atac count matrix from the following file:")
     print(f"-File {input_atac_file}")
+
    
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -111,7 +112,10 @@ def main():
         adata_atac= sc.read_h5ad(input_atac_file)
         print("Done!")
         print(f"Atac count matrix for combined samples has {adata_atac.shape[0]} cells and {adata_atac.shape[1]} peaks")
-        
+    
+
+    adata_vdj = None
+    adata_atac = None
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CREATE MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
@@ -124,9 +128,6 @@ def main():
         # Add 'pro' modality if defined
         if adata[:, adata.var["feature_types"] == "Antibody Capture"].shape[1] > 0:
             modalities["pro"] = adata[:, adata.var["feature_types"] == "Antibody Capture"]
-        # Add 'atac' modality if defined
-        #if adata[:, adata.var["feature_types"] == "Peaks"].shape[1] > 0:
-        #    modalities["atac"] = adata[:, adata.var["feature_types"] == "Peaks"]
     except NameError:
         pass
 
