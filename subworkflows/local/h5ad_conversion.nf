@@ -30,6 +30,11 @@ workflow H5AD_CONVERSION {
     ch_h5ad_concat_raw = ch_h5ad_concat.filter { item ->
         item[0].input_type == 'raw'
     }
+
+    // Filter input_type:'filtered'
+    ch_h5ad_concat_filtered = ch_h5ad_concat.filter { item ->
+        item[0].input_type == 'filtered'
+    }
     
     ch_versions = ch_versions.mix(CONCAT_H5AD.out.versions.first())
 
@@ -53,5 +58,6 @@ workflow H5AD_CONVERSION {
     ch_versions
     h5ads = ch_h5ads
     h5ad_raw = ch_h5ad_concat_raw
+    h5ad_filtered = ch_h5ad_concat_filtered
     rds_concat = ch_convert_concat_filtered
 }
