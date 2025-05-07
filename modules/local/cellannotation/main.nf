@@ -13,6 +13,7 @@ process CELL_ANNOTATION  {
     output:
     tuple val(meta), path("*.annotated.h5mu") , emit: h5mu
     path "umap_plot_*.png", emit: graph_umap
+    //path "feature_plot.png", emit : feature_plot
     path "versions.yml",  emit: versions
 
     when:
