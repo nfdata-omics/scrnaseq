@@ -90,7 +90,10 @@ def main():
     modalities["gex"] = mdata.mod['gex']
     if 'pro' in mdata.mod:
         modalities["pro"] = mdata.mod['pro']
+    if 'atac' in mdata.mod:
+        modalities["atac"] = mdata.mod['atac']
     mdata_subset = MuData(modalities)
+
 
     print("\n===== MOFA CALCULATION =====")
     # MOFA calculation
@@ -123,6 +126,8 @@ def main():
     mdata.mod['gex'] = mdata_subset.mod['gex']
     if 'pro' in mdata_subset.mod:
         mdata.mod['pro'] = mdata_subset.mod['pro']
+    if 'atac' in mdata_subset.mod:
+        mdata.mod['atac'] = mdata_subset.mod['atac']
     mdata.update()
 
 # --------------------------------------------------------------------------------------------------------------------
