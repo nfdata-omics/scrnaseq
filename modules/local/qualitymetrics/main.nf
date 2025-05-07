@@ -2,7 +2,7 @@ process QUALITY_FILTERING  {
     tag "$meta.id"
     label 'process_single'
 
-    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.1'
+    container = 'docker.io/nfdata/sc_atacseq:v1.0.0'
     
 
     input:
@@ -22,6 +22,7 @@ process QUALITY_FILTERING  {
     when:
     task.ext.when == null || task.ext.when
 
+    
     script:
     """
     export NUMBA_CACHE_DIR=/tmp
@@ -29,6 +30,7 @@ process QUALITY_FILTERING  {
     export XDG_CONFIG_HOME=/tmp
 
     qualitymetricsfilters.py -ad $input_h5mu -d $doublets_csv -f $mt_threshold
+    
     
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
