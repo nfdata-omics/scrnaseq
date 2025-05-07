@@ -103,7 +103,7 @@ def main():
     print("\nComputing Leiden clustering at different resolutions")
 
     clustering_labels = []
-    for res in np.round(np.arange(0, 1.0, 0.1),2):
+    for res in np.round(np.arange(0, 1.2, 0.2),2):
         clustering_labels.append("leiden_{}".format(res))
         if "leiden_{}".format(res) in gex.obs:
             print("leiden_{}".format(res) + " already exists... going on with next resolution.")
@@ -116,7 +116,7 @@ def main():
     
     with pd.ExcelWriter(output_excel) as writer:
     
-        for res in np.round(np.arange(0.2, 1.2, 0.2),2):
+        for res in np.round(np.arange(0.1, 1.0, 0.2),2):
             print("\nComputing top 20 marker genes for each clusters at resolution {}".format(res))
             #Compute top 20 marker genes for each cluster, expects logarithmized data
             sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res),method="wilcoxon",key_added="leiden_{}".format(res), n_genes=20,pts=True)
