@@ -15,6 +15,8 @@ import muon as  mu
 import matplotlib.pyplot as plt
 import celltypist
 from celltypist import models as ct_models
+import pickle
+
 os.environ["CELLTYPIST_OFFLINE"] = "1"
 
 warnings.filterwarnings("ignore")
@@ -26,6 +28,21 @@ VERSION = "0.0.1"
 # ====================================================================================================================
 #                                          MAIN FUNCTION
 # ====================================================================================================================
+def load_model(model_name):
+    model_file = f"{model_name}.pkl" if not model_name.endswith(".pkl") else model_name
+    
+    # Controlla se il file esiste
+    if os.path.exists(model_file):
+        print(f"Loading model {model_file} from local directory.")
+        model_obj = ct_models.Model.load(model_file)
+    else:
+        # Se il modello non esiste, scarica e carica il modello
+        print(f"Model {model_file} not found locally, downloading...")
+        ct_models.download_models(model=model_file)
+        model_obj = ct_models.Model.load(model_file)
+    
+    return model_obj
+
 
 def main():
     """
@@ -50,6 +67,8 @@ def main():
         )
     parser.add_argument('-ad','--input-h5mu-file',metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
                         required=True, help="paths of existing count matrix files in h5 format (including file names)")
+    parser.add_argument('--model-list', metavar='MODEL_LIST_TXT', type=pathlib.Path, required=True,
+                    help="path to a .txt file listing the CellTypist model .pkl files to use (one per line)")
     parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.annotated.h5mu",
                         help="name of the output h5ad file after cell annotation")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'), 
@@ -63,6 +82,7 @@ def main():
 
     print("\n===== INPUT H5AD FILES =====")
     input_h5mu_file = args.input_h5mu_files
+    input_model_list = args.model_list
     output = args.out
 
     
@@ -84,6 +104,19 @@ def main():
 
 
 # --------------------------------------------------------------------------------------------------------------------
+#                                 READ CELLTYPIST MODEL
+# --------------------------------------------------------------------------------------------------------------------
+    #with open(input_model_list, 'rb') as f:
+    #    model_dict = pickle.load(f)
+    
+    #print(model_dict)
+    #model = ct_models()
+    #model.model = model_dict["Model"]
+    #model.scaler = model_dict["Scaler_"]
+    #model.description = model_dict["description"]
+
+
+# --------------------------------------------------------------------------------------------------------------------
 #                                 GEX MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== GEX MODALITY DATA =====")
@@ -92,30 +125,47 @@ def main():
     gex.var = gex.var.set_index('gene_symbols')
     print(gex.var)
 
+# --------------------------------------------------------------------------------------------------------------------
+#                                 MANUAL ANNOTATION
+# --------------------------------------------------------------------------------------------------------------------
+
+    #print("\nVisualized UMAP plot")
+    #sc.pl.umap(gex, color ='MYCN',legend_loc='on data',show=False)
+    #plt.savefig(os.path.join(args.results,'feature_plot.png'))
+    #plt.close()
+   
+
 # -------------------------------------------------------------------------------------------------------------------
 #                                 CELLTYPIST ANNOTATION
 # --------------------------------------------------------------------------------------------------------------------
     
     #ct_models.download_models(force_update = True)
+    #model = ct_models.Model.load(model = 'Immune_All_Low.pkl')
     #description = ct_models.models_description()
     #print(description)
     #models_list = description['model'].tolist()[:1]
-    models_list = ['Adult_COVID19_PBMC.pkl']
+    #models_list = ['Adult_COVID19_PBMC.pkl']
+    #models_list = model_paths
     
     
     df_list = []
 
-    for model_name in models_list:
-        model = ct_models.Model.load(model_name)
-        predictions = celltypist.annotate(gex, model=model, majority_voting=True,mode = 'prob match', p_thres = 0.5)
-        predictions_adata = predictions.to_adata()
+    #for model_name in models_list:
+    #model = ct_models.Model.load(model_name)
 
-        df_celltypist = predictions_adata.obs.loc[
-            gex.obs.index, ["predicted_labels", "conf_score"]
-        ]
-        model_name = model_name[:-4]
-        df_celltypist.columns = [f"celltypist:{model_name}", f"celltypist:{model_name}:conf"]
-        df_list.append(df_celltypist)
+
+    model = load_model(input_model_list)
+
+    
+    predictions = celltypist.annotate(gex, model=model, majority_voting=True,mode = 'prob match', p_thres = 0.5)
+    predictions_adata = predictions.to_adata()
+
+    df_celltypist = predictions_adata.obs.loc[
+        gex.obs.index, ["predicted_labels", "conf_score"]
+    ]
+    model_name = model_name[:-4]
+    df_celltypist.columns = [f"celltypist:{model_name}", f"celltypist:{model_name}:conf"]
+    df_list.append(df_celltypist)
 
     df_celltypist = pd.concat(df_list, axis=1)
 
