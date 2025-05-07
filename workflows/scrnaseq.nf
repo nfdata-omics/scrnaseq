@@ -22,19 +22,22 @@ include { GTF_GENE_FILTER                                   } from '../modules/l
 include { GUNZIP as GUNZIP_FASTA                            } from '../modules/nf-core/gunzip/main'
 include { GUNZIP as GUNZIP_GTF                              } from '../modules/nf-core/gunzip/main'
 include { H5AD_CONVERSION                                   } from '../subworkflows/local/h5ad_conversion'
+include { ATAC_PREPROCESSING                                } from '../subworkflows/local/preprocessing_atac'
 include { CONCATENATE_VDJ                                   } from '../modules/local/concatenate_vdj'
 include { CONVERT_MUDATA                                    } from '../modules/local/convert_mudata'
 include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
 include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
+include { CELL_ANNOTATION                                   } from '../modules/local/cellannotation'
 include { INTEGRATION_MODALITIES                            } from '../subworkflows/local/integration_modalities'
 include { CLUSTERING                                        } from '../modules/local/clustering'
 include { CLUSTREE                                          } from '../modules/local/clustree'
-
+include { DIFFERENTIAL_ANALYSIS                             } from '../modules/local/differential_analysis'
 
 workflow SCRNASEQ {
 
     take:
     ch_fastq
+    counts
 
     main:
     ch_multiqc_files = Channel.empty()
@@ -63,7 +66,9 @@ workflow SCRNASEQ {
 
     // samplesheet - this is passed to the MTX conversion functions to add metadata to the
     // AnnData objects.
-    ch_input = file(params.input)
+    ch_input = params.input                ? file(params.input, checkIfExists: true)    : []
+    ch_counts = params.counts              ? file(params.counts, checkIfExists: true)    : []
+
 
     //kallisto params
     ch_kallisto_index = params.kallisto_index ? file(params.kallisto_index, checkIfExists: true) : []
@@ -213,8 +218,62 @@ workflow SCRNASEQ {
         )
         ch_versions = ch_versions.mix(CELLRANGERARC_ALIGN.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix( CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_raw, CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_filtered )
-    }
+        
 
+        // Collect the fragments files and their index
+        ch_fragments =
+            CELLRANGERARC_ALIGN.out.cellrangerarc_out.map { meta, outs ->
+            def desired_files = outs.findAll { it.name == "atac_fragments.tsv.gz" }
+            
+        
+            if (desired_files.size() > 0) {
+                [meta, desired_files]
+            }
+            else {
+            }
+        }
+        ch_fragments_collect =  ch_fragments.collect()
+        
+        
+        ch_transformed_fragments_channel = ch_fragments_collect.map { list ->
+        def meta = []
+        def files = []
+ 
+        list.collate(2).each { pair ->
+            meta << pair[0]
+            files << pair[1]
+        }
+        return [meta, files.flatten()]  
+        } 
+        
+
+        ch_fragments_index =
+            CELLRANGERARC_ALIGN.out.cellrangerarc_out.map { meta, outs ->
+            def desired_files = outs.findAll { it.name == "atac_fragments.tsv.gz.tbi" }
+            
+        
+            if (desired_files.size() > 0) {
+                [meta, desired_files]
+            }
+            else {
+            }
+        }
+        ch_vdj_fragments_index_collect =  ch_fragments_index.collect()
+        
+        
+        ch_transformed_fragments_index_channel = ch_vdj_fragments_index_collect.map { list ->
+        def meta = []
+        def files = []
+ 
+        list.collate(2).each { pair ->
+            meta << pair[0]
+            files << pair[1]
+        }
+        return [meta, files.flatten()]  
+        }
+    }
+    
+    
     // Run cellrangermulti pipeline
     if (params.aligner == 'cellrangermulti') {
 
@@ -272,6 +331,7 @@ workflow SCRNASEQ {
             ch_genome_fasta,
             ch_filter_gtf,
             ch_cellrangermulti_collected_channel,
+            ch_transformed_fragments_index_channel,
             ch_cellranger_index,
             cellranger_vdj_index,
             ch_multi_samplesheet
@@ -284,11 +344,29 @@ workflow SCRNASEQ {
 
     }
 
+    ch_count_matrix = Channel.empty()
+    if ( params.counts ) {
+        ch_count_matrix = Channel
+        .fromPath(params.counts, checkIfExists: true)
+        .splitCsv(header: true)
+        .map { row ->
+            def meta = [
+                id         : row.sample,
+                input_type : row.input_type
+            ]
+            def matrix_file = file(row.h5)
+            tuple(meta, matrix_file)
+        }
+    } else {
+        ch_count_matrix = ch_mtx_matrices
+    }
+
+    
     //
     // MODULE: Convert mtx matrices to h5ad
     //
     MTX_TO_H5AD (
-        ch_mtx_matrices,
+        ch_count_matrix,
         ch_txp2gene,
         star_index ? ch_star_index.map{it[1]} : [],
         params.aligner
@@ -316,7 +394,7 @@ workflow SCRNASEQ {
     //
     H5AD_CONVERSION (
         ch_h5ads,
-        ch_input
+        ch_input ?: ch_counts
     )
     ch_versions = ch_versions.mix(H5AD_CONVERSION.out.ch_versions)
 
@@ -341,17 +419,24 @@ workflow SCRNASEQ {
         ch_vdj = [[id: 'dummy'], []]
     }
 
-    ch_h5ad_concat = H5AD_CONVERSION.out.h5ads
-
-    // Filter input_type:'filtered'
-    ch_h5ad_concat_filtered = ch_h5ad_concat.filter { item ->
-        item[0].input_type == 'filtered'
+    '''
+    // SUBWORKFLOW: Atac preprocessing
+    if (params.aligner == "cellrangerarc") {
+        ATAC_PREPROCESSING (
+            ch_transformed_fragments_channel,
+            ch_transformed_fragments_index_channel,
+            params.nucleosome_threshold,
+            params.tss_threshold
+        )
+        ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
     }
-
+    '''
+    
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc") {
         CONVERT_MUDATA(
-            ch_h5ad_concat_filtered,
-            ch_vdj
+            H5AD_CONVERSION.out.h5ad_filtered,
+            ch_vdj,
+            //ATAC_PREPROCESSING.out.h5ad
         )
         ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
     } else {'nothing to convert to MuData'}
@@ -362,7 +447,7 @@ workflow SCRNASEQ {
     DOUBLETS_QUALITYFILTERING (
         H5AD_CONVERSION.out.rds_concat, 
         CONVERT_MUDATA.out.h5mu,
-        params.mt_threshold
+        params.mt_threshold,
     )
     ch_versions = ch_versions.mix(DOUBLETS_QUALITYFILTERING.out.ch_versions)
 
@@ -377,15 +462,30 @@ workflow SCRNASEQ {
     ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
 
     //
+    // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
+    //
+    '''
+    CELL_ANNOTATION (
+        NORMALIZATION_AND_HVG.out.h5mu,
+        params.input_model
+    )
+    ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
+    
+    //
     // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
     //
-
+    
     INTEGRATION_MODALITIES (
-        NORMALIZATION_AND_HVG.out.h5mu
+        CELL_ANNOTATION.out.h5mu
     )
     ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
     
-
+    
+    INTEGRATION_MODALITIES (
+        NORMALIZATION_AND_HVG.out.h5mu
+    )
+    ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
+    
     //
     // MODULES: Run clustering for GEX
     //
@@ -394,7 +494,12 @@ workflow SCRNASEQ {
         INTEGRATION_MODALITIES.out.h5mu
     )
     ch_versions = ch_versions.mix(CLUSTERING.out.versions)
-    
+    '''
+    CLUSTERING (
+        NORMALIZATION_AND_HVG.out.h5mu
+    )
+    ch_versions = ch_versions.mix(CLUSTERING.out.versions)
+
     //
     // MODULES: Plot clustree graph
     //
@@ -403,6 +508,13 @@ workflow SCRNASEQ {
         CLUSTERING.out.metadata_final
     )
     ch_versions = ch_versions.mix(CLUSTREE.out.versions)
+
+    //
+    // MODULE: Run differential analysis
+    //
+    DIFFERENTIAL_ANALYSIS (
+        CLUSTERING.out.h5mu
+    )
     
     //
     // Collate and save software versions
