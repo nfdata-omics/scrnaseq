@@ -7,7 +7,7 @@ process CONVERT_MUDATA  {
     input:
     tuple val(meta), path(input_h5ad)
     tuple val(meta), path(input_vdj)
-    tuple val(meta), path(input_h5ad_atac)
+    //tuple val(meta), path(input_h5ad_atac)
 
     output:
     tuple val(meta), path("*.mudata.h5mu") , emit: h5mu
@@ -19,12 +19,14 @@ process CONVERT_MUDATA  {
     script:
     def ai = input_vdj ? "-ai $input_vdj" : ''
 
+    //convert.py -ad $input_h5ad $ai -at $input_h5ad_atac
+
     """
     export NUMBA_CACHE_DIR=/tmp
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    convert.py -ad $input_h5ad $ai -at $input_h5ad_atac
+    convert.py -ad $input_h5ad $ai
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
