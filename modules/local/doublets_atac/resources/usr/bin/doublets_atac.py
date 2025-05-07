@@ -42,8 +42,8 @@ def main():
                                     )
     parser.add_argument('-ad','--input-h5ad-combined',metavar= 'H5AD_INPUT_FILES', type=pathlib.Path, dest='input_h5ad_files',
                         required=True, help="paths of existing matrix files in h5ad format (including file names)")
-    parser.add_argument('-id', '--input-run-id', metavar='INPUT_RUN_ID', dest='input_run_id',
-                        help="names of the run-id corresponding to the input adata")
+    #parser.add_argument('-id', '--input-run-id', metavar='INPUT_RUN_ID', dest='input_run_id',
+    #                    help="names of the run-id corresponding to the input adata")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.doublets_atac.h5ad",
                         help="path and name of the output h5ad file")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -55,7 +55,7 @@ def main():
 
     print("\n===== INPUT H5AD FILES =====")
     input_h5ad_file = args.input_h5ad_files
-    input_run_id = args.input_run_id
+    #input_run_id = args.input_run_id
     output =args.out
     
     # print info on the available matrices
@@ -74,7 +74,7 @@ def main():
     # read the count matrix for the combined samples and print some initial info
     print(f"\nProcessing AnnData object in folder {input_h5ad_file} ... ", end ='')
 
-    adata_atac= snap.read(input_h5ad_file)
+    adata_atac= snap.read_dataset(input_h5ad_file)
     print("Done!")
     print(f"MuData matrix for combined samples has {adata_atac.shape[0]} cells and {adata_atac.shape[1]} fragments")
 

@@ -16,6 +16,8 @@ process DOUBLETS_ATAC  {
     when:
     task.ext.when == null || task.ext.when
 
+    //doublets_atac.py  -ad $input_h5ad  -id ${meta.collect{ it.id }.join(' ')} 
+    
     
     script:
     """
@@ -24,7 +26,7 @@ process DOUBLETS_ATAC  {
     export XDG_CONFIG_HOME=/tmp
     export XDG_CACHE_HOME=/tmp
 
-    doublets_atac.py  -ad $input_h5ad  -id ${meta.collect{ it.id }.join(' ')} 
+    doublets_atac.py  -ad $input_h5ad
     
     
     cat <<-END_VERSIONS >> versions.yml
