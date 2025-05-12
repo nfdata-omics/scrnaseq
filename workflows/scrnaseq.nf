@@ -331,7 +331,7 @@ workflow SCRNASEQ {
             ch_genome_fasta,
             ch_filter_gtf,
             ch_cellrangermulti_collected_channel,
-            ch_transformed_fragments_index_channel,
+            //ch_transformed_fragments_index_channel,
             ch_cellranger_index,
             cellranger_vdj_index,
             ch_multi_samplesheet
@@ -374,6 +374,7 @@ workflow SCRNASEQ {
     ch_versions = ch_versions.mix(MTX_TO_H5AD.out.versions.first())
     ch_h5ads = MTX_TO_H5AD.out.h5ad
 
+
     //
     // SUBWORKFLOW: Run cellbender remove background subworkflow
     //
@@ -388,7 +389,7 @@ workflow SCRNASEQ {
             H5AD_REMOVEBACKGROUND_BARCODES_CELLBENDER_ANNDATA.out.h5ad
         )
     }
-
+    
     //
     // SUBWORKFLOW: Concat samples and convert h5ad to other formats
     //
@@ -431,10 +432,10 @@ workflow SCRNASEQ {
         ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
     }
     '''
-    
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc") {
+        def ch_h5ad_selected = params.counts ? H5AD_CONVERSION.out.h5ad_cellbender : H5AD_CONVERSION.out.h5ad_filtered
         CONVERT_MUDATA(
-            H5AD_CONVERSION.out.h5ad_filtered,
+            ch_h5ad_selected,
             ch_vdj,
             //ATAC_PREPROCESSING.out.h5ad
         )
@@ -443,9 +444,10 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
-    
+    // Da togliere questa cosa ch_rds_selected, se counts, canale vuoto tanto non faro' la parte dei doppietti
+    def ch_rds_selected = params.counts ? H5AD_CONVERSION.out.rds_cellbender : H5AD_CONVERSION.out.rds_concat   
     DOUBLETS_QUALITYFILTERING (
-        H5AD_CONVERSION.out.rds_concat, 
+        ch_rds_selected, 
         CONVERT_MUDATA.out.h5mu,
         params.mt_threshold,
     )
@@ -454,7 +456,7 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
-
+    
     NORMALIZATION_AND_HVG (
         DOUBLETS_QUALITYFILTERING.out.h5mu,
         H5AD_CONVERSION.out.h5ad_raw
@@ -494,7 +496,7 @@ workflow SCRNASEQ {
         INTEGRATION_MODALITIES.out.h5mu
     )
     ch_versions = ch_versions.mix(CLUSTERING.out.versions)
-    '''
+    
     CLUSTERING (
         NORMALIZATION_AND_HVG.out.h5mu
     )
@@ -515,7 +517,8 @@ workflow SCRNASEQ {
     DIFFERENTIAL_ANALYSIS (
         CLUSTERING.out.h5mu
     )
-    
+    ch_versions = ch_versions.mix(DIFFERENTIAL_ANALYSIS.out.versions)
+    '''
     //
     // Collate and save software versions
     //
