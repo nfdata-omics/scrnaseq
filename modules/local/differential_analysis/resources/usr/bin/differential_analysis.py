@@ -11,10 +11,9 @@ import pathlib                      # library for handle filesystem paths
 import matplotlib.pyplot as plt     # library for visualization
 import pandas as pd                 # library for data analysis and manipulation
 import scanpy as sc                 # single-cell data processing
-#import decoupler as dc
+import decoupler as dc
 import pertpy as pt
 import mudata as md
-import patsy
 
 
 warnings.filterwarnings("ignore")
@@ -87,7 +86,6 @@ def main():
     # read the count matrix for the combined samples and print some initial info
     print("\nProcessing count matrix in folder ... ", end ='')
     mdata= md.read(input_h5mu_file)
-    print(mdata.obs)
     print("Done!")
     print(f"Count matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
 
@@ -132,6 +130,7 @@ def main():
     print("\nExtracting the pseudobulk profile for each sample and condition")
     ps = pt.tl.PseudobulkSpace()
     pdata = ps.compute(gex, target_col="sample", groups_col="MYCN_status", layer_key="count", mode="sum", min_cells=10, min_counts=1000)
+    print(pdata)
     ps.plot_psbulk_samples(pdata, groupby=["sample", "MYCN_status"], figsize=(12, 4),return_fig=True)
     plt.savefig(os.path.join(args.results,'Pseudobulk_counts.png'))
     plt.close()
@@ -163,7 +162,11 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE COMPARISON RESULTS
 # --------------------------------------------------------------------------------------------------------------------
-    
+
+    res_df = pds2.compare_groups(pdata, column="MYCN_status", baseline="no_amplified", groups_to_compare="amplified")
+    #edgr.plot_multicomparison_fc(res_df, figsize=(12, 1.5))
+    print(res_df)
+
     # Visualize volcano plot
     fig, ax = plt.subplots(figsize=(40,10))
     print("\nVisualized volcano plot")

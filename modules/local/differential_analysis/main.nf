@@ -2,7 +2,7 @@ process DIFFERENTIAL_ANALYSIS  {
     tag "$meta.id"
     label 'process_single'
 
-    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.3'
+    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.4'
 
     input:
     tuple val(meta), path(input_h5mu)
@@ -19,6 +19,7 @@ process DIFFERENTIAL_ANALYSIS  {
     export NUMBA_CACHE_DIR=/tmp
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
+
 
     differential_analysis.py -ad $input_h5mu
 
