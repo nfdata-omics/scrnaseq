@@ -456,7 +456,7 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
-    
+    '''
     NORMALIZATION_AND_HVG (
         DOUBLETS_QUALITYFILTERING.out.h5mu,
         H5AD_CONVERSION.out.h5ad_raw
@@ -466,7 +466,7 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
     //
-    '''
+    
     CELL_ANNOTATION (
         NORMALIZATION_AND_HVG.out.h5mu,
         params.input_model

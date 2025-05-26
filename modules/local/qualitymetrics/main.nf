@@ -17,7 +17,6 @@ process QUALITY_FILTERING  {
     path "QC_Density_*.png", emit: qc_density, optional: true
     path "QC_Density_MT-Ribo*.png", emit: qc_density_mito, optional: true
     path "ADTs_Distribution_*.png", emit: adts_distribution, optional: true
-    path "Outliers_*.png", emit: outliers, optional: true
     path  "summary_qualitycontrol.csv", emit: summary_qualitycontrol, optional: true
     path "versions.yml",  emit: versions
 
