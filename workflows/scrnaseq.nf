@@ -466,6 +466,15 @@ workflow SCRNASEQ {
     ch_versions = ch_versions.mix(DOUBLETS_QUALITYFILTERING.out.ch_versions)
 
     //
+    // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
+    //
+    CELL_ANNOTATION (
+        DOUBLETS_QUALITYFILTERING.out.h5mu,
+        params.input_model
+    )
+    ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
+    
+    //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
     '''
@@ -475,15 +484,8 @@ workflow SCRNASEQ {
     )
     ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
 
-    //
-    // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
-    //
     
-    CELL_ANNOTATION (
-        NORMALIZATION_AND_HVG.out.h5mu,
-        params.input_model
-    )
-    ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
+    
     
     //
     // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly

@@ -29,7 +29,7 @@ VERSION = "0.0.1"
 #                                          MAIN FUNCTION
 # ====================================================================================================================
 def load_model(model_name):
-    model_file = f"{model_name}.pkl" if not model_name.endswith(".pkl") else model_name
+    model_file = f"{model_name}.pkl" if not str(model_name).endswith(".pkl") else model_name
     
     # Controlla se il file esiste
     if os.path.exists(model_file):
