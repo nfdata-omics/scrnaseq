@@ -432,15 +432,27 @@ workflow SCRNASEQ {
         ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
     }
     '''
+    ch_metadata_demuxafy = Channel.fromPath(params.demultiplexing_doublets, checkIfExists: true)
+    .splitCsv(header: true, sep: '\t')
+    .map { row ->
+            def meta = [ id: row.sample ]
+            def metadata_file = file(row.path)
+            tuple(meta, metadata_file)
+        }
+    
+    
+
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc") {
         def ch_h5ad_selected = params.counts ? H5AD_CONVERSION.out.h5ad_cellbender : H5AD_CONVERSION.out.h5ad_filtered
         CONVERT_MUDATA(
             ch_h5ad_selected,
             ch_vdj,
+            ch_metadata_demuxafy
             //ATAC_PREPROCESSING.out.h5ad
         )
         ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
     } else {'nothing to convert to MuData'}
+
     //
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
