@@ -8,7 +8,8 @@
 import argparse                     # command line arguments parser
 import warnings
 import os                           # filesystem utilities
-import pathlib                      # library for handle filesystem paths
+import pathlib
+from pathlib import Path                      # library for handle filesystem paths
 import numpy as np
 import pandas as pd                 # library for data analysis and manipulation
 import scanpy as sc                 # single-cell data processing
@@ -85,7 +86,7 @@ def main():
     print("\n===== INPUT H5MU FILES =====")
     input_h5mu_file = args.input_h5mu_files
     input_csv_table = args.input_csv_table
-    output_csv= args.csv_out
+    output_csv= Path(args.csv_out)
     output =args.out
     mt_threshold = args.mt_threshold
 
@@ -228,9 +229,11 @@ def main():
         | is_outlier(gex, "pct_counts_in_top_20_genes", 5)
         )
 
-        hard_filter_gex = gex.obs.groupby(['sample', 'hard_filter_gex']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_gex_pass', True: 'hard_filters_gex_fail'})
-        soft_filter_gex = gex.obs.groupby(['sample', 'soft_filters_gex']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_gex_pass', True: 'soft_filters_gex_fail'})
-    
+        hard_filter_gex_pool = gex.obs.groupby(['sample', 'hard_filter_gex']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_gex_pass', True: 'hard_filters_gex_fail'})
+        soft_filter_gex_pool = gex.obs.groupby(['sample', 'soft_filters_gex']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_gex_pass', True: 'soft_filters_gex_fail'})
+        hard_filter_gex_sample = gex.obs.groupby(['Inferred_donor', 'hard_filter_gex',]).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_gex_pass', True: 'hard_filters_gex_fail'})
+        soft_filter_gex_sample = gex.obs.groupby(['Inferred_donor', 'soft_filters_gex']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_gex_pass', True: 'soft_filters_gex_fail'})
+        
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           APPLY QUALITY METRICS
@@ -369,19 +372,37 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           ADDED QUALITY METRICS INTO ADATA.OBS AND PRINT SUMMARY TABLE
 # --------------------------------------------------------------------------------------------------------------------
-
+    
+    output_csv_pool = output_csv.with_name(output_csv.stem + "_by_pool.csv")
     print("\n===== ADDED QUALITY METRICS INTO ADATA.OBS AND PRINT SUMMARY TABLE =====")  
     dfs = []
-    for name in ['hard_filter_gex', 'soft_filter_gex', 'hard_filter_pro', 'soft_filter_pro']:
-        if name in locals():
-            dfs.append(locals()[name])
+    for name in ['hard_filter_gex_pool', 'soft_filter_gex_pool']:
+        df = locals().get(name)
+        if df is not None:
+            dfs.append(df)
     if dfs:
         summary_table = pd.concat(dfs, axis=1).fillna(0).astype(int)
-        summary_table.to_csv(output_csv)
+        summary_table.to_csv(output_csv_pool)
         print("Done!")
         
     else:
         print("No dataframe available for concatenation.")
+
+    output_csv_sample = output_csv.with_name(output_csv.stem + "_by_sample.csv")
+    print("\n===== ADDED QUALITY METRICS INTO ADATA.OBS AND PRINT SUMMARY TABLE =====")  
+    dfs = []
+    for name in ['hard_filter_gex_sample', 'soft_filter_gex_sample']:
+        df = locals().get(name)
+        if df is not None:
+            dfs.append(df)
+    if dfs:
+        summary_table = pd.concat(dfs, axis=1).fillna(0).astype(int)
+        summary_table.to_csv(output_csv_sample)
+        print("Done!")
+        
+    else:
+        print("No dataframe available for concatenation.")
+       
     
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
