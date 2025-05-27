@@ -8,6 +8,7 @@ import warnings
 import argparse                     # command line arguments parser
 import pathlib                      # library for handle filesystem paths
 import scanpy as sc                 # single-cell data processing
+import pandas as pd
 from mudata import MuData
 
 
@@ -47,6 +48,8 @@ def main():
                         default=pathlib.Path(''),help="paths of existing vdj matrix files in h5ad format (including file names)")
     parser.add_argument('-at', '--input-atac-file', metavar='ATAC_INPUT_FILES',type=pathlib.Path, dest='input_atac_files',
                         default=pathlib.Path(''),help="paths of existing atac matrix files in h5ad format (including file names)")
+    parser.add_argument('-csv','--input-csv-file',metavar= 'CSV_INPUT_FILES', type=pathlib.Path,  dest='input_csv_files',
+                        help="paths of existing metadata table in csv format")
     parser.add_argument('-o', '--out', metavar='MUDATA_OUTPUT_FILE', type=pathlib.Path, default="matrix.mudata.h5mu",
                         help="name of the muData object")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -60,6 +63,7 @@ def main():
     input_file = args.input_files
     input_vdj_file = args.input_vdj_files
     input_atac_file = args.input_atac_files
+    input_csv_file = args.input_csv_files
     output = args.out
 
     # print info on the available matrices
@@ -71,6 +75,9 @@ def main():
     
     print("Reading combined atac count matrix from the following file:")
     print(f"-File {input_atac_file}")
+
+    print("Reading metadata table from the following file:")
+    print(f"-File {input_csv_file}")
 
    
 
@@ -116,6 +123,37 @@ def main():
 
     adata_vdj = None
     adata_atac = None
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 READ CSV FILES
+# --------------------------------------------------------------------------------------------------------------------
+    metadata_df = None
+    if input_csv_file and input_csv_file.exists():
+        print("\n===== READING METADATA CSV =====")
+        metadata_df = pd.read_csv(input_csv_file,sep='\t',header=0)
+        metadata_df['pool_barcode'] = metadata_df['Barcode'].astype(str) + '_CCH_00827_cellbender_filter'
+        print(metadata_df)
+        print(f"Metadata table has {metadata_df.shape[0]} rows and {metadata_df.shape[1]} columns")
+    else:
+        print("No valid CSV file provided. Skipping reading of the metadata table.")
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 ADDED METADATA TO OBS
+# --------------------------------------------------------------------------------------------------------------------
+ 
+    if metadata_df is not None:
+        print("\n===== ADDING METADATA TO OBS =====")
+    
+        if 'Barcode' in metadata_df.columns:
+            metadata_df = metadata_df.set_index('pool_barcode')
+            obs_names_index = pd.Index(adata.obs_names)
+            intersect_barcodes = obs_names_index.intersection(metadata_df.index)
+            metadata_to_add = metadata_df.loc[intersect_barcodes]
+            adata.obs = adata.obs.join(metadata_to_add, how='left')
+            adata.obs['Souporcell_Cluster'] = adata.obs['Souporcell_Cluster'].astype(str)
+            print(f"Metadata joined to MuData obs for {len(intersect_barcodes)} barcodes.")
+        else:
+            print("No 'Barcode' column found in metadata CSV; skipping join.")
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CREATE MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
