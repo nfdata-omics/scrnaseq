@@ -71,7 +71,7 @@ def main():
                         default=pathlib.Path(''),help="paths of existing doublets table in csv format")
     parser.add_argument('-mt', '--mt-thresold',dest='mt_threshold',type=float,default=15,help="parameters used to filter cells based on mithocondrial gene content")
     parser.add_argument('-csv', '--csv_out', metavar='QUALITY_CONTROL', default="summary_qualitycontrol.csv",
-                        help="path and name of excel table with ranked marker genes for each cluster and resolution")
+                        help="path and name of csv table with ranked marker genes for each cluster and resolution")
     parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered.h5mu",
                         help="path and name of the output h5mu file")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
