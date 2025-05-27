@@ -440,7 +440,6 @@ workflow SCRNASEQ {
             tuple(meta, metadata_file)
         }
     
-    
 
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc") {
         def ch_h5ad_selected = params.counts ? H5AD_CONVERSION.out.h5ad_cellbender : H5AD_CONVERSION.out.h5ad_filtered
@@ -466,27 +465,23 @@ workflow SCRNASEQ {
     ch_versions = ch_versions.mix(DOUBLETS_QUALITYFILTERING.out.ch_versions)
 
     //
-    // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
-    //
-    CELL_ANNOTATION (
-        DOUBLETS_QUALITYFILTERING.out.h5mu,
-        params.input_model
-    )
-    ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
-    
-    //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
-    '''
     NORMALIZATION_AND_HVG (
         DOUBLETS_QUALITYFILTERING.out.h5mu,
         H5AD_CONVERSION.out.h5ad_raw
     )
     ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
-
     
-    
-    
+    //
+    // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
+    //
+    CELL_ANNOTATION (
+        NORMALIZATION_AND_HVG.out.h5mu,
+        params.input_model
+    )
+    ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
+    '''
     //
     // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
     //
