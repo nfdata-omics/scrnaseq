@@ -1,6 +1,6 @@
 process NORMALIZATION   {
     tag "$meta.id"
-    label 'process_single'
+    label 'process_medium'
 
     container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.1'
 
