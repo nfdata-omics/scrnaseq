@@ -99,6 +99,13 @@ def main():
     print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
     sc.tl.pca(gex,use_highly_variable = True, n_comps=50)
 
+    # Visualize PCA plot
+    print("\nVisualized PCA plot")
+    plt.figure(figsize=(12, 10))
+    sc.pl.pca(gex, color='batch',show=False)
+    plt.savefig(os.path.join(args.results,'pca_GEX.png'))
+    plt.close()
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION
 # --------------------------------------------------------------------------------------------------------------------
