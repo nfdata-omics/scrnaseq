@@ -12,7 +12,7 @@ process QUALITY_FILTERING  {
     
     output:
     tuple val(meta), path("*.filtered.h5mu"), emit: h5mu
-    path "Cells_before_filtering.png", emit: cells_before_filtering, optional: true
+    path "Cells_before_filtering_*.png", emit: cells_before_filtering, optional: true
     path "Cells_after_filtering.png", emit: cells_after_filtering, optional: true
     path "QC_Density_*.png", emit: qc_density, optional: true
     path "QC_Density_MT-Ribo*.png", emit: qc_density_mito, optional: true
