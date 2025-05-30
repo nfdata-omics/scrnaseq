@@ -52,6 +52,8 @@ workflow NFCORE_SCRNASEQ {
     //
     SCRNASEQ (
         samplesheet,
+        params.fasta,
+        params.gtf
     )
     emit:
     multiqc_report = SCRNASEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
