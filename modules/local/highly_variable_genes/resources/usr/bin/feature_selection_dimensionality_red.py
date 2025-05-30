@@ -93,7 +93,7 @@ def main():
     print("\n===== FEATURE SELECTION =====")
     # select highly=variable genes for each sample
     print("\nSelecting highly-variable genes are selected within each batch separately and merged")
-    sc.pp.highly_variable_genes(gex, min_mean=0.0125, max_mean=3, min_disp=0.5,batch_key = 'sample',subset=False)
+    sc.pp.highly_variable_genes(gex, min_mean=0.0125, max_mean=3, min_disp=0.5,subset=False)
  
     print("\n===== DIMENSIONALITY REDUCTION =====")
     print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
@@ -105,11 +105,11 @@ def main():
 
     print("\n===== NEAREST NEIGHBOR GRAPH CONSTRUCTION =====")
     print("\nConstruction of the nearest neighbor graph")
-    sc.pp.neighbors(gex,n_neighbors=15)
+    sc.pp.neighbors(gex,n_neighbors=30,n_pcs=20)
 
     print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
     print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
-    sc.tl.umap(gex,min_dist=0.5)
+    sc.tl.umap(gex,min_dist=0.1,random_state=42)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
@@ -117,7 +117,8 @@ def main():
 
     # Visualize UMAP plot
     print("\nVisualized UMAP plot")
-    sc.pl.umap(gex, color ='sample',legend_loc='on data',show=False)
+    plt.figure(figsize=(12, 10))
+    sc.pl.umap(gex, color ='sample',show=False)
     plt.savefig(os.path.join(args.results,'umap_plot_GEX.png'))
     plt.close()
 
@@ -164,7 +165,8 @@ def main():
 
         # Visualize UMAP plot
         print("\nVisualized UMAP plot")
-        sc.pl.umap(pro, color ='sample',legend_loc='on data',show=False)
+        plt.figure(figsize=(12, 10))
+        sc.pl.umap(pro, color ='sample',show=False)
         plt.savefig(os.path.join(args.results,'umap_plot_CITE.png'))
         plt.close()
 
