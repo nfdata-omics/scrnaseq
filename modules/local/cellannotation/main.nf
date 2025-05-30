@@ -1,10 +1,10 @@
 process CELL_ANNOTATION  {
     tag "$meta.id"
-    label 'process_single'
+    label 'process_high'
 
 
     container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.3'
-    //container = 'quay.io/teichlab/celltypist:latest'
+    
 
     input:
     tuple val(meta), path(input_h5mu)
@@ -12,8 +12,8 @@ process CELL_ANNOTATION  {
 
     output:
     tuple val(meta), path("*.annotated.h5mu") , emit: h5mu
-    path "umap_plot_*.png", emit: graph_umap
-    //path "feature_plot.png", emit : feature_plot
+    path "Annotated_UMAP_plot_GEX.png", emit: graph_umap
+    path "summary_cellannotation_*.csv", emit: summary_cellannotation, optional: true
     path "versions.yml",  emit: versions
 
     when:
@@ -37,7 +37,7 @@ process CELL_ANNOTATION  {
     stub:
     """
     touch matrix.annotated.h5mu
-    touch umap_plot.png
+    touch Annotated_UMAP_plot_GEX.png
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
