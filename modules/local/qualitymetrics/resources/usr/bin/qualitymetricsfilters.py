@@ -167,14 +167,25 @@ def main():
 
         fig, ax = plt.subplots(figsize=(50,35))
 
-        print("\nVisualized the number of cells for each sample before filtering")
+        print("\nVisualized the number of cells for each pool before filtering")
         sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
         locs, labels = plt.xticks()
         ax.set_xlabel("Sample name", fontsize=30)
         ax.set_ylabel("Cell number", fontsize=30)
         plt.setp(labels, rotation=90.,fontsize=30)
-        plt.savefig(os.path.join(args.results,'Cells_before_filtering.png'))
+        plt.savefig(os.path.join(args.results,'Cells_before_filtering_pool.png'))
         plt.close()
+
+        print("\nVisualized the number of cells for each sample before filtering")
+        sns.histplot(gex.obs, x="Inferred_donor", stat="count", ax=ax)
+        locs, labels = plt.xticks()
+        ax.set_xlabel("Inferred_donor name", fontsize=30)
+        ax.set_ylabel("Cell number", fontsize=30)
+        plt.setp(labels, rotation=90.,fontsize=30)
+        plt.savefig(os.path.join(args.results,'Cells_before_filtering_donor.png'))
+        plt.close()
+
+
         for sample in gex.obs['sample'].unique():
             print(f"\nVisualize density plot showing number of genes expressed, total counts per cell in {sample}")
             ax1 = plt.subplot(1, 2, 1)
