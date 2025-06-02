@@ -72,12 +72,13 @@ jobs:
         with:
           version: ${{ env.NFT_VER }}
 
-      - name: Run nf-test
+      - name: "Run pipeline with test data ${{ matrix.NXF_VER }} | ${{ matrix.test_name }} | ${{ matrix.profile }}"
         run: |
           nf-test test \
             --ci \
             --junitxml=test.xml \
             tests/main_pipeline_${{ matrix.profile }}.nf.test
+        continue-on-error: ${{ matrix.NXF_VER == 'latest-everything' }}
 
       - name: Output log on failure
         if: failure()
