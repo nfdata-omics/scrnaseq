@@ -102,7 +102,7 @@ def main():
     # Visualize PCA plot
     print("\nVisualized PCA plot")
     plt.figure(figsize=(12, 10))
-    sc.pl.pca(gex, color='batch',show=False)
+    sc.pl.pca(gex, color='sample',show=False)
     plt.savefig(os.path.join(args.results,'pca_GEX.png'))
     plt.close()
 

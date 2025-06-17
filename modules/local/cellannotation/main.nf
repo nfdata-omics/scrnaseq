@@ -14,6 +14,8 @@ process CELL_ANNOTATION  {
     tuple val(meta), path("*.annotated.h5mu") , emit: h5mu
     path "Annotated_UMAP_plot_GEX.png", emit: graph_umap
     path "summary_cellannotation_*.csv", emit: summary_cellannotation, optional: true
+    path "gex_obs.xlsx", emit: gex_obs, optional: true
+    path "metadata.xlsx", emit : metadata, optional: true
     path "versions.yml",  emit: versions
 
     when:

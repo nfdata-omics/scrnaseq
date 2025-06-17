@@ -69,7 +69,7 @@ def main():
                         required=True, help="paths of existing matrix files in h5mu format (including file names)")
     parser.add_argument('-d','--input-csv-doublets',metavar= 'CSV_DOUBLETS_TABLE', type=pathlib.Path, dest='input_csv_table',
                         default=pathlib.Path(''),help="paths of existing doublets table in csv format")
-    parser.add_argument('-mt', '--mt-thresold',dest='mt_threshold',type=float,default=15,help="parameters used to filter cells based on mithocondrial gene content")
+    parser.add_argument('-mt', '--mt-thresold',dest='mt_threshold',type=float,default=10,help="parameters used to filter cells based on mithocondrial gene content")
     parser.add_argument('-csv', '--csv_out', metavar='QUALITY_CONTROL', default="summary_qualitycontrol.csv",
                         help="path and name of csv table with ranked marker genes for each cluster and resolution")
     parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered.h5mu",
@@ -165,7 +165,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 # Visualize quality metrics: highest expressed genes, number of genes expressed, total counts per cell and fraction of mitochondrial, ribosomal and hemoglobin genes
 
-        fig, ax = plt.subplots(figsize=(50,35))
+        fig, ax = plt.subplots(figsize=(90,35))
 
         print("\nVisualized the number of cells for each pool before filtering")
         sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
@@ -176,13 +176,14 @@ def main():
         plt.savefig(os.path.join(args.results,'Cells_before_filtering_pool.png'))
         plt.close()
 
+        fig, ax = plt.subplots(figsize=(70, 35)) 
         print("\nVisualized the number of cells for each sample before filtering")
         sns.histplot(gex.obs, x="Inferred_donor", stat="count", ax=ax)
         locs, labels = plt.xticks()
         ax.set_xlabel("Inferred_donor name", fontsize=30)
         ax.set_ylabel("Cell number", fontsize=30)
         plt.setp(labels, rotation=90.,fontsize=30)
-        plt.savefig(os.path.join(args.results,'Cells_before_filtering_donor.png'))
+        plt.savefig(os.path.join(args.results,'Cells_before_filtering_sample.png'))
         plt.close()
 
 
@@ -225,8 +226,8 @@ def main():
         #Hard filtering based on total counts, number of genes expressed and fraction of mitochondrial genes
         gex.obs["total_counts_outlier"] = ((gex.obs["total_counts"] < percentiles['total_counts'][5]) | (gex.obs["total_counts"] > percentiles['total_counts'][95]))
         gex.obs["n_genes_by_counts_outlier"] = ((gex.obs["n_genes_by_counts"] < percentiles['n_genes_by_counts'][5]) | (gex.obs["n_genes_by_counts"] > percentiles['n_genes_by_counts'][95]))
-        #gex.obs["mt_outlier"] = (gex.obs["pct_counts_mt"] > mt_threshold)
-        gex.obs["mt_outlier"] = is_outlier(gex, "pct_counts_mt", 3) | ( gex.obs["pct_counts_mt"] > mt_threshold )
+        gex.obs["mt_outlier"] = (gex.obs["pct_counts_mt"] > mt_threshold)
+        #gex.obs["mt_outlier"] = is_outlier(gex, "pct_counts_mt", 3) | ( gex.obs["pct_counts_mt"] > mt_threshold )
 
         gex.obs["hard_filter_gex"] = (gex.obs["total_counts_outlier"] | gex.obs["n_genes_by_counts_outlier"] | gex.obs["mt_outlier"])
 
@@ -344,7 +345,7 @@ def main():
                 sns.histplot(pro[pro.obs['sample']== sample].obs.total_counts,ax=ax1)
                 plt.axvline(percentiles['total_counts'][5], color='blue', linestyle='--')
                 plt.axvline(percentiles['total_counts'][95], color='blue', linestyle='--')
-                ax1.set_xlim([0., 5000.])
+                ax1.set_xlim([0., 8000.])
                 ax2 = plt.subplot(1, 2, 2)
                 sns.histplot(pro[pro.obs['sample']== sample].obs.n_genes_by_counts,ax=ax2)
                 plt.axvline(percentiles['n_genes_by_counts'][5], color='blue', linestyle='--')
@@ -368,15 +369,18 @@ def main():
 #                           EVALUATE CELLS BASED ON SOFT FILTERS
 # --------------------------------------------------------------------------------------------------------------------
         
-        pro.obs["soft_filters_pro"] = (
+        pro.obs["soft_filter_pro"] = (
         is_outlier(pro, "log1p_total_counts", 5)
         | is_outlier(pro, "log1p_n_genes_by_counts", 5)
         | is_outlier(pro, "pct_counts_in_top_20_genes", 5)
         )
 
-        hard_filter_pro = pro.obs.groupby(['sample', 'hard_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_pro_pass', True: 'hard_filters_pro_fail'})
-        soft_filter_pro = pro.obs.groupby(['sample', 'soft_filters_pro']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_pro_pass', True: 'soft_filters_pro_fail'})
-    
+
+        hard_filter_pro_pool = pro.obs.groupby(['sample', 'hard_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_pro_pass', True: 'hard_filters_pro_fail'})
+        soft_filter_pro_pool = pro.obs.groupby(['sample', 'soft_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_pro_pass', True: 'soft_filters_pro_fail'})
+        hard_filter_pro_sample = pro.obs.groupby(['Inferred_donor', 'hard_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_pro_pass', True: 'hard_filters_pro_fail'})
+        soft_filter_pro_sample = pro.obs.groupby(['Inferred_donor', 'soft_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_pro_pass', True: 'soft_filters_pro_fail'})
+        
     else:
         print("CITE modality does not exist in mdata.mod.")
 
@@ -387,7 +391,7 @@ def main():
     output_csv_pool = output_csv.with_name(output_csv.stem + "_by_pool.csv")
     print("\n===== ADDED QUALITY METRICS INTO ADATA.OBS AND PRINT SUMMARY TABLE =====")  
     dfs = []
-    for name in ['hard_filter_gex_pool', 'soft_filter_gex_pool']:
+    for name in ['hard_filter_gex_pool', 'soft_filter_gex_pool','hard_filter_pro_pool','soft_filter_pro_pool']:
         df = locals().get(name)
         if df is not None:
             dfs.append(df)
@@ -402,7 +406,7 @@ def main():
     output_csv_sample = output_csv.with_name(output_csv.stem + "_by_sample.csv")
     print("\n===== ADDED QUALITY METRICS INTO ADATA.OBS AND PRINT SUMMARY TABLE =====")  
     dfs = []
-    for name in ['hard_filter_gex_sample', 'soft_filter_gex_sample']:
+    for name in ['hard_filter_gex_sample', 'soft_filter_gex_sample','hard_filter_pro_sample','soft_filter_pro_sample']:
         df = locals().get(name)
         if df is not None:
             dfs.append(df)

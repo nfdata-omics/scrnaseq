@@ -131,7 +131,7 @@ def main():
     if input_csv_file and input_csv_file.exists():
         print("\n===== READING METADATA CSV =====")
         metadata_df = pd.read_csv(input_csv_file,sep='\t',header=0)
-        metadata_df['pool_barcode'] = metadata_df['Barcode'].astype(str) + '_CCH_00827_cellbender_filter'
+        metadata_df['pool_barcode'] = metadata_df['Barcode'].astype(str) + '_' + metadata_df['pool'].astype(str) + '_cellbender_filter'
         print(metadata_df)
         print(f"Metadata table has {metadata_df.shape[0]} rows and {metadata_df.shape[1]} columns")
     else:

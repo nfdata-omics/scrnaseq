@@ -74,6 +74,8 @@ def main():
                         help="name of the output h5ad file after cell annotation")
     parser.add_argument('-csv', '--csv_out', metavar='CELL_ANNOTATION', default="summary_cellannotation.csv",
                         help="path and name of csv table cell annotation summary")
+    parser.add_argument('-e', '--excel_out', metavar='METADATA', default="metadata.xlsx",
+                        help="path and name of excel table with metadata information for each cell")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'), 
                         help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -87,6 +89,7 @@ def main():
     input_h5mu_file = args.input_h5mu_files
     input_model_list = args.model_list
     output_csv= Path(args.csv_out)
+    output_excel= args.excel_out
     output = args.out
 
     
@@ -146,13 +149,13 @@ def main():
     output_csv_pool = output_csv.with_name(output_csv.stem + "_by_pool.csv")
     summary_table_pool = gex.obs.groupby(['sample','predicted_labels']).size().reset_index(name='count')   
     print(summary_table_pool)
-    summary_table_pool.to_csv(output_csv_pool)
+    summary_table_pool.to_csv(output_csv_pool,index=False)
     print("Done!")
 
     output_csv_sample = output_csv.with_name(output_csv.stem + "_by_sample.csv")
     summary_table_sample = gex.obs.groupby(['Inferred_donor', 'predicted_labels']).size().reset_index(name='count')   
     print(summary_table_sample)
-    summary_table_sample.to_csv(output_csv_sample)
+    summary_table_sample.to_csv(output_csv_sample,index=False)
     print("Done!")
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
@@ -163,6 +166,13 @@ def main():
     mu.pl.embedding(gex, color =['predicted_labels'],basis= 'X_umap',legend_loc='on data',show=False)
     plt.savefig(os.path.join(args.results,'Annotated_UMAP_plot_GEX.png'))
     plt.close()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           SAVE METADATA INFORMATION INTO A EXCEL FILE
+# --------------------------------------------------------------------------------------------------------------------
+
+    gex.obs.to_excel(output_excel, index=False)
+    print("Metadata information for each cell saved in excel file {}".format(output_excel))
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE GEX DATA INTO MUDATA OBJECT
