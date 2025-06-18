@@ -165,7 +165,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 # Visualize quality metrics: highest expressed genes, number of genes expressed, total counts per cell and fraction of mitochondrial, ribosomal and hemoglobin genes
 
-        fig, ax = plt.subplots(figsize=(90,35))
+        fig, ax = plt.subplots(figsize=(90,55))
 
         print("\nVisualized the number of cells for each pool before filtering")
         sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
@@ -238,8 +238,9 @@ def main():
         gex.obs["soft_filters_gex"] = (
         is_outlier(gex, "log1p_total_counts", 5)
         | is_outlier(gex, "log1p_n_genes_by_counts", 5)
-        | is_outlier(gex, "pct_counts_in_top_20_genes", 5)
         )
+        #| is_outlier(gex, "pct_counts_in_top_20_genes", 5)
+        
 
         hard_filter_gex_pool = gex.obs.groupby(['sample', 'hard_filter_gex']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_gex_pass', True: 'hard_filters_gex_fail'})
         soft_filter_gex_pool = gex.obs.groupby(['sample', 'soft_filters_gex']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_gex_pass', True: 'soft_filters_gex_fail'})

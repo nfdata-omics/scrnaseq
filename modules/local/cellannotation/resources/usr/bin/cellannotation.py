@@ -167,12 +167,6 @@ def main():
     plt.savefig(os.path.join(args.results,'Annotated_UMAP_plot_GEX.png'))
     plt.close()
 
-# --------------------------------------------------------------------------------------------------------------------
-#                           SAVE METADATA INFORMATION INTO A EXCEL FILE
-# --------------------------------------------------------------------------------------------------------------------
-
-    gex.obs.to_excel(output_excel, index=False)
-    print("Metadata information for each cell saved in excel file {}".format(output_excel))
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE GEX DATA INTO MUDATA OBJECT
@@ -181,6 +175,14 @@ def main():
     mdata.mod['gex'] = gex
     mdata.update()
     print(mdata.obs)
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           SAVE METADATA INFORMATION INTO A EXCEL FILE
+# --------------------------------------------------------------------------------------------------------------------
+
+    mdata.obs.to_excel(output_excel, index=False)
+    print("Metadata information for each cell saved in excel file {}".format(output_excel))
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
