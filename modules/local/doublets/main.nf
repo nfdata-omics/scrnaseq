@@ -1,6 +1,6 @@
 process DOUBLETS  {
     tag "$meta.id"
-    label 'process_single'
+    label 'process_high'
     
     container = 'docker.io/nfdata/sc-rnaseq-r:v1.0.0'
 

@@ -1,6 +1,6 @@
 process HIGHLY_VARIABLE_GENES  {
     tag "$meta.id"
-    label 'process_single'
+    label 'process_medium'
 
     container = 'quay.io/biocontainers/scirpy:0.20.1--pyhdfd78af_0'
 
@@ -11,6 +11,7 @@ process HIGHLY_VARIABLE_GENES  {
     tuple val(meta), path("*.hvg.h5mu") , emit: h5mu
     path "umap_coordinates.csv", emit: umap
     path "umap_plot_*.png", emit: graph_umap
+    path "pca_GEX.png", emit: pca_gex
     path "versions.yml",  emit: versions
 
     when:

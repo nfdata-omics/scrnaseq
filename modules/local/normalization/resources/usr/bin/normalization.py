@@ -42,7 +42,7 @@ def main():
 
     parser = argparse.ArgumentParser(prog='LogNorm', usage='%(prog)s [options]',description = "Normalization and logaritmic trasformation of count matrix for each modality",
                         epilog = "This function normalize and logarithmize the data for each modality")
-    parser.add_argument('-ad','--input-h5mu-file',metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
+    parser.add_argument('-ad','--input-h5mu-file',metavar= 'H5MU_INPUT_FILES',type=pathlib.Path, dest='input_h5mu_files',
                         required=True, help="paths of existing matrix files in h5mu format (including file names)")
     parser.add_argument('-r','--input-h5ad-raw-file',metavar= 'H5AD_RAW_INPUT_FILES', type=pathlib.Path, dest='input_h5ad_raw_files',
                         required=True, help="paths of existing raw matrix files in h5ad format (including file names)")
@@ -68,12 +68,13 @@ def main():
     print("Reading raw count matrix from the following file:")
     print(f"-File {str(input_h5ad_files)}:")
 
+    
 # --------------------------------------------------------------------------------------------------------------------
-#                                 READ H5MU FILES
+#                                 READ H5MU AND H5AD FILES
 # --------------------------------------------------------------------------------------------------------------------
 
 
-     # Read folders with the combined count matrice and store datasets in a dictionary
+    # Read folders with the combined count matrice and store datasets in a dictionary
 
     print("\n===== READING COMBINED H5MU MATRIX =====")
     # read the count matrix for the combined samples and print some initial info
@@ -85,7 +86,7 @@ def main():
     print(f"Count matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
 
 # --------------------------------------------------------------------------------------------------------------------
-#                                 READ H5AD FILES
+#                                 READ H5AD RAW FILES
 # --------------------------------------------------------------------------------------------------------------------
     # Read folders with the combined raw count matrice and store datasets in a dictionary
 
@@ -95,11 +96,11 @@ def main():
 
     adata_raw= sc.read_h5ad(input_h5ad_files)
     # Extract only CITE counts
-    pro_raw = adata_raw[:, adata_raw.var["feature_types"] == "Antibody Capture"].copy()
-
-    print("Done!")
-    print(f"Raw count matrix for combined samples has {pro_raw.shape[0]} cells and {pro_raw.shape[1]} genes/ab")
-
+    if 'feature_types' in adata_raw.var:
+        pro_raw = adata_raw[:, adata_raw.var["feature_types"] == "Antibody Capture"].copy()
+        print("Done!")
+        print(f"Raw count matrix for combined samples has {pro_raw.shape[0]} cells and {pro_raw.shape[1]} genes/ab")
+    
 # --------------------------------------------------------------------------------------------------------------------
 #                                 GEX MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
@@ -126,39 +127,70 @@ def main():
     sc.pp.log1p(gex)
 
     print("Done!")
+    gex.layers["normalized_gex"] = gex.X.copy()
+    mdata.mod['gex'] = gex
+    mdata.update()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CITE MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
-    print("\n===== CITE MODALITY DATA =====")
-    pro = mdata.mod['pro']
-    print(pro.var)
-    print(pro_raw.var)
+    if 'pro' in mdata.mod:
+        print("\n===== CITE MODALITY DATA =====")
+        pro = mdata.mod['pro']
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 NORMALIZATION
 # --------------------------------------------------------------------------------------------------------------------
-    # Saving count data before normalization
-    print("Saving count data before normalization in slot Count.")
-    pro.layers["count"] = pro.X.copy()
-    print("\n===== NORMALIZATION =====")
-    # Denoising and normalizing protein expression with DSB (Denoised and Scaled by Background)
-    print("\nDenoising and normalize with Denoised and Scaled by Background method... ")
-    mu.prot.pp.dsb(pro, pro_raw)
+        # Saving count data before normalization
+        print("Saving count data before normalization in slot Count.")
+        pro.layers["count"] = pro.X.copy()
+        print("\n===== NORMALIZATION =====")
+        # Denoising and normalizing protein expression with DSB (Denoised and Scaled by Background)
+        print("\nDenoising and normalize with Denoised and Scaled by Background method... ")
+        mu.prot.pp.dsb(pro, pro_raw)
 
-    print("Done!")
+        pro.layers["normalized_pro"] = pro.X.copy()
+        mdata.mod['pro'] = pro
+        mdata.update()
+
+        print("Done!")
+    else:
+        print("CITE modality does not exist in mdata.mod.")
 
 # --------------------------------------------------------------------------------------------------------------------
-#                           SAVE GEX DATA INTO MUDATA OBJECT
+#                                 ATAC MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
-    print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
-    #Saving count data before normalization
-    print("Saving normalized data in slot normalized for GEX and CITE data")
-    gex.layers["normalized_gex"] = gex.X.copy()
-    pro.layers["normalized_pro"] = pro.X.copy()
-    mdata.mod['gex'] = gex
-    mdata.mod['pro'] = pro
-    mdata.update()
+
+    if 'atac' in mdata.mod:
+        print("\n===== ATAC MODALITY DATA =====")
+        atac = mdata.mod['atac']
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 NORMALIZATION
+# --------------------------------------------------------------------------------------------------------------------
+        # Saving count data before normalization
+        print("Saving count data before normalization in slot Count.")
+        atac.layers["raw_count_atac"] = atac.X.copy()
+
+        print("\n===== NORMALIZATION =====")
+        # Normalizing to median total counts
+        print("\nNormalize to median total counts ... ")
+        #sc.pp.normalize_per_cell(atac, counts_per_cell_after=1e4)
+        #.pp.tfidf(atac, scale_factor=1e4)
+
+        print("Done!")
+
+        #print("\n===== LOGARITMIC TRASFORMATION =====")
+        #print("\nLogarithmize the data ... ", end ='')
+        # Logarithmize the data
+        #sc.pp.log1p(atac)
+
+        print("Done!")
+        atac.layers["normalized_atac"] = atac.X.copy()
+        mdata.mod['atac'] = atac
+        mdata.update()
+
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE

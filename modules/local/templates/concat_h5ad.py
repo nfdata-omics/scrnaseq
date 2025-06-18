@@ -15,7 +15,13 @@ import platform
 def read_samplesheet(samplesheet):
     df = pd.read_csv(samplesheet)
     df.set_index("sample")
-    df['feature_type'] = df['feature_type'].fillna('unknown').astype(str)
+    if 'feature_type' in df.columns:
+        df['feature_type'] = df['feature_type'].fillna('unknown').astype(str)
+    elif 'sample_type' in df.columns:
+        df['sample_type'] = df['sample_type'].fillna('unknown').astype(str)
+    else:
+        print("Warning: Neither 'feature_type' nor 'sample_type' found.")
+
 
     # samplesheet may contain replicates, when it has,
     # group information from replicates and collapse with commas

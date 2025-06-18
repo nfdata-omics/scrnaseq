@@ -9,8 +9,9 @@ process CLUSTERING  {
 
     output:
     tuple val(meta), path("*.clustered.h5mu"), emit: h5mu
-    tuple val(meta), path("Metadata_final.csv"), emit: metadata_final
-    path "Leiden_clustering.png", emit: clusters
+    tuple val(meta), path("final_metadata.csv"), emit: metadata_final
+    path "cluster_id.png", emit: clusters
+    path "ranked_genes.xlsx", emit: ranked_genes
     path "versions.yml",  emit: versions
 
     when:
@@ -33,8 +34,8 @@ process CLUSTERING  {
     stub:
     """
     touch matrix_clustered.h5ad
-    touch Metadata_final.csv
-    touch Leiden_clustering.png
+    touch final_metadata.csv
+    touch cluster_id.png
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

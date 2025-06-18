@@ -93,11 +93,18 @@ def main():
     print("\n===== FEATURE SELECTION =====")
     # select highly=variable genes for each sample
     print("\nSelecting highly-variable genes are selected within each batch separately and merged")
-    sc.pp.highly_variable_genes(gex, min_mean=0.0125, max_mean=3, min_disp=0.5,batch_key = 'sample',subset=False)
+    sc.pp.highly_variable_genes(gex, min_mean=0.0125, max_mean=3, min_disp=0.5,subset=False)
  
     print("\n===== DIMENSIONALITY REDUCTION =====")
     print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
-    sc.tl.pca(gex,use_highly_variable = False, n_comps=50)
+    sc.tl.pca(gex,use_highly_variable = True, n_comps=50)
+
+    # Visualize PCA plot
+    print("\nVisualized PCA plot")
+    plt.figure(figsize=(12, 10))
+    sc.pl.pca(gex, color='sample',show=False)
+    plt.savefig(os.path.join(args.results,'pca_GEX.png'))
+    plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION
@@ -105,11 +112,11 @@ def main():
 
     print("\n===== NEAREST NEIGHBOR GRAPH CONSTRUCTION =====")
     print("\nConstruction of the nearest neighbor graph")
-    sc.pp.neighbors(gex,n_neighbors=15)
+    sc.pp.neighbors(gex,n_neighbors=30,n_pcs=20)
 
     print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
     print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
-    sc.tl.umap(gex,min_dist=0.5)
+    sc.tl.umap(gex,min_dist=0.1,random_state=42)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
@@ -117,7 +124,8 @@ def main():
 
     # Visualize UMAP plot
     print("\nVisualized UMAP plot")
-    sc.pl.umap(gex, color ='sample',legend_loc='on data',show=False)
+    plt.figure(figsize=(12, 10))
+    sc.pl.umap(gex, color ='sample',show=False)
     plt.savefig(os.path.join(args.results,'umap_plot_GEX.png'))
     plt.close()
 
@@ -131,49 +139,107 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CITE MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
-    print("\n===== CITE MODALITY DATA =====")
-    pro = mdata.mod['pro']
-    pro.var["feature_types"].value_counts()
+    if 'pro' in mdata.mod:
+        print("\n===== CITE MODALITY DATA =====")
+        pro = mdata.mod['pro']
+        pro.var["feature_types"].value_counts()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 DIMENSIONALITY REDUCTION
 # --------------------------------------------------------------------------------------------------------------------
 
-    print("\n===== DIMENSIONALITY REDUCTION =====")
-    print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
-    sc.pp.pca(pro, svd_solver="arpack")
-    sc.pl.pca_variance_ratio(pro, n_pcs=50)
+        print("\n===== DIMENSIONALITY REDUCTION =====")
+        print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
+        sc.pp.pca(pro, svd_solver="arpack")
+        sc.pl.pca_variance_ratio(pro, n_pcs=50)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION
 # --------------------------------------------------------------------------------------------------------------------
 
-    print("\n===== NEAREST NEIGHBOR GRAPH CONSTRUCTION =====")
-    print("\nConstruction of the nearest neighbor graph")
-    sc.pp.neighbors(pro, n_pcs=20)
+        print("\n===== NEAREST NEIGHBOR GRAPH CONSTRUCTION =====")
+        print("\nConstruction of the nearest neighbor graph")
+        sc.pp.neighbors(pro, n_pcs=20)
 
-    print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
-    print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
-    sc.tl.umap(pro)
+        print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
+        print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
+        sc.tl.umap(pro)
 
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Visualize UMAP plot
-    print("\nVisualized UMAP plot")
-    sc.pl.umap(pro, color ='sample',legend_loc='on data',show=False)
-    plt.savefig(os.path.join(args.results,'umap_plot_CITE.png'))
-    plt.close()
+        # Visualize UMAP plot
+        print("\nVisualized UMAP plot")
+        plt.figure(figsize=(12, 10))
+        sc.pl.umap(pro, color ='sample',show=False)
+        plt.savefig(os.path.join(args.results,'umap_plot_CITE.png'))
+        plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE CITE DATA INTO MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
-    print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
-    mdata.mod['pro'] = pro
-    mdata.update()
+        print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
+        mdata.mod['pro'] = pro
+        mdata.update()
+    else:
+        print("CITE modality does not exist in mdata.mod.")
 
+    '''
+# --------------------------------------------------------------------------------------------------------------------
+#                                 ATAC MODALITY DATA
+# --------------------------------------------------------------------------------------------------------------------
+    if 'atac' in mdata.mod:
+        print("\n===== ATAC MODALITY DATA =====")
+        atac = mdata.mod['atac']
+       
+# --------------------------------------------------------------------------------------------------------------------
+#                                 FEATURE SELECTION & DIMENSIONALITY REDUCTION
+# --------------------------------------------------------------------------------------------------------------------
+
+        print("\n===== FEATURE SELECTION =====")
+        # select highly-variable peaks for each sample
+        print("\nSelecting highly-variable paeks are selected within each batch separately and merged")
+        sc.pp.highly_variable_genes(atac, min_mean=0.05, max_mean=1.53, min_disp=5,batch_key = 'sample',subset=False)
+ 
+        print("\n===== DIMENSIONALITY REDUCTION =====")
+        print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
+        sc.pp.scale(atac)
+        sc.tl.pca(atac)
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION
+# --------------------------------------------------------------------------------------------------------------------
+
+        print("\n===== NEAREST NEIGHBOR GRAPH CONSTRUCTION =====")
+        print("\nConstruction of the nearest neighbor graph")
+        sc.pp.neighbors(atac, n_neighbors=10, n_pcs=30)
+
+        print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
+        print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
+        sc.tl.umap(atac, spread=1.5, min_dist=.5, random_state=20)
+
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           VISUALIZE UMAP PLOT
+# --------------------------------------------------------------------------------------------------------------------
+
+        # Visualize UMAP plot
+        print("\nVisualized UMAP plot")
+        sc.pl.umap(atac, color ='sample',legend_loc='on data',show=False)
+        plt.savefig(os.path.join(args.results,'umap_plot_ATAC.png'))
+        plt.close()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           SAVE ATAC DATA INTO MUDATA OBJECT
+# --------------------------------------------------------------------------------------------------------------------
+        print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
+        mdata.mod['atac'] = atac
+        mdata.update()
+    else:
+        print("ATAC modality does not exist in mdata.mod.")
+    '''
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------

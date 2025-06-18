@@ -56,7 +56,7 @@ def main():
                         help="name of the output h5ad file after clustering")
     parser.add_argument('-e', '--excel_out', metavar='RANKED_GENES_XLSX', default="ranked_genes.xlsx",
                         help="path and name of excel table with ranked marker genes for each cluster and resolution")
-    parser.add_argument('-csv', '--csv_out', metavar='H5AD_OUTPUT_FILE', default="Metadata_final.csv",
+    parser.add_argument('-csv', '--csv_out', metavar='H5AD_OUTPUT_FILE', default="final_metadata.csv",
                         help="path and name of csv tabel with UMAP coordinates for each cell")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'), 
                         help="directory to save the results files (default is the current directory)")
@@ -103,7 +103,7 @@ def main():
     print("\nComputing Leiden clustering at different resolutions")
 
     clustering_labels = []
-    for res in np.round(np.arange(0, 1.2, 0.2),2):
+    for res in np.round(np.arange(0.1, 1.0, 0.3),2):
         clustering_labels.append("leiden_{}".format(res))
         if "leiden_{}".format(res) in gex.obs:
             print("leiden_{}".format(res) + " already exists... going on with next resolution.")
@@ -116,16 +116,27 @@ def main():
     
     with pd.ExcelWriter(output_excel) as writer:
     
-        for res in np.round(np.arange(0.2, 1.2, 0.2),2):
+        for res in np.round(np.arange(0.1, 1.0, 0.3),2):
             print("\nComputing top 20 marker genes for each clusters at resolution {}".format(res))
             #Compute top 20 marker genes for each cluster, expects logarithmized data
-            sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res),method="wilcoxon",key_added="leiden_{}".format(res), n_genes=20,pts=True)
-            df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.5,key="leiden_{}".format(res))
-            
+            sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res),method="wilcoxon",key_added="leiden_{}".format(res), n_genes=100,pts=True)
+            df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.25,key="leiden_{}".format(res))
+            df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
+
             print("\nSaving top 20 marker genes for each cluster and resolution in excel file")
             df.to_excel(writer, sheet_name=f"Leiden_{res}", index=False)
             print("Done!")
     
+
+        print("\nComputing top 20 marker genes for each sample {}".format(res))
+        #Compute top 20 marker genes for each sample, expects logarithmized data
+        sc.tl.rank_genes_groups(gex, groupby="sample",method="wilcoxon",key_added="sample_marker", n_genes=100,pts=True)
+        df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.25,key="sample_marker")
+        df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
+
+        print("\nSaving top 20 marker genes for each cluster and resolution in excel file")
+        df.to_excel(writer, sheet_name="Sample_Markers",index=False)
+        print("Done!")
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
@@ -134,7 +145,7 @@ def main():
 
     print("\nVisualized Leiden clustering on UMAP plot")
     sc.pl.umap(gex, color=clustering_labels ,legend_loc='on data',show=False)
-    plt.savefig(os.path.join(args.results,'Leiden_clustering.png'))
+    plt.savefig(os.path.join(args.results,'cluster_id.png'))
     plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
