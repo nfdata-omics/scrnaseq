@@ -10,7 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": ["outdir"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -95,6 +95,10 @@
                 "skip_integration": {
                     "type": "boolean",
                     "description": "Skip integration subworkflow"
+                },
+                "skip_doublets": {
+                    "type": "boolean",
+                    "description": "Skip doublet detection subworkflow"
                 },
                 "skip_emptydrops": {
                     "type": "boolean",

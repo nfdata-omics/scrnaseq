@@ -1,15 +1,14 @@
-process MOFA_INTEGRATION {
+process DIFFERENTIAL_ANALYSIS  {
     tag "$meta.id"
     label 'process_single'
 
-    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.2'
+    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.4'
 
     input:
     tuple val(meta), path(input_h5mu)
 
     output:
-    tuple val(meta), path("*.mofa.h5mu"), emit: h5mu
-    path "umap_mofa.png", emit: graph_UMAP_mofa
+    path "differential_genes.xlsx", emit: xlsx
     path "versions.yml",  emit: versions
 
     when:
@@ -21,21 +20,22 @@ process MOFA_INTEGRATION {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    mofa_integration.py -ad $input_h5mu
+
+    differential_analysis.py -ad $input_h5mu
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        mofa_integration.py --version >> versions.yml
+        differential_analysis.py --version >> versions.yml
     END_VERSIONS
     """
 
     stub:
     """
-    touch matrix.mofa.h5mu
+    touch differential_genes.xlsx
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        mofa_integration.py --version >> versions.yml
+        differential_analysis.py --version >> versions.yml
     END_VERSIONS
     """
 
