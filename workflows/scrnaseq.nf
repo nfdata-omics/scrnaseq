@@ -420,38 +420,47 @@ workflow SCRNASEQ {
         ch_vdj = [[id: 'dummy'], []]
     }
 
-    '''
+    
+    def blacklist_path = params.blacklist_path ?: file(params.genomes[params.genome].blacklist, checkIfExists: true)
+
     // SUBWORKFLOW: Atac preprocessing
     if (params.aligner == "cellrangerarc") {
         ATAC_PREPROCESSING (
             ch_transformed_fragments_channel,
             ch_transformed_fragments_index_channel,
             params.nucleosome_threshold,
-            params.tss_threshold
+            params.tss_threshold,
+            blacklist_path
+    
         )
         ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
     }
-    '''
+    
+    if (params.demultiplexing_doublets) {
     ch_metadata_demuxafy = Channel.fromPath(params.demultiplexing_doublets, checkIfExists: true)
-    .splitCsv(header: true, sep: '\t')
-    .map { row ->
+        .splitCsv(header: true, sep: '\t')
+        .map { row ->
             def meta = [ id: row.sample ]
             def metadata_file = file(row.path)
             tuple(meta, metadata_file)
         }
+    } else {
+        ch_metadata_demuxafy = Channel.value([ [id: 'dummy'], [] ])
+    }
     
-
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc") {
         def ch_h5ad_selected = params.counts ? H5AD_CONVERSION.out.h5ad_cellbender : H5AD_CONVERSION.out.h5ad_filtered
         CONVERT_MUDATA(
             ch_h5ad_selected,
             ch_vdj,
-            ch_metadata_demuxafy
-            //ATAC_PREPROCESSING.out.h5ad
+            ch_metadata_demuxafy,
+            ATAC_PREPROCESSING.out.h5ad
         )
         ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
-    } else {'nothing to convert to MuData'}
-
+    } else {
+        println 'Nothing to convert to MuData'
+    }
+    
     //
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
@@ -481,45 +490,32 @@ workflow SCRNASEQ {
         params.input_model
     )
     ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
-    '''
+    
     //
     // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
     //
-    
     INTEGRATION_MODALITIES (
         CELL_ANNOTATION.out.h5mu
     )
     ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
     
-    
-    INTEGRATION_MODALITIES (
-        NORMALIZATION_AND_HVG.out.h5mu
-    )
-    ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
-    
     //
     // MODULES: Run clustering for GEX
     //
-
     CLUSTERING (
         INTEGRATION_MODALITIES.out.h5mu
     )
     ch_versions = ch_versions.mix(CLUSTERING.out.versions)
     
-    CLUSTERING (
-        NORMALIZATION_AND_HVG.out.h5mu
-    )
-    ch_versions = ch_versions.mix(CLUSTERING.out.versions)
-
     //
     // MODULES: Plot clustree graph
     //
-
     CLUSTREE (
         CLUSTERING.out.metadata_final
     )
     ch_versions = ch_versions.mix(CLUSTREE.out.versions)
-
+    
+    '''
     //
     // MODULE: Run differential analysis
     //

@@ -157,40 +157,6 @@ def main():
     else:
         print("CITE modality does not exist in mdata.mod.")
 
-# --------------------------------------------------------------------------------------------------------------------
-#                                 ATAC MODALITY DATA
-# --------------------------------------------------------------------------------------------------------------------
-
-    if 'atac' in mdata.mod:
-        print("\n===== ATAC MODALITY DATA =====")
-        atac = mdata.mod['atac']
-
-# --------------------------------------------------------------------------------------------------------------------
-#                                 NORMALIZATION
-# --------------------------------------------------------------------------------------------------------------------
-        # Saving count data before normalization
-        print("Saving count data before normalization in slot Count.")
-        atac.layers["raw_count_atac"] = atac.X.copy()
-
-        print("\n===== NORMALIZATION =====")
-        # Normalizing to median total counts
-        print("\nNormalize to median total counts ... ")
-        #sc.pp.normalize_per_cell(atac, counts_per_cell_after=1e4)
-        #.pp.tfidf(atac, scale_factor=1e4)
-
-        print("Done!")
-
-        #print("\n===== LOGARITMIC TRASFORMATION =====")
-        #print("\nLogarithmize the data ... ", end ='')
-        # Logarithmize the data
-        #sc.pp.log1p(atac)
-
-        print("Done!")
-        atac.layers["normalized_atac"] = atac.X.copy()
-        mdata.mod['atac'] = atac
-        mdata.update()
-
-
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
