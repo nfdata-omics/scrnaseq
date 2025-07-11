@@ -98,7 +98,7 @@ def main():
     print("\n===== MOFA CALCULATION =====")
     # MOFA calculation
     print("\nCalculating MOFA ... ")
-    mu.tl.mofa(mdata_subset,use_obs='union')
+    mu.tl.mofa(mdata_subset,use_obs='union',seed=42,use_var='highly_variable')
     sc.pp.neighbors(mdata_subset, use_rep="X_mofa")
     print("Done!")
     
