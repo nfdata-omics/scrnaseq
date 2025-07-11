@@ -121,8 +121,8 @@ def main():
             #Compute top 20 marker genes for each cluster, expects logarithmized data
             sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res),method="wilcoxon",key_added="leiden_{}".format(res), n_genes=100,pts=True)
             df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.25,key="leiden_{}".format(res))
-            df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
-
+            #df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
+            
             print("\nSaving top 20 marker genes for each cluster and resolution in excel file")
             df.to_excel(writer, sheet_name=f"Leiden_{res}", index=False)
             print("Done!")
@@ -132,8 +132,8 @@ def main():
         #Compute top 20 marker genes for each sample, expects logarithmized data
         sc.tl.rank_genes_groups(gex, groupby="sample",method="wilcoxon",key_added="sample_marker", n_genes=100,pts=True)
         df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.25,key="sample_marker")
-        df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
-
+        #df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
+        
         print("\nSaving top 20 marker genes for each cluster and resolution in excel file")
         df.to_excel(writer, sheet_name="Sample_Markers",index=False)
         print("Done!")

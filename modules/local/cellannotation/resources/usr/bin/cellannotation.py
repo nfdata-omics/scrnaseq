@@ -152,11 +152,11 @@ def main():
     summary_table_pool.to_csv(output_csv_pool,index=False)
     print("Done!")
 
-    output_csv_sample = output_csv.with_name(output_csv.stem + "_by_sample.csv")
-    summary_table_sample = gex.obs.groupby(['Inferred_donor', 'predicted_labels']).size().reset_index(name='count')   
-    print(summary_table_sample)
-    summary_table_sample.to_csv(output_csv_sample,index=False)
-    print("Done!")
+    #output_csv_sample = output_csv.with_name(output_csv.stem + "_by_sample.csv")
+    #summary_table_sample = gex.obs.groupby(['Inferred_donor', 'predicted_labels']).size().reset_index(name='count')   
+    #print(summary_table_sample)
+    #summary_table_sample.to_csv(output_csv_sample,index=False)
+    #print("Done!")
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
