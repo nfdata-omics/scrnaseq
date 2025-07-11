@@ -1,6 +1,6 @@
-process DOUBLETS_ATAC  {
+process PEAK_CALLING  {
     tag "$meta.id"
-    label 'process_single'
+    label 'process_medium'
 
     container = 'quay.io/biocontainers/snapatac2:2.8.0--py311h284d45d_1'
     
@@ -10,15 +10,12 @@ process DOUBLETS_ATAC  {
     
     
     output:
-    tuple val(meta), path("*.doublets_atac.h5ad"), emit: h5ad
+    tuple val(meta), path("*.peaks_atac.h5ad"), emit: h5ad
     path "versions.yml",  emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
-    //doublets_atac.py  -ad $input_h5ad  -id ${meta.collect{ it.id }.join(' ')} 
-    
-    
     script:
     """
     export NUMBA_CACHE_DIR=/tmp
@@ -26,22 +23,21 @@ process DOUBLETS_ATAC  {
     export XDG_CONFIG_HOME=/tmp
     export XDG_CACHE_HOME=/tmp
 
-    doublets_atac.py  -ad $input_h5ad
-    
+    peak_calling.py  -ad $input_h5ad
     
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        doublets_atac.py --version >> versions.yml
+        peak_calling.py --version >> versions.yml
     END_VERSIONS
     """
     
     stub:
     """
-    touch matrix.doublets_atac.h5ad
+    touch matrix.peaks_atac.h5ad
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        doublets_atac.py --version >> versions.yml
+        peak_calling.py --version >> versions.yml
     END_VERSIONS
     """
 }

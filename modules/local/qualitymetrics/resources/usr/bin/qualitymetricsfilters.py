@@ -176,6 +176,7 @@ def main():
         plt.savefig(os.path.join(args.results,'Cells_before_filtering_pool.png'))
         plt.close()
 
+        '''
         fig, ax = plt.subplots(figsize=(70, 35)) 
         print("\nVisualized the number of cells for each sample before filtering")
         sns.histplot(gex.obs, x="Inferred_donor", stat="count", ax=ax)
@@ -185,7 +186,7 @@ def main():
         plt.setp(labels, rotation=90.,fontsize=30)
         plt.savefig(os.path.join(args.results,'Cells_before_filtering_sample.png'))
         plt.close()
-
+        '''
 
         for sample in gex.obs['sample'].unique():
             print(f"\nVisualize density plot showing number of genes expressed, total counts per cell in {sample}")
@@ -244,8 +245,8 @@ def main():
 
         hard_filter_gex_pool = gex.obs.groupby(['sample', 'hard_filter_gex']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_gex_pass', True: 'hard_filters_gex_fail'})
         soft_filter_gex_pool = gex.obs.groupby(['sample', 'soft_filters_gex']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_gex_pass', True: 'soft_filters_gex_fail'})
-        hard_filter_gex_sample = gex.obs.groupby(['Inferred_donor', 'hard_filter_gex',]).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_gex_pass', True: 'hard_filters_gex_fail'})
-        soft_filter_gex_sample = gex.obs.groupby(['Inferred_donor', 'soft_filters_gex']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_gex_pass', True: 'soft_filters_gex_fail'})
+        #hard_filter_gex_sample = gex.obs.groupby(['Inferred_donor', 'hard_filter_gex',]).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_gex_pass', True: 'hard_filters_gex_fail'})
+        #soft_filter_gex_sample = gex.obs.groupby(['Inferred_donor', 'soft_filters_gex']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_gex_pass', True: 'soft_filters_gex_fail'})
         
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -377,11 +378,20 @@ def main():
         )
 
 
+
         hard_filter_pro_pool = pro.obs.groupby(['sample', 'hard_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_pro_pass', True: 'hard_filters_pro_fail'})
         soft_filter_pro_pool = pro.obs.groupby(['sample', 'soft_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_pro_pass', True: 'soft_filters_pro_fail'})
-        hard_filter_pro_sample = pro.obs.groupby(['Inferred_donor', 'hard_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_pro_pass', True: 'hard_filters_pro_fail'})
-        soft_filter_pro_sample = pro.obs.groupby(['Inferred_donor', 'soft_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_pro_pass', True: 'soft_filters_pro_fail'})
+        #hard_filter_pro_sample = pro.obs.groupby(['Inferred_donor', 'hard_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_pro_pass', True: 'hard_filters_pro_fail'})
+        #soft_filter_pro_sample = pro.obs.groupby(['Inferred_donor', 'soft_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_pro_pass', True: 'soft_filters_pro_fail'})
         
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           SAVE GEX DATA INTO MUDATA OBJECT
+# --------------------------------------------------------------------------------------------------------------------
+        print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
+        mdata.mod['pro'] = pro
+        mdata.update()
+
     else:
         print("CITE modality does not exist in mdata.mod.")
 
@@ -423,9 +433,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
-    mdata.mod['gex'] = gex
-    mdata.mod['pro'] = pro
-    mdata.update()
+    
     print("\n===== SAVING OUTPUT FILE =====")
     print(f"Saving h5mu data to file {output}")
     mdata.write(output)

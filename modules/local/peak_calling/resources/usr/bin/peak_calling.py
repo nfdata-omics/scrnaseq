@@ -12,6 +12,8 @@ import pathlib                      # library for handle filesystem paths
 import numpy as np
 import pandas as pd                 # library for data analysis and manipulation                
 import snapatac2 as snap
+import anndata as ad
+ 
 
 
 
@@ -28,8 +30,8 @@ VERSION = "0.0.1"
 
 def main():
     """
-    This function calculates common quality control (QC) metrics for each sample and ATAC modality
-    ,inspects QC plots for each computed QC metrics in each sample and filter cells based on QC metrics.
+    This function compute the cell clutering to identify populations with similar chromatin accessibility profiles and peak calling .
+
     """
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -37,14 +39,12 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
 #Define command line arguments with argparse
-    parser = argparse.ArgumentParser(prog='QC_filter', usage='%(prog)s [options]', description = "QC metrics and filtering",
-                                    epilog = "This function calculates common quality control (QC) metrics for each sample and ATAC modality, inspects QC plots for each sample and filters cells based on QC plots.",
+    parser = argparse.ArgumentParser(prog='Cell clustering ', usage='%(prog)s [options]', description = "Cell clustering and peak calling for ATAC data",
+                                    epilog = "This function compute the cell clutering to identify populations with similar chromatin accessibility profiles and based on clustering the peak calling.",
                                     )
     parser.add_argument('-ad','--input-h5ad-combined',metavar= 'H5AD_INPUT_FILES', type=pathlib.Path, dest='input_h5ad_files',
                         required=True, help="paths of existing matrix files in h5ad format (including file names)")
-    #parser.add_argument('-id', '--input-run-id', metavar='INPUT_RUN_ID', dest='input_run_id',
-    #                    help="names of the run-id corresponding to the input adata")
-    parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.doublets_atac.h5ad",
+    parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.peaks_atac.h5ad",
                         help="path and name of the output h5ad file")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
@@ -55,15 +55,12 @@ def main():
 
     print("\n===== INPUT H5AD FILES =====")
     input_h5ad_file = args.input_h5ad_files
-    #input_run_id = args.input_run_id
     output =args.out
     
     # print info on the available matrices
     print("Reading fragment file from the following file:")
     print(f"-File {input_h5ad_file}")
 
-    #for run, fragment in zip(input_run_id, input_fragment_file):
-    #print(f"Run: {run:15s} - File: {fragment}")
     
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ H5AD FILES
@@ -74,21 +71,49 @@ def main():
     # read the count matrix for the combined samples and print some initial info
     print(f"\nProcessing AnnData object in folder {input_h5ad_file} ... ", end ='')
 
-    adata_atac= snap.read_dataset(input_h5ad_file)
-    print("Done!")
+    adata_atac= snap.read(input_h5ad_file,backed=None)
     print(f"MuData matrix for combined samples has {adata_atac.shape[0]} cells and {adata_atac.shape[1]} fragments")
 
+
 # --------------------------------------------------------------------------------------------------------------------
-#                           CELL BY BIN MATRIX
+#                           DIMENSIONALITY REDUCTION
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Compute the cell by bin matrix for each sample
-    print("\n===== COMPUTE CELL BY BIN MATRIX =====")
-    snap.pp.add_tile_matrix(adata_atac,bin_size=500)
-    snap.pp.select_features(adata_atac, n_features=100000)
-    snap.pp.scrublet(adata_atac)
+    # Compute the spectral embedding for dimensionality reduction
+    print("\n===== COMPUTE KNN GRAPH CONSTRUCTION =====")
+    snap.pp.knn(adata_atac,n_neighbors=15,use_rep='X_spectral',random_state=0,inplace=True)
+
+    # CLuster the cells using Leiden clustering
+    print("\n===== CLUSTERING CELLS =====")
+    print("Clustering cells using Leiden clustering ... ", end='')
+    snap.tl.leiden(adata_atac, resolution=1.0, random_state=0,inplace=True)
     print("Done!")
-    
+
+    # Perform peak calling with MACS3
+    print("\n===== COMPUTE PEAK CALLING =====")
+    print("Computing peak calling ... ", end='')
+    snap.tl.macs3(adata_atac,groupby='leiden',call_broad_peaks=False,inplace=True)
+    print("Done!")
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           MERGE PEAKS FROM DIFFERENT GROUPS
+# --------------------------------------------------------------------------------------------------------------------
+    # Merge peaks from different groups
+    print("\n===== MERGE PEAKS FROM DIFFERENT GROUPS =====")
+    print("Merging peaks from different groups ... ", end='')
+    snap.tl.merge_peaks(adata_atac.uns['macs3'], snap.genome.hg38,half_width=250)
+    print("Done!")
+
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           CREATE PEAKS COUNT MATRIX
+# --------------------------------------------------------------------------------------------------------------------
+ 
+    # Create peaks count matrix
+    print("\n===== CREATE PEAKS COUNT MATRIX =====")
+    print("Creating peaks count matrix ... ", end='')
+    snap.pp.make_peak_matrix(adata_atac, use_rep="macs3", counting_strategy='paired-insertion', inplace=True)
+    print("Done!")
     
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE

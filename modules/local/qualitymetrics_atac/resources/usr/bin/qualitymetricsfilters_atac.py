@@ -50,6 +50,8 @@ def main():
                         required=True, help="paths of existing index fragment file in tsv format")
     parser.add_argument('-n', '--nucleosome_filter',dest='nucleosome_threshold',type=float,default=2,help="parameters used to filter cells based on nucleosome signal")
     parser.add_argument('-t', '--tss_filter',dest='tss_threshold',type=float,default=1,help="parameters used to filter cells based on TSS score")
+    parser.add_argument('-b', '--blacklist', metavar='BLACKLIST_FILE', type=pathlib.Path, default=None,
+                        help="path to the blacklist file in bed format (default is None, no blacklist will be applied)")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered_atac.h5ad",
                         help="path and name of the output h5ad file")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
@@ -68,6 +70,7 @@ def main():
     output =args.out
     nucleosome_threshold = args.nucleosome_threshold
     tss_threshold = args.tss_threshold
+    blacklist_path = args.blacklist
 
 
     # print info on the available matrices
@@ -100,13 +103,9 @@ def main():
         [fl for _, fl in files],
         file=[name + '.h5ad' for name, _ in files],
         chrom_sizes=snap.genome.hg38,
+        chrM=['chrM', 'M'],
         sorted_by_barcode=False
     )
-    print(adatas_atac)
-    
-    #adata_atac = snap.pp.import_fragments(input_fragment_file,file=output,chrom_sizes=snap.genome.GRCh38,sorted_by_barcode=False)
-    
-    #print(f"MuData matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
     
 # --------------------------------------------------------------------------------------------------------------------
 #                           COMPUTE AND VISUALIZE QUALITY METRICS
@@ -116,49 +115,91 @@ def main():
 
     print("\n===== COMPUTE QUALITY METRICS {} =====")
     print(f"\n# Calculate the fragment size distribution for {input_fragment_file}")
-
+    snap.metrics.frag_size_distr(adatas_atac,inplace = True,add_key='frag_size_distr',max_recorded_size=1000)
     #fig = snap.pl.frag_size_distr(adatas_atac, show=False)
     #fig.update_yaxes(type="log")
-    #fig.write_image("Nucleosome_signal_1.png", width=1000, height=600)
+    #fig.write_image("Nucleosome_signal.png", width=1000, height=600)
 
     print(f"\n# Calculate the TSS score for {input_fragment_file}")
     # Compute the TSS score for each sample
-    #snap.metrics.tsse(adatas_atac, snap.genome.hg38)
-    #fig2 = snap.pl.tsse(adata_atac, interactive=False)
-    #fig2.write_image("TSS_score_1.png", width=1000, height=600)
+    snap.metrics.tsse(adatas_atac, snap.genome.hg38,inplace = True)
+    #fig2 = snap.pl.tsse(adatas_atac, interactive=False)
+    #fig2.write_image("TSS_score.png", width=1000, height=600)
 
     print(f"\n# Calculate the FRIP for {input_fragment_file}")
-    #snap.metrics.frip(adatas_atac,{"peaks_frac": snap.datasets.cre_HEA()},inplace=True)
+    snap.metrics.frip(adatas_atac,{"peaks_frac": snap.datasets.cre_HEA()},normalized=True,inplace=True)
 
-    snap.pp.add_tile_matrix(adatas_atac,bin_size=500)
-    snap.pp.select_features(adatas_atac, n_features=100000)
-    snap.pp.scrublet(adatas_atac)
+    print(f"\n# Calculate the metric summary for each chrom for {input_fragment_file}")
+    snap.metrics.summary_by_chrom(adatas_atac, mode='sum')
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           FILTERS CELLS BASED ON QC METRICS
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== FILTER CELLS BASED ON QC METRICS =====")
+    # Filter cells based on the TSS score and nucleosome signal
+    snap.pp.filter_cells(adatas_atac, min_counts=1000, max_counts= 100000,min_tsse=2)
+    #adatas_atac = adatas_atac[(adatas_atac.obs['frac_dup'] <= 0.2) & (adatas_atac.obs['frac_mito'] <= 0.3)].copy()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           CELL BY BIN MATRIX and DOUBLETS DETECTION
+# --------------------------------------------------------------------------------------------------------------------
+
+    print("\n===== CELL BY BIN MATRIX =====")
+    # Compute the tile matrix for each sample with a bin size of 500 bp
+    snap.pp.add_tile_matrix(adatas_atac,bin_size=500,exclude_chroms=["chrM"],min_frag_size=50,max_frag_size=1000,counting_strategy='paired-insertion',inplace=True)
+
+    # Identify the most variable features in each sample based on the tile matrix
+    print("\n===== IDENTIFY MOST VARIABLE FEATURES =====")
+    #snap.pp.select_features(adatas_atac, n_features=500000,inplace = True)
+    snap.pp.select_features(adatas_atac, blacklist=blacklist_path, inplace=True)
+
+    # Compute the doublet score for each sample
+    print("\n===== COMPUTE DOUBLETS SCORE =====")
+    snap.pp.scrublet(adatas_atac,inplace = True)
+
+    # Filter out doublets based on the doublet score
+    print("\n===== FILTER OUT DOUBLETS =====")
+    snap.pp.filter_doublets(adatas_atac)
     
+
     
-    
+# --------------------------------------------------------------------------------------------------------------------
+#                           CREATE ANNDATASET OBJECT
+# --------------------------------------------------------------------------------------------------------------------
+ 
+    # Create an AnnDataSet object to store the processed data
+    print("\n===== CREATE ANNDATASET OBJECT =====")
     data = snap.AnnDataSet(
     adatas=[(name, adata) for (name, _), adata in zip(files, adatas_atac)],
     filename=output
     )
-    print(data)
-    
     
     unique_cell_ids = [sa + ':' + bc for sa, bc in zip(data.obs['sample'], data.obs_names)]
     data.obs_names = unique_cell_ids
     assert data.n_obs == np.unique(data.obs_names).size
+
+    print("\n===== SAVE OBS INTO ANNDATASET =====")
+    data.obs['tsse'] = data.adatas.obs['tsse']
+    data.obs['n_fragment'] = data.adatas.obs['n_fragment']
+    data.obs['frac_dup'] = data.adatas.obs['frac_dup']
+    data.obs['frac_mito'] = data.adatas.obs['frac_mito']
+    data.obs['peaks_frac'] = data.adatas.obs['peaks_frac']
+    data.obs['doublet_score'] = data.adatas.obs['doublet_score']
+    data.obs['doublet_probability'] = data.adatas.obs['doublet_probability']
+    data.obsm['fragment_paired'] = data.adatas.obsm['fragment_paired']
+    #data.uns['frag_size_distr'] = data.adatas.uns['frag_size_distr'] #calculated at the dataset level
+    #data.uns['library_tsse'] = data.adatas.uns['library_tsse']
+    #data.uns['frac_overlap_TSS'] = data.adatas.uns['frac_overlap_TSS']
+    
+    
     
 
-    #adata_merged = ad.concat(adatas_atac, label="sample", keys=[name for name, _ in files])
-    #adata_merged.obs_names = [f"{name}_{bc}" for name, bc in zip(adata_merged.obs["sample"], adata_merged.obs_names)]
-
-
-    
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING OUTPUT FILE =====")
     data.close()
-    #adata_merged.write(output)
+    
     
     print("Done!")
 

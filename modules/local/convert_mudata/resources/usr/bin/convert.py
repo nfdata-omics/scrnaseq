@@ -122,7 +122,7 @@ def main():
     
 
     adata_vdj = None
-    adata_atac = None
+    
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ CSV FILES
@@ -180,7 +180,15 @@ def main():
             modalities["atac"] = adata_atac
     except NameError:
         pass
+    
+    try:
+        # Add 'atac' modality if defined
+        if adata_atac is not None:
+            modalities["atac"] = adata_atac
+    except NameError:
+        pass
 
+    
     # Creates MuData object
     mdata = MuData(modalities)
     if 'airr' in mdata.mod:
