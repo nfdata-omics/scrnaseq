@@ -28,6 +28,8 @@ workflow SCRNASEQ {
 
     take:
     ch_fastq
+    fasta
+    gtf
 
     main:
     ch_multiqc_files = Channel.empty()
@@ -40,8 +42,8 @@ workflow SCRNASEQ {
     }
 
     // general input and params
-    ch_genome_fasta         = params.fasta                ? file(params.fasta, checkIfExists: true)    : []
-    ch_gtf                  = params.gtf                  ? file(params.gtf, checkIfExists: true)      : []
+    ch_genome_fasta         = fasta                       ? file(fasta, checkIfExists: true)    : []
+    ch_gtf                  = gtf                         ? file(gtf, checkIfExists: true)      : []
     ch_transcript_fasta     = params.transcript_fasta     ? file(params.transcript_fasta)              : []
     ch_motifs               = params.motifs               ? file(params.motifs)                        : []
     ch_txp2gene             = params.txp2gene             ? file(params.txp2gene, checkIfExists: true) : []
@@ -91,8 +93,8 @@ workflow SCRNASEQ {
     //
     // Uncompress genome fasta file if required
     //
-    if (params.fasta) {
-        if (params.fasta.endsWith('.gz')) {
+    if (fasta) {
+        if (fasta.endsWith('.gz')) {
             ch_genome_fasta    = GUNZIP_FASTA ( [ [:], ch_genome_fasta ] ).gunzip.map { it[1] }
             ch_versions        = ch_versions.mix(GUNZIP_FASTA.out.versions)
         } else {
@@ -103,8 +105,8 @@ workflow SCRNASEQ {
     //
     // Uncompress GTF annotation file or create from GFF3 if required
     //
-    if (params.gtf) {
-        if (params.gtf.endsWith('.gz')) {
+    if (gtf) {
+        if (gtf.endsWith('.gz')) {
             ch_gtf      = GUNZIP_GTF ( [ [:], ch_gtf ] ).gunzip.map { it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
         } else {
@@ -205,7 +207,7 @@ workflow SCRNASEQ {
             ch_cellrangerarc_config
         )
         ch_versions = ch_versions.mix(CELLRANGERARC_ALIGN.out.ch_versions)
-        ch_mtx_matrices = ch_mtx_matrices.mix(CELLRANGERARC_ALIGN.out.cellranger_arc_out)
+        ch_mtx_matrices = ch_mtx_matrices.mix( CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_raw, CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_filtered )
     }
 
     // Run cellrangermulti pipeline

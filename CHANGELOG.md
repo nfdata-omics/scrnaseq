@@ -3,6 +3,18 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v4.1.0dev
+
+- Update nextflow_schema.json
+- Fix simpleaf protocol name for 10xv4 ([#452](https://github.com/nf-core/scrnaseq/pull/452))
+- Fix the workflow for cellranger-arc alignment and add new test with 10x multiome dataset ([#441](https://github.com/nf-core/scrnaseq/pull/441))
+- Update `nf-core/cellranger` modules to tool verson `9.0.1` ([#467](https://github.com/nf-core/scrnaseq/pull/467)).
+- Fix igenomes usage to correctly handle fasta and gtf files ([#469](https://github.com/nf-core/scrnaseq/pull/469)).
+
+### Chore
+
+- Add ruff pre-commit check as linter/autoformatter for python scripts ([#464](https://github.com/nf-core/scrnaseq/pull/464))
+
 ## v4.0.0 - 2025-03-10
 
 - Move `txp2gene` to `reference_genome_options` in schema as it is required by `kb_python` and `alevin` ([434](https://github.com/nf-core/scrnaseq/pull/434))
