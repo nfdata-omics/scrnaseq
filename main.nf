@@ -95,7 +95,7 @@ workflow {
         params.outdir,
         params.monochrome_logs,
         params.hook_url,
-        multiqc_report = params.skip_multiqc ? Channel.empty() : NFCORE_SCRNASEQ.out.multiqc_report
+        params.skip_multiqc ? Channel.empty() : NFCORE_SCRNASEQ.out.multiqc_report
     )
 }
 
