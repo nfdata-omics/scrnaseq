@@ -325,7 +325,7 @@ workflow SCRNASEQ {
             newLine: true
         ).set { ch_collated_versions }
 
-
+if (!params.skip_multiqc) {
     //
     // MODULE: MultiQC
     //
@@ -369,4 +369,5 @@ workflow SCRNASEQ {
     emit:multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
+}
 }
