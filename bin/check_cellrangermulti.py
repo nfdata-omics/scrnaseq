@@ -48,7 +48,7 @@ def parse_samplesheet(samplesheet_path):
                 with open(ocm_filename, "a", newline="") as ocm_file:
                     ocm_writer = csv.writer(ocm_file)
                     if not os.path.exists(ocm_filename) or os.stat(ocm_filename).st_size == 0:
-                        ocm_writer.writerow(["sample_id", "ocm_ids", "description"])
+                        ocm_writer.writerow(["sample_id", "ocm_barcode_ids", "description"])
                     ocm_writer.writerow([multiplexed_sample_id, row["ocm_ids"], description])
 
             # Process FRNAs
