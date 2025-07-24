@@ -11,8 +11,10 @@ def parse_samplesheet(samplesheet_path):
 
     # Define output directories
     cmo_output_dir = "cmo_files"
+    ocm_output_dir = "ocm_files"
     frna_output_dir = "frna_files"
     os.makedirs(cmo_output_dir, exist_ok=True)
+    os.makedirs(ocm_output_dir, exist_ok=True)
     os.makedirs(frna_output_dir, exist_ok=True)
 
     with open(samplesheet_path) as csvfile:
@@ -39,6 +41,15 @@ def parse_samplesheet(samplesheet_path):
                     if not os.path.exists(cmo_filename) or os.stat(cmo_filename).st_size == 0:
                         cmo_writer.writerow(["sample_id", "cmo_ids", "description"])
                     cmo_writer.writerow([multiplexed_sample_id, row["cmo_ids"], description])
+
+            # Process OCMs
+            if "ocm_ids" in headers and row["ocm_ids"]:
+                ocm_filename = os.path.join(ocm_output_dir, f"{sample}_ocm.csv")
+                with open(ocm_filename, "a", newline="") as ocm_file:
+                    ocm_writer = csv.writer(ocm_file)
+                    if not os.path.exists(ocm_filename) or os.stat(ocm_filename).st_size == 0:
+                        ocm_writer.writerow(["sample_id", "ocm_ids", "description"])
+                    ocm_writer.writerow([multiplexed_sample_id, row["ocm_ids"], description])
 
             # Process FRNAs
             if "probe_barcode_ids" in headers and row["probe_barcode_ids"]:
