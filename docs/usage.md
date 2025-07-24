@@ -270,7 +270,9 @@ If you are using cellranger-multi you have to add the column _feature_type_ to i
 
 - It is important that you give the same sample name for the different feature barcode technologies data that correspond to the same and should be analysed together.
 - The pipeline will **automatically** generate the cellranger multi config file based on the given data.
-- When working with multiplexed data (FFPE or CMO), you'll need a **second samplesheet** relating the multiplexed samples to the corresponding "physical" sample (details below). The `sample` column in the main samplesheet refers to the "physical" sample that may contain multiple multiplexed samples.
+- When working with multiplexed data (FFPE/CMO/OCM), you'll need a **second samplesheet** relating the multiplexed samples to the corresponding "physical" sample (details below). The `sample` column in the main samplesheet refers to the "physical" sample that may contain multiple multiplexed samples.
+
+> Please note that FFPE; CMO and OCM are mutually exclusive in the `cellranger/multi` module. Using more than one for a single sample will cause the module to fail.
 
 An example samplesheet could look like this:
 
@@ -288,6 +290,8 @@ PBMC_10K_CMV,https://raw.githubusercontent.com/nf-core/test-datasets/modules/dat
 4PLEX_HUMAN,https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/homo_sapiens/10xgenomics/cellranger/4plex_scFFPE/4plex_human_liver_colorectal_ovarian_panc_scFFPE_multiplex_S1_L002_R1_001.subsampled.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/homo_sapiens/10xgenomics/cellranger/4plex_scFFPE/4plex_human_liver_colorectal_ovarian_panc_scFFPE_multiplex_S1_L002_R2_001.subsampled.fastq.gz,gex,
 4PLEX_HUMAN,https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/homo_sapiens/10xgenomics/cellranger/4plex_scFFPE/4plex_human_liver_colorectal_ovarian_panc_scFFPE_multiplex_S1_L003_R1_001.subsampled.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/homo_sapiens/10xgenomics/cellranger/4plex_scFFPE/4plex_human_liver_colorectal_ovarian_panc_scFFPE_multiplex_S1_L003_R2_001.subsampled.fastq.gz,gex,
 4PLEX_HUMAN,https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/homo_sapiens/10xgenomics/cellranger/4plex_scFFPE/4plex_human_liver_colorectal_ovarian_panc_scFFPE_multiplex_S1_L004_R1_001.subsampled.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/homo_sapiens/10xgenomics/cellranger/4plex_scFFPE/4plex_human_liver_colorectal_ovarian_panc_scFFPE_multiplex_S1_L004_R2_001.subsampled.fastq.gz,gex,
+10k_Wistar_Rat,/path to data/10k_Wistar_Rat_PBMCs_Multiplex_3p_gem-x_Universal_OCM_fastqs/10k_Wistar_Rat_PBMCs_Multiplex_3p_gem-x_Universal_OCM_S1_L001_R1_001.fastq.gz,/data/gcbds/externals/almeifel/NFCORE_PIPELINES/scrnaseq/testing/OCM_MULTI/10k_Wistar_Rat_PBMCs_Multiplex_3p_gem-x_Universal_OCM_fastqs/10k_Wistar_Rat_PBMCs_Multiplex_3p_gem-x_Universal_OCM_S1_L001_R2_001.fastq.gz,gex,
+10k_Wistar_Rat,/path to data/10k_Wistar_Rat_PBMCs_Multiplex_3p_gem-x_Universal_OCM_fastqs/10k_Wistar_Rat_PBMCs_Multiplex_3p_gem-x_Universal_OCM_S1_L002_R1_001.fastq.gz,/data/gcbds/externals/almeifel/NFCORE_PIPELINES/scrnaseq/testing/OCM_MULTI/10k_Wistar_Rat_PBMCs_Multiplex_3p_gem-x_Universal_OCM_fastqs/10k_Wistar_Rat_PBMCs_Multiplex_3p_gem-x_Universal_OCM_S1_L002_R2_001.fastq.gz,gex,
 ```
 
 #### Additional samplesheet for multiplexed samples
@@ -295,13 +299,17 @@ PBMC_10K_CMV,https://raw.githubusercontent.com/nf-core/test-datasets/modules/dat
 You must provide those via a CSV with the `--cellranger_multi_barcodes` parameter. The file should look like this:
 
 ```csv
-sample,multiplexed_sample_id,probe_barcode_ids,cmo_ids,description
-PBMC_10K_CMO,PBMC_10K_CMO_PBMCs_human_1,,CMO301,PBMCs_human_1
-PBMC_10K_CMO,PBMC_10K_CMO_PBMCs_human_2,,CMO302,PBMCs_human_2
-4PLEX_HUMAN,Liver_BC1,BC001,,Healthy liver dissociated using the Miltenyi FFPE Tissue Dissociation Kit
-4PLEX_HUMAN,Ovarian_BC2,BC002,,Ovarian cancer dissociated using the Miltenyi FFPE Dissociation Kit
-4PLEX_HUMAN,Colorectal_BC3,BC003,,Colorectal cancer dissociated using the Miltenyi FFPE Dissociation Kit
-4PLEX_HUMAN,Pancreas_BC4,BC004,,Healthy pancreas dissociated using the Miltenyi FFPE Tissue Dissociation Kit
+sample,multiplexed_sample_id,probe_barcode_ids,cmo_ids,ocm_ids,description
+PBMC_10K_CMO,PBMC_10K_CMO_PBMCs_human_1,,CMO301,,PBMCs_human_1
+PBMC_10K_CMO,PBMC_10K_CMO_PBMCs_human_2,,CMO302,,PBMCs_human_2
+4PLEX_HUMAN,Liver_BC1,BC001,,,Healthy liver dissociated using the Miltenyi FFPE Tissue Dissociation Kit
+4PLEX_HUMAN,Ovarian_BC2,BC002,,,Ovarian cancer dissociated using the Miltenyi FFPE Dissociation Kit
+4PLEX_HUMAN,Colorectal_BC3,BC003,,,Colorectal cancer dissociated using the Miltenyi FFPE Dissociation Kit
+4PLEX_HUMAN,Pancreas_BC4,BC004,,,Healthy pancreas dissociated using the Miltenyi FFPE Tissue Dissociation Kit
+10k_Wistar_Rat,2500_Wistar_Rat_PBMCs_gem-x_OB1,,,OB1,2.5k_Wistar_Rat_PBMCs_gem-x_OB1
+10k_Wistar_Rat,2500_Wistar_Rat_PBMCs_gem-x_OB2,,,OB2,2.5k_Wistar_Rat_PBMCs_gem-x_OB2
+10k_Wistar_Rat,2500_Wistar_Rat_PBMCs_gem-x_OB3,,,OB3,2.5k_Wistar_Rat_PBMCs_gem-x_OB3
+10k_Wistar_Rat,2500_Wistar_Rat_PBMCs_gem-x_OB4,,,OB4,2.5k_Wistar_Rat_PBMCs_gem-x_OB4
 ```
 
 The `sample` column must match the corresponding entry in the main samplesheet.
