@@ -1,5 +1,5 @@
 {
-    "test-dataset_cellrangermulti_aligner": {
+    "test-dataset_cellrangermulti_aligner_human": {
         "content": [
             "barcodes.tsv.gz:md5,a3937e73aa76a2acff554ca2f81a108d",
             "barcodes.tsv.gz:md5,b729c635b9ec993dd3e9c0602b440016",
@@ -92,8 +92,50 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.6"
+            "nextflow": "24.10.1"
         },
-        "timestamp": "2025-05-07T10:50:34.537911828"
+        "timestamp": "2025-07-25T15:47:51.974099348"
+    },
+    "test-dataset_cellrangermulti_aligner_rat": {
+        "content": [
+            "10k_Wistar_Rat_raw_matrix.seurat.rds:md5,be37ed0efb84a22909063388c54c4154",
+            "10k_Wistar_Rat_raw_matrix.sce.rds:md5,170343f922c2b73f137fff406e1316c3",
+            "2500_Wistar_Rat_PBMCs_gem-x_OB1_filtered_matrix.seurat.rds:md5,1f9c6d0214b36fb71adf3f5618f43738",
+            "2500_Wistar_Rat_PBMCs_gem-x_OB1_filtered_matrix.sce.rds:md5,5efca43447c83ad61e899b277e887dc9",
+            "2500_Wistar_Rat_PBMCs_gem-x_OB2_filtered_matrix.seurat.rds:md5,aa99723b6b31debf4d560da3eec46617",
+            "2500_Wistar_Rat_PBMCs_gem-x_OB2_filtered_matrix.sce.rds:md5,8bb0728102df993644672d9abe13e4bf",
+            "2500_Wistar_Rat_PBMCs_gem-x_OB3_filtered_matrix.seurat.rds:md5,e692f9f24f63bc91be1b8a95fd0ce6c7",
+            "2500_Wistar_Rat_PBMCs_gem-x_OB3_filtered_matrix.sce.rds:md5,5ecba68c2200060e60fe285ace5ab3c3",
+            "2500_Wistar_Rat_PBMCs_gem-x_OB4_filtered_matrix.seurat.rds:md5,e858cbc1fe44e1ed5657da5e3304a7f3",
+            "2500_Wistar_Rat_PBMCs_gem-x_OB4_filtered_matrix.sce.rds:md5,3802b542e2a6430d11e7f526c5423b01",
+            "combined_filtered_matrix.seurat.rds:md5,52c4193abeec7971a920550de69869c0",
+            "combined_filtered_matrix.sce.rds:md5,b454a6b301f26922ad4a913557054369",
+            "combined_raw_matrix.seurat.rds:md5,25516629372dd4f02a2fc7165ba25dc0",
+            "combined_raw_matrix.sce.rds:md5,7367f286af56c4edacf09d2c99b84805",
+            "metrics_summary.csv:md5,3e355f96e9496edd282a4e84d6bb97e6",
+            "metrics_summary.csv:md5,18996be1521fdfc90f02c9fdd10bb681",
+            "metrics_summary.csv:md5,fccc47adc8b442c78148ed5d43de92b6",
+            "metrics_summary.csv:md5,c8bda4f1f2921f9da26fa342b700878b",
+            "barcodes.tsv.gz:md5,b8392e06463e9b5d87528c2898539540",
+            "features.tsv.gz:md5,b55feb80459101d27ee0b2580af0d53c",
+            "matrix.mtx.gz:md5,215bf0efebc1cb89ec754bf186c80909",
+            "barcodes.tsv.gz:md5,5916dd03abc1ec3c621ac62e090ddbfb",
+            "features.tsv.gz:md5,b55feb80459101d27ee0b2580af0d53c",
+            "matrix.mtx.gz:md5,00011c41088ca6b405db7becc0c81682",
+            "barcodes.tsv.gz:md5,8973bb4c7b5c211dd1ffe003502166c0",
+            "features.tsv.gz:md5,b55feb80459101d27ee0b2580af0d53c",
+            "matrix.mtx.gz:md5,bec72997f928ded91d60e6fb30945efb",
+            "barcodes.tsv.gz:md5,b5b2c8ac0a8f655ca53397dd337bca27",
+            "features.tsv.gz:md5,b55feb80459101d27ee0b2580af0d53c",
+            "matrix.mtx.gz:md5,22833228f201dd010b6c40e035a42cab",
+            "barcodes.tsv.gz:md5,bb62ec4602c7579b20adf5ad2b4124d2",
+            "features.tsv.gz:md5,b55feb80459101d27ee0b2580af0d53c",
+            "matrix.mtx.gz:md5,ac8bd7e83e9fde9d47454b323bed36d6"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.1"
+        },
+        "timestamp": "2025-07-25T18:16:53.898071151"
     }
 }
