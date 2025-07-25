@@ -255,11 +255,6 @@ nextflow_pipeline {
                     path("${outputDir}/results_cellrangermulti/cellrangermulti/mtx_conversions/2500_Wistar_Rat_PBMCs_gem-x_OB4/2500_Wistar_Rat_PBMCs_gem-x_OB4_filtered_matrix.seurat.rds"),
                     path("${outputDir}/results_cellrangermulti/cellrangermulti/mtx_conversions/2500_Wistar_Rat_PBMCs_gem-x_OB4/2500_Wistar_Rat_PBMCs_gem-x_OB4_filtered_matrix.sce.rds"),
 
-                    path("${outputDir}/results_cellrangermulti/cellrangermulti/mtx_conversions/combined_filtered_matrix.seurat.rds"),
-                    path("${outputDir}/results_cellrangermulti/cellrangermulti/mtx_conversions/combined_filtered_matrix.sce.rds"),
-                    path("${outputDir}/results_cellrangermulti/cellrangermulti/mtx_conversions/combined_raw_matrix.seurat.rds"),
-                    path("${outputDir}/results_cellrangermulti/cellrangermulti/mtx_conversions/combined_raw_matrix.sce.rds"),
-
                     // metrics
                     path("${outputDir}/results_cellrangermulti/cellrangermulti/count/10k_Wistar_Rat/outs/per_sample_outs/2500_Wistar_Rat_PBMCs_gem-x_OB1/metrics_summary.csv"),
                     path("${outputDir}/results_cellrangermulti/cellrangermulti/count/10k_Wistar_Rat/outs/per_sample_outs/2500_Wistar_Rat_PBMCs_gem-x_OB2/metrics_summary.csv"),
