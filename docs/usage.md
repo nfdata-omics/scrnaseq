@@ -296,8 +296,8 @@ If you are using cellranger-multi you have to add the column _feature_type_ to i
 
 You can find the **complete** testing files used in the testing profiles here:
 
-* [input samplesheet](../assets/cellrangermulti_samplesheet.csv)
-* [barcodes samplesheet](../assets/cellranger_barcodes_samplesheet.csv)
+- [input samplesheet](../assets/cellrangermulti_samplesheet.csv)
+- [barcodes samplesheet](../assets/cellranger_barcodes_samplesheet.csv)
 
 In the sub-sections below we collect specific examples of CMO/FFPE/OCM samples for quicker visualisation.
 
