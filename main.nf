@@ -11,17 +11,6 @@
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    IMPORT FUNCTIONS / MODULES / SUBWORKFLOWS / WORKFLOWS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_scrnaseq_pipeline'
-include { SCRNASEQ                } from './workflows/scrnaseq'
-include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_scrnaseq_pipeline'
-include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_scrnaseq_pipeline'
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     GENOME PARAMETER VALUES
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
@@ -30,6 +19,17 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_scrn
 // Thus, manually provided files are not overwritten by the genome attributes
 params.fasta            = getGenomeAttribute('fasta')
 params.gtf              = getGenomeAttribute('gtf')
+params.star_index       = getGenomeAttribute('star')
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    IMPORT FUNCTIONS / MODULES / SUBWORKFLOWS / WORKFLOWS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+include { SCRNASEQ                } from './workflows/scrnaseq'
+include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_scrnaseq_pipeline'
+include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_scrnaseq_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,9 +51,7 @@ workflow NFCORE_SCRNASEQ {
     // WORKFLOW: Run pipeline
     //
     SCRNASEQ (
-        samplesheet,
-        params.fasta,
-        params.gtf
+        samplesheet
     )
     emit:
     multiqc_report = SCRNASEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
@@ -97,6 +95,21 @@ workflow {
         params.hook_url,
         NFCORE_SCRNASEQ.out.multiqc_report
     )
+}
+
+//
+// Get attribute from genome config file e.g. fasta
+//
+def getGenomeAttribute(attribute) {
+    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
+        if (params.genomes[ params.genome ].containsKey(attribute)) {
+            return params.genomes[ params.genome ][ attribute ]
+        } else {
+            return null
+        }
+    } else {
+        return null
+    }
 }
 
 /*
