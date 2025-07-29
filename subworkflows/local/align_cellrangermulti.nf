@@ -73,11 +73,11 @@ workflow CELLRANGER_MULTI_ALIGN {
             //
             // Here, we parse the received cellranger multi barcodes samplesheet.
             // We first use the get the PARSE_CELLRANGERMULTI_SAMPLESHEET module to check it and guarantee structure
-            // and also split it to have one fnra/cmo .csv for each sample.
+            // and also split it to have one fnra/cmo/ocm .csv for each sample.
             //
             // The selection of the GEX fastqs is because samples are always expected to have at least GEX data.
             // Then, using "combined" map, which means, the "additional barcode information" of each sample, we then,
-            // parse it to generate the cmo / frna samplesheets to be used by each sample.
+            // parse it to generate the cmo / ocm /frna samplesheets to be used by each sample.
             //
             // Here, to guarantee it and take advantage of the "FIFO"-rule and are sure that the data used in the
             // module is from the same sample from the "normal" samplesheet. We have to use the .concat().groupTuple()
@@ -90,6 +90,7 @@ workflow CELLRANGER_MULTI_ALIGN {
 
             PARSE_CELLRANGERMULTI_SAMPLESHEET( ch_multi_samplesheet )
 
+            // CMO
             ch_grouped_fastq.gex
             .map{ [it[0].id] }
             .concat( PARSE_CELLRANGERMULTI_SAMPLESHEET.out.cmo.flatten().map { [ "${it.baseName}" - "_cmo", it ] } )
@@ -97,6 +98,15 @@ workflow CELLRANGER_MULTI_ALIGN {
             .map { if ( it.size() == 2 ) { it[1] } else { [] } } // a correct tuple from snippet will have: [ sample, cmo.csv ]
             .set { ch_cmo_barcode_csv }
 
+            // OCM
+            ch_grouped_fastq.gex
+            .map{ [it[0].id] }
+            .concat( PARSE_CELLRANGERMULTI_SAMPLESHEET.out.ocm.flatten().map { [ "${it.baseName}" - "_ocm", it ] } )
+            .groupTuple()
+            .map { if ( it.size() == 2 ) { it[1] } else { [] } } // a correct tuple from snippet will have: [ sample, ocm.csv ]
+            .set { ch_ocm_barcode_csv }
+
+            // FRNA
             ch_grouped_fastq.gex
             .map{ [it[0].id] }
             .concat( PARSE_CELLRANGERMULTI_SAMPLESHEET.out.frna.flatten().map { [ "${it.baseName}" - "_frna", it ] } )
@@ -106,6 +116,7 @@ workflow CELLRANGER_MULTI_ALIGN {
 
         } else {
             ch_cmo_barcode_csv = []
+            ch_ocm_barcode_csv = []
             ch_frna_sample_csv = []
         }
 
@@ -184,6 +195,7 @@ workflow CELLRANGER_MULTI_ALIGN {
             ch_cmo_barcode_csv,
             [],
             ch_frna_sample_csv,
+            ch_ocm_barcode_csv,
             params.skip_cellranger_renaming
         )
         ch_versions = ch_versions.mix(CELLRANGER_MULTI.out.versions)
