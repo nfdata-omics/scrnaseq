@@ -11,3 +11,6 @@ fastqc/*_fastqc.{html,zip}
 pipeline_info/*.{html,json,txt,yml}
 **/simpleaf_quant/**
 **/*.html
+**/outs/*.{json,txt,yml,csv,tab,bam,bai,h5,fai,cloupe}
+**/analysis/**
+**/genomeParameters.txt
