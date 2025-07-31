@@ -10,8 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix the workflow for cellranger-arc alignment and add new test with 10x multiome dataset ([#441](https://github.com/nf-core/scrnaseq/pull/441))
 - Update `nf-core/cellranger` modules to tool verson `9.0.1` ([#467](https://github.com/nf-core/scrnaseq/pull/467)).
 - Fix igenomes usage to correctly handle fasta and gtf files ([#469](https://github.com/nf-core/scrnaseq/pull/469)).
-- Update `cellranger/multi` module to latest version with nf-core tools ([#482](https://github.com/nf-core/scrnaseq/pull/482))
-- Adapt pipeline to also parse `OCM` barcodes for `cellranger/multi` and update its documentation ([#482](https://github.com/nf-core/scrnaseq/pull/482))
+- Update `cellranger/multi` module to latest version with nf-core tools ([#482](https://github.com/nf-core/scrnaseq/pull/482)).
+- Adapt pipeline to also parse `OCM` barcodes for `cellranger/multi` and update its documentation ([#482](https://github.com/nf-core/scrnaseq/pull/482)).
+- Fix that skip_multiqc parameter did not work ([#479](https://github.com/nf-core/scrnaseq/pull/479)).
 
 ### Chore
 
