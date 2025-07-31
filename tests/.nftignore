@@ -14,3 +14,5 @@ pipeline_info/*.{html,json,txt,yml}
 **/outs/*.{json,txt,yml,csv,tab,bam,bai,h5,fai,cloupe}
 **/analysis/**
 **/genomeParameters.txt
+**/atac_*.{gz,tbi,bed}
+**/10k_PBMC_lib.csv
