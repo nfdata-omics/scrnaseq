@@ -156,7 +156,7 @@ workflow PIPELINE_COMPLETION {
 
     main:
     summary_params = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
-    def multiqc_reports = params.skip_multiqc ? [null] : multiqc_report.toList()
+    def multiqc_reports = multiqc_report.toList()
 
     //
     // Completion email and summary
