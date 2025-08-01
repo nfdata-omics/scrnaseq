@@ -4,19 +4,24 @@ repos:
     hooks:
       - id: prettier
         additional_dependencies:
-          - prettier@3.2.5
-
-  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: "3.1.2"
+          - prettier@3.6.2
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
     hooks:
-      - id: editorconfig-checker
-        alias: ec
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.6
-    hooks:
-      - id: ruff
-        types_or: [python, pyi, jupyter]
-        args: [--fix, --exit-non-zero-on-fix]
-      - id: ruff-format
-        types_or: [python, pyi, jupyter]
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+        exclude: |
+          (?x)^(
+              .*ro-crate-metadata.json$|
+              modules/nf-core/.*|
+              subworkflows/nf-core/.*|
+              .*\.snap$
+          )$
+      - id: end-of-file-fixer
+        exclude: |
+          (?x)^(
+              .*ro-crate-metadata.json$|
+              modules/nf-core/.*|
+              subworkflows/nf-core/.*|
+              .*\.snap$
+          )$
