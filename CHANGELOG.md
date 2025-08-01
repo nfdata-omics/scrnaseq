@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v4.1.0dev
+## v4.1.0 - 2025-08-01
 
 - Update nextflow_schema.json
 - Fix simpleaf protocol name for 10xv4 ([#452](https://github.com/nf-core/scrnaseq/pull/452))
@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update `cellranger/multi` module to latest version with nf-core tools ([#482](https://github.com/nf-core/scrnaseq/pull/482)).
 - Adapt pipeline to also parse `OCM` barcodes for `cellranger/multi` and update its documentation ([#482](https://github.com/nf-core/scrnaseq/pull/482)).
 - Fix that skip_multiqc parameter did not work ([#479](https://github.com/nf-core/scrnaseq/pull/479)).
+- Template update for nf-core/tools v3.3.2 ([474](https://github.com/nf-core/scrnaseq/pull/474))
 
 ### Chore
 
