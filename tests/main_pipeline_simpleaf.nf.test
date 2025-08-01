@@ -32,7 +32,7 @@ nextflow_pipeline {
                 ).match() }
             )
         }
-    
+
     }
 
 }
