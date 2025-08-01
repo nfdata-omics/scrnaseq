@@ -181,16 +181,13 @@
                 "Sample_X_raw_matrix.seurat.rds:md5,e1003985cc53b3538436a4726e3843a3",
                 "Sample_Y_raw_matrix.h5ad:md5,7a9899fed9301f3f6f4e6d7b1ada226d",
                 "Sample_Y_raw_matrix.sce.rds:md5,010c137155f5b8feed6ea4b853dc12c3",
-                "Sample_Y_raw_matrix.seurat.rds:md5,bae61b4d15df485464f6448a3b91f28c",
-                "combined_raw_matrix.h5ad:md5,cde7019772ba3efc3ac46aa5c9ff476d",
-                "combined_raw_matrix.sce.rds:md5,39d99e4d6c33f2c7e2063f32d0d2e18e",
-                "combined_raw_matrix.seurat.rds:md5,ec9e24cd5b38a9c64ba925fdc45b0dea"
+                "Sample_Y_raw_matrix.seurat.rds:md5,bae61b4d15df485464f6448a3b91f28c"
             ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "24.10.1"
         },
-        "timestamp": "2025-07-30T12:42:01.996598561"
+        "timestamp": "2025-08-01T12:17:17.575430596"
     }
 }

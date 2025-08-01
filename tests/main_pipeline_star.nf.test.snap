@@ -228,19 +228,13 @@
                 "Sample_Y_filtered_matrix.seurat.rds:md5,d27d6360cf500bf4438f650b8796f8ce",
                 "Sample_Y_raw_matrix.h5ad:md5,25329b6d44ae0f7f885e6513e05fb840",
                 "Sample_Y_raw_matrix.sce.rds:md5,d9d6c934d2193681ab58a88d437bf138",
-                "Sample_Y_raw_matrix.seurat.rds:md5,5b8361f36fec65107e7652751c80fdb5",
-                "combined_filtered_matrix.h5ad:md5,ed4c42c9fb1e5f69d78d3dae9ca1c394",
-                "combined_filtered_matrix.sce.rds:md5,f12469472a1bb1bcb063b0e1b2bf5091",
-                "combined_filtered_matrix.seurat.rds:md5,d2d5184319e8bd9a48d00564f40313e0",
-                "combined_raw_matrix.h5ad:md5,cb8974567f2fc2799842ad684b61f12d",
-                "combined_raw_matrix.sce.rds:md5,4c61044c24c7c4ed83cca3347624ea33",
-                "combined_raw_matrix.seurat.rds:md5,04f68843fb5208fca885306c70886c48"
+                "Sample_Y_raw_matrix.seurat.rds:md5,5b8361f36fec65107e7652751c80fdb5"
             ]
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "24.10.1"
         },
-        "timestamp": "2025-07-31T10:45:00.949690328"
+        "timestamp": "2025-08-01T12:28:41.241504112"
     }
 }

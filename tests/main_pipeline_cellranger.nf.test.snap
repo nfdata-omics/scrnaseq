@@ -335,7 +335,6 @@
                 "genome.fa:md5,ef1ae316990b7c77fd0baa0a89b75a6d",
                 "genome.fa.fai:md5,729bb811dc9ababd5ee35029b8140f36",
                 "genes.gtf.gz:md5,956caa7c851df640ded6c3f5f1a7cd41",
-                "reference.json:md5,881f0bc89526c4c5b1265a9ea077bc49",
                 "Genome:md5,638a41718215663f07fec2bf13fc9b0f",
                 "SA:md5,965121db041500098de4325ad719f5df",
                 "SAindex:md5,1d4c33e718f498c61083aa47aa9ace2c",
@@ -362,12 +361,6 @@
                 "Sample_Y_raw_matrix.h5ad:md5,d5c3a30bcd4d8011eb5aa39ad0f1c286",
                 "Sample_Y_raw_matrix.sce.rds:md5,061ab8ba3ed28e6312c0367a2a9dfeb3",
                 "Sample_Y_raw_matrix.seurat.rds:md5,3f4a3e6529b10c646fd08173d5baa339",
-                "combined_filtered_matrix.h5ad:md5,a5ed8bbcd99fec98559e39f1fca76746",
-                "combined_filtered_matrix.sce.rds:md5,3b765867639f93039a16127ae8939597",
-                "combined_filtered_matrix.seurat.rds:md5,165e968813b29d1118c30f779da253c0",
-                "combined_raw_matrix.h5ad:md5,87b515e8a45f028520f5e01f9137bb76",
-                "combined_raw_matrix.sce.rds:md5,2e08aaef7d7c972ea4d4cb1b5807bbdd",
-                "combined_raw_matrix.seurat.rds:md5,4dce8dbf48ee2aab4e7ed40015bc9ce8",
                 "cellranger-count-stats-table.txt:md5,dcfc25c2bb422c5f279af728c8b62f58",
                 "cellranger-count-warnings-table.txt:md5,f257d0a84efc395072a517db643b7935",
                 "fastqc-status-check-heatmap.txt:md5,d122badcaa647409c35a809e8a127f99",
@@ -392,6 +385,6 @@
             "nf-test": "0.9.2",
             "nextflow": "24.10.1"
         },
-        "timestamp": "2025-07-30T17:26:23.802756012"
+        "timestamp": "2025-08-01T11:05:37.982319489"
     }
 }

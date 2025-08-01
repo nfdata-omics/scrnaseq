@@ -10,11 +10,11 @@ multiqc/multiqc_report.html
 fastqc/*_fastqc.{html,zip}
 pipeline_info/*.{html,json,txt,yml}
 **/simpleaf_quant/**
-**/**.{html,json,bus}
+**/**.{html,json,bus,ec}
 **/**.Log.*
 **/outs/**.{json,txt,yml,csv,tab,bam,bai,h5,fai,cloupe,pb}
 **/analysis/**
 **/genomeParameters.txt
 **/atac_*.{gz,tbi,bed}
 **/10k_PBMC_lib.csv
-**/cellrangermulti/**combined_*
+**/**combined_*

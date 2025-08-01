@@ -245,7 +245,6 @@
                 "genome.fa.pac:md5,cf76a4dbc5b8ae64fc890d6a95067b4f",
                 "genome.fa.sa:md5,92f0b3e443220a57c2bd09f737e7dbc4",
                 "genes.gtf.gz:md5,4328009f62d38b9220dd941c1a66e480",
-                "reference.json:md5,7e0220d655ca0ee43d59f1b893c46c92",
                 "transcripts.bed:md5,f9840436821172d8cef086cb6f3c27eb",
                 "tss.bed:md5,d637f9650dc3862c932cd9996ace49f5",
                 "Genome:md5,0aaebdafd448aeec403253cc47e15176",
@@ -270,12 +269,6 @@
                 "10k_PBMC_raw_matrix.h5ad:md5,4ac50d4109bcccd1d82ed83fc00d7580",
                 "10k_PBMC_raw_matrix.sce.rds:md5,196adfcb230f9ba9bb7d0aba36e7e261",
                 "10k_PBMC_raw_matrix.seurat.rds:md5,8ff4d68d88a6a7e3528147e06aeaa4dd",
-                "combined_filtered_matrix.h5ad:md5,18f3a2c580b6f50562739a2cc0dcca82",
-                "combined_filtered_matrix.sce.rds:md5,4c1dee683e3d0e602556a69b9b64b3a5",
-                "combined_filtered_matrix.seurat.rds:md5,91f83560d80b7b1ab238161d73c64831",
-                "combined_raw_matrix.h5ad:md5,791f4f6dcc1098a43aa6c1e6f8a76fe3",
-                "combined_raw_matrix.sce.rds:md5,4846edfc332c65c129b554c27a357dc7",
-                "combined_raw_matrix.seurat.rds:md5,8900e93d58f613d56f02a4243769498a",
                 "fastqc-status-check-heatmap.txt:md5,55b658eef7b63c6f8e3d559be41f5df8",
                 "fastqc_adapter_content_plot.txt:md5,31ca16758049ac46cc84875ddc4ff6d3",
                 "fastqc_overrepresented_sequences_plot.txt:md5,314754adfcfa2977ee4f61c2ec5444f2",
@@ -295,6 +288,6 @@
             "nf-test": "0.9.2",
             "nextflow": "24.10.1"
         },
-        "timestamp": "2025-07-30T19:53:53.433223598"
+        "timestamp": "2025-08-01T11:18:19.395555812"
     }
 }

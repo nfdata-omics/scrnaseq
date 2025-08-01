@@ -1230,12 +1230,6 @@
                 "Pancreas_BC4_raw_matrix.h5ad:md5,227d5886282d58e0c6b8d6adc9ef94d0",
                 "Pancreas_BC4_raw_matrix.sce.rds:md5,4af114f068fc9bab8cceb3f25a9b6d9a",
                 "Pancreas_BC4_raw_matrix.seurat.rds:md5,7f972f40b05824a3cff5449a8f9f8b61",
-                "combined_filtered_matrix.h5ad:md5,716bbc76bdb936eb6e5605245a60ae29",
-                "combined_filtered_matrix.sce.rds:md5,aa7fe30d903112985e6034d40cb0294d",
-                "combined_filtered_matrix.seurat.rds:md5,83e23cae36057fed4a007f4c87f4797b",
-                "combined_raw_matrix.h5ad:md5,7f745597f16d099eaa361c94d0b1b5cb",
-                "combined_raw_matrix.sce.rds:md5,8f9e821edba5e7b11cd414d67b288898",
-                "combined_raw_matrix.seurat.rds:md5,30f30cf83d07fa932ab14a89a71eccdc",
                 "fastqc-status-check-heatmap.txt:md5,f57bda9b8fd9290f05ad8ddb6dd72027",
                 "fastqc_adapter_content_plot.txt:md5,886d5c1d7fcfd20e7d422124e16a3a12",
                 "fastqc_overrepresented_sequences_plot.txt:md5,3bd26371c065bd07cac66aaae9bad132",
@@ -1255,7 +1249,7 @@
             "nf-test": "0.9.2",
             "nextflow": "24.10.1"
         },
-        "timestamp": "2025-07-31T09:05:23.348090413"
+        "timestamp": "2025-08-01T11:43:41.46111504"
     },
     "test-dataset_cellrangermulti_aligner_rat": {
         "content": [
@@ -1844,12 +1838,6 @@
                 "2500_Wistar_Rat_PBMCs_gem-x_OB4_raw_matrix.h5ad:md5,b180ec130ed399f15b3aa67b52c06bd4",
                 "2500_Wistar_Rat_PBMCs_gem-x_OB4_raw_matrix.sce.rds:md5,50aa224b1dfec5fefb99b965be37a513",
                 "2500_Wistar_Rat_PBMCs_gem-x_OB4_raw_matrix.seurat.rds:md5,63f65eaf922b953e2b55d77330d4f385",
-                "combined_filtered_matrix.h5ad:md5,d42f478817b88e4554b8c7ca9a56300a",
-                "combined_filtered_matrix.sce.rds:md5,b454a6b301f26922ad4a913557054369",
-                "combined_filtered_matrix.seurat.rds:md5,52c4193abeec7971a920550de69869c0",
-                "combined_raw_matrix.h5ad:md5,738b5020e9841f1beb63ec8960ceb71d",
-                "combined_raw_matrix.sce.rds:md5,7367f286af56c4edacf09d2c99b84805",
-                "combined_raw_matrix.seurat.rds:md5,25516629372dd4f02a2fc7165ba25dc0",
                 "fastqc-status-check-heatmap.txt:md5,89acc155c18f65434b41b4dc8645fe2f",
                 "fastqc_adapter_content_plot.txt:md5,fa8ef0df2f740304fab23bfd39787bc3",
                 "fastqc_per_base_n_content_plot.txt:md5,04fc06c6af2f783ab3188a5838285849",
@@ -1868,6 +1856,6 @@
             "nf-test": "0.9.2",
             "nextflow": "24.10.1"
         },
-        "timestamp": "2025-07-31T09:29:47.279900708"
+        "timestamp": "2025-08-01T12:02:57.754836314"
     }
 }
