@@ -1,6 +1,7 @@
 lint:
   files_exist:
-    - lib/Utils.groovy
+    - "lib/Utils.groovy"
+    - "tests/default.nf.test"
   files_unchanged:
     - .github/ISSUE_TEMPLATE/bug_report.yml
   schema_params: false
