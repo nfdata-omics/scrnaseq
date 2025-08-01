@@ -9,7 +9,7 @@ nextflow_pipeline {
             // the rest is taken from shared config
             params {
                 aligner    = 'simpleaf'
-                outdir     = "${outputDir}/results_simpleaf"
+                outdir     = "$outputDir"
             }
         }
 

@@ -9,7 +9,7 @@ nextflow_pipeline {
             // the rest is taken from shared config
             params {
                 aligner    = 'kallisto'
-                outdir     = "${outputDir}/results_kallisto"
+                outdir     = "$outputDir"
             }
         }
 

@@ -9,7 +9,7 @@ nextflow_pipeline {
             // the rest is taken from shared config
             params {
                 aligner    = 'cellranger'
-                outdir     = "${outputDir}/results_cellranger"
+                outdir     = "$outputDir"
             }
         }
 

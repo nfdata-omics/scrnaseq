@@ -25,7 +25,6 @@
                 }
             },
             [
-                "",
                 "fastqc",
                 "fastqc/Sample_X_1_fastqc.html",
                 "fastqc/Sample_X_1_fastqc.zip",

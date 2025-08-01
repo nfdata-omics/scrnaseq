@@ -26,7 +26,6 @@
                 }
             },
             [
-                "",
                 "cellrangerarc",
                 "cellrangerarc/count",
                 "cellrangerarc/count/10k_PBMC",

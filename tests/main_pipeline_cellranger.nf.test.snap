@@ -26,7 +26,6 @@
                 }
             },
             [
-                "",
                 "cellranger",
                 "cellranger/count",
                 "cellranger/count/Sample_X",

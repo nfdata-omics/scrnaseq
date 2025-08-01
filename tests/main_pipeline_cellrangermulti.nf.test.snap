@@ -35,7 +35,6 @@
                 }
             },
             [
-                "",
                 "cellrangermulti",
                 "cellrangermulti/count",
                 "cellrangermulti/count/4PLEX_HUMAN",
@@ -1294,7 +1293,6 @@
                 }
             },
             [
-                "",
                 "cellrangermulti",
                 "cellrangermulti/count",
                 "cellrangermulti/count/10k_Wistar_Rat",

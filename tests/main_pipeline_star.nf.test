@@ -9,7 +9,7 @@ nextflow_pipeline {
             // the rest is taken from shared config
             params {
                 aligner    = 'star'
-                outdir     = "${outputDir}/results_star"
+                outdir     = "$outputDir"
             }
         }
 

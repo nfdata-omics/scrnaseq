@@ -9,7 +9,7 @@ nextflow_pipeline {
             // the rest is taken from shared config
             params {
                 aligner                   = 'cellrangerarc'
-                outdir                    = "${outputDir}/results_cellrangerarc"
+                outdir                    = "$outputDir"
                 input                     = "${baseDir}/assets/cellrangerarc_samplesheet.csv"
                 fasta                     = 'https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/homo_sapiens/genome/chr21/sequence/genome.fasta'
                 gtf                       = 'https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/homo_sapiens/genome/chr21/sequence/chr21_gencode.gtf'

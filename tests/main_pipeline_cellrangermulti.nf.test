@@ -11,7 +11,7 @@ nextflow_pipeline {
             // the rest is taken from shared config
             params {
                 aligner                   = 'cellrangermulti'
-                outdir                    = "${outputDir}/results_cellrangermulti"
+                outdir                    = "$outputDir"
                 input                     = "${baseDir}/assets/cellrangermulti_samplesheet.csv"
                 cellranger_multi_barcodes = "${baseDir}/assets/cellranger_barcodes_samplesheet.csv"
                 gex_frna_probe_set        = "${baseDir}/assets/frna_probeset_subset.csv"
@@ -52,7 +52,7 @@ nextflow_pipeline {
         when {
             params {
                 aligner                   = 'cellrangermulti'
-                outdir                    = "${outputDir}/results_cellrangermulti"
+                outdir                    = "$outputDir"
                 input                     = "${baseDir}/assets/cellrangermulti_samplesheet_rat.csv"
                 cellranger_multi_barcodes = "${baseDir}/assets/cellranger_barcodes_samplesheet_rat.csv"
                 fasta                     = 'https://ftp.ensembl.org/pub/release-114/fasta/rattus_norvegicus/dna/Rattus_norvegicus.GRCr8.dna.primary_assembly.6.fa.gz'
