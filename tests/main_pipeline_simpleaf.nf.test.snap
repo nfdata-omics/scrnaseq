@@ -10,10 +10,10 @@
                     "fastqc": "0.12.1"
                 },
                 "MTX_TO_H5AD": {
-                    "python": "3.12.5",
-                    "scanpy": "1.10.2",
+                    "anndata": "0.10.8",
                     "pandas": "2.2.2",
-                    "anndata": "0.10.8"
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
                 },
                 "SIMPLEAF_INDEX": {
                     "alevin-fry": "0.11.2",
@@ -26,9 +26,6 @@
                     "piscem": "0.12.2",
                     "salmon": "1.10.3",
                     "simpleaf": "0.19.4"
-                },
-                "Workflow": {
-                    "nf-core/scrnaseq": "v4.1.0dev"
                 }
             },
             [
@@ -186,8 +183,8 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.1"
+            "nextflow": "25.04.6"
         },
-        "timestamp": "2025-08-01T12:17:17.575430596"
+        "timestamp": "2025-08-04T09:02:37.806014973"
     }
 }

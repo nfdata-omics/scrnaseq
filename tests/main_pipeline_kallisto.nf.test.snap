@@ -13,13 +13,10 @@
                     "kallistobustools": "0.28.2"
                 },
                 "MTX_TO_H5AD": {
-                    "python": "3.12.5",
-                    "scanpy": "1.10.2",
+                    "anndata": "0.10.8",
                     "pandas": "2.2.2",
-                    "anndata": "0.10.8"
-                },
-                "Workflow": {
-                    "nf-core/scrnaseq": "v4.1.0dev"
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
                 }
             },
             [
@@ -212,8 +209,8 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.1"
+            "nextflow": "25.04.6"
         },
-        "timestamp": "2025-08-01T12:08:34.446984853"
+        "timestamp": "2025-08-04T09:00:22.183689983"
     }
 }

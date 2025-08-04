@@ -9,11 +9,11 @@ lint:
 nf_core_version: 3.3.2
 repository_type: pipeline
 template:
-  author: Bailey PJ, Botvinnik O, Marques de Almeida F, Peltzer A, Sturm G
+  author: Bailey PJ, Botvinnik O, Marques de Almeida F, Peltzer A, Sturm G, Dongze H
   description: Pipeline for processing 10x Genomics single cell rnaseq data
   force: false
   is_nfcore: true
   name: scrnaseq
   org: nf-core
   outdir: .
-  version: 2.8.0dev
+  version: 4.1.0
