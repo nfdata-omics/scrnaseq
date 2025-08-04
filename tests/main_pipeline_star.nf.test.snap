@@ -7,21 +7,18 @@
                     "fastqc": "0.12.1"
                 },
                 "MTX_TO_H5AD": {
-                    "python": "3.12.5",
-                    "scanpy": "1.10.2",
+                    "anndata": "0.10.8",
                     "pandas": "2.2.2",
-                    "anndata": "0.10.8"
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
                 },
                 "STAR_ALIGN": {
                     "star": "2.7.10b"
                 },
                 "STAR_GENOMEGENERATE": {
-                    "star": "2.7.10a",
+                    "gawk": "5.1.0",
                     "samtools": 1.18,
-                    "gawk": "5.1.0"
-                },
-                "Workflow": {
-                    "nf-core/scrnaseq": "v4.1.0dev"
+                    "star": "2.7.10a"
                 }
             },
             [
@@ -233,8 +230,8 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "24.10.1"
+            "nextflow": "25.04.6"
         },
-        "timestamp": "2025-08-01T12:28:41.241504112"
+        "timestamp": "2025-08-04T09:08:55.70547428"
     }
 }
