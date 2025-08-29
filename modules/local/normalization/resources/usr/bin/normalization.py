@@ -8,9 +8,11 @@
 import warnings
 import argparse                     # command line arguments parser
 import pathlib                      # library for handle filesystem paths
+import os
 import scanpy as sc                 # single-cell data processing
 import mudata as md
 import muon as mu
+import matplotlib.pyplot as plt  
 
 warnings.filterwarnings("ignore")
 
@@ -44,10 +46,13 @@ def main():
                         epilog = "This function normalize and logarithmize the data for each modality")
     parser.add_argument('-ad','--input-h5mu-file',metavar= 'H5MU_INPUT_FILES',type=pathlib.Path, dest='input_h5mu_files',
                         required=True, help="paths of existing matrix files in h5mu format (including file names)")
-    parser.add_argument('-r','--input-h5ad-raw-file',metavar= 'H5AD_RAW_INPUT_FILES', type=pathlib.Path, dest='input_h5ad_raw_files',
+    parser.add_argument('-rw','--input-h5ad-raw-file',metavar= 'H5AD_RAW_INPUT_FILES', type=pathlib.Path, dest='input_h5ad_raw_files',
                         required=True, help="paths of existing raw matrix files in h5ad format (including file names)")
+    parser.add_argument('-cycle', '--input_cellcycle_file',metavar='CELLCYCLE_FILE', type=pathlib.Path, dest='cellcycle_file',
+                    help="Path of an csv input file (.csv)")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.norm.h5mu",
                         help="path and name of the output h5mu file after filtering")
+    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
     parser.print_help()
@@ -60,6 +65,7 @@ def main():
     input_h5mu_files = args.input_h5mu_files
     input_h5ad_files = args.input_h5ad_raw_files
     output = args.out
+    input_cellcycle = args.cellcycle_file
 
 
     # print info on the available matrices
@@ -128,6 +134,52 @@ def main():
 
     print("Done!")
     gex.layers["normalized_gex"] = gex.X.copy()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           COMPUTE CELL CYCLE SCORE
+# --------------------------------------------------------------------------------------------------------------------
+    print(f"Reading cell cycle gene list from: {input_cellcycle}")
+
+    with open(input_cellcycle) as f:
+        cell_cycle_genes = [x.strip() for x in f]
+
+    original_var_names = gex.var_names.copy()
+    gex.var['gene_symbols'] = gex.var['gene_symbols'].astype(str)
+    gex.var_names = gex.var['gene_symbols']
+    gex.var_names_make_unique() 
+    # Define genes associated to the S phase and genes associated to the G2M phase
+    s_genes = cell_cycle_genes[:43]
+    g2m_genes = cell_cycle_genes[43:]
+    cell_cycle_genes = [x for x in cell_cycle_genes if x in gex.var_names]
+    print("\n===== COMPUTING CELL CYCLE SCORE =====")
+    print("Computing cell cycle score ... ", end='')
+    sc.tl.score_genes_cell_cycle(gex, s_genes=s_genes, g2m_genes=g2m_genes)
+    print("Done!")
+
+    #Compute pca on subset of genes
+    print("\nComputing PCA on cell cycle genes ... ", end='')
+    gex_cc_genes = gex[:, cell_cycle_genes]
+    sc.tl.pca(gex_cc_genes)
+    sc.pl.pca_scatter(gex_cc_genes, color='phase',show=False)
+    plt.savefig(os.path.join(args.results,'pca_cellcycle_GEX_phase.png'))
+    print("Done!")
+    plt.close()
+
+    # Visualize PCA plot
+    print("\nVisualized PCA plot")
+    plt.figure(figsize=(12, 10))
+    sc.pl.pca(gex_cc_genes, color='sample',show=False)
+    plt.savefig(os.path.join(args.results,'pca_cellcycle_GEX_sample.png'))
+    plt.close()
+
+    # Add cell cycle score to the gex object
+    gex.obs['S_score'] = gex.obs['S_score'].astype(float)
+    gex.obs['G2M_score'] = gex.obs['G2M_score'].astype(float)
+
+    # Save gex object into mdata
+    gex.var_names = original_var_names
+
+
     mdata.mod['gex'] = gex
     mdata.update()
 
