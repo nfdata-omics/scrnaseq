@@ -14,8 +14,8 @@ process QUALITY_FILTERING_ATAC  {
     
     output:
     tuple val(meta), path("*.filtered_atac.h5ad"), emit: h5ad
-    path "Nucleosome_signal.png", emit: nucleosome_signal, optional: true
-    path "TSS_score.png", emit: tss_signal, optional: true
+    path "FragSizeDist_sample_*.png", emit: fragment_size_distribution, optional: true
+    path "TSS_score_sample_*.png", emit: tss_signal, optional: true
     path "versions.yml",  emit: versions
 
     when:
@@ -29,7 +29,7 @@ process QUALITY_FILTERING_ATAC  {
     export XDG_CACHE_HOME=/tmp
 
 
-    qualitymetricsfilters_atac.py  -fr ${input_fragment_file.join(' ')} -fri $input_fragment_index_file  -id ${meta.collect{ it.id }.join(' ')} -n $nucleosome_threshold -t $tss_threshold --b $blacklist_path
+    qualitymetricsfilters_atac.py  -fr ${input_fragment_file.join(' ')} -fri $input_fragment_index_file  -id ${meta.collect{ it.id }.join(' ')} -n $nucleosome_threshold -t $tss_threshold -b $blacklist_path
     
     
     cat <<-END_VERSIONS >> versions.yml
