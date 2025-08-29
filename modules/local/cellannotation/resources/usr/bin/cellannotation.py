@@ -74,8 +74,8 @@ def main():
                         help="name of the output h5ad file after cell annotation")
     parser.add_argument('-csv', '--csv_out', metavar='CELL_ANNOTATION', default="summary_cellannotation.csv",
                         help="path and name of csv table cell annotation summary")
-    parser.add_argument('-e', '--excel_out', metavar='METADATA', default="metadata.xlsx",
-                        help="path and name of excel table with metadata information for each cell")
+    parser.add_argument('-csv_annotation', '--csv_annotation_out', metavar='METADATA', default="metadata.csv",
+                        help="path and name of csv table with metadata information for each cell")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'), 
                         help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -89,7 +89,7 @@ def main():
     input_h5mu_file = args.input_h5mu_files
     input_model_list = args.model_list
     output_csv= Path(args.csv_out)
-    output_excel= args.excel_out
+    output_csv_annotation= args.csv_annotation_out
     output = args.out
 
     
@@ -123,55 +123,85 @@ def main():
 # -------------------------------------------------------------------------------------------------------------------
 #                                 CELLTYPIST ANNOTATION
 # --------------------------------------------------------------------------------------------------------------------
-    
+    with open(input_model_list, 'r') as f:
+        model_names = [line.strip() for line in f if line.strip()]
+
     df_list = []
 
-    model = load_model(input_model_list)
-    model_name = input_model_list.stem
-    
-    predictions = celltypist.annotate(gex, model=model, majority_voting=True,mode = 'prob match', p_thres = 0.5)
-    predictions_adata = predictions.to_adata()
+    for model_name in model_names:
+        print(f"\n=== Annotating with model: {model_name} ===")
+        model = load_model(model_name)
+        
 
-    df_celltypist = predictions_adata.obs.loc[
-        gex.obs.index, ["predicted_labels", "conf_score"]
-    ]
+        predictions = celltypist.annotate(gex, model=model, majority_voting=True,mode = 'best match')
+        predictions_adata = predictions.to_adata()
 
-    df_celltypist.columns = [f"celltypist:{model_name}", f"celltypist:{model_name}:conf"]
-    df_list.append(df_celltypist)
+        model_base = model_name.replace(".pkl", "").replace(" ", "_")
+        col_name = f"{model_base}:majority_voting"  
+        col_conf = f"{model_base}:conf"
+
+        df_celltypist = predictions_adata.obs.loc[
+            gex.obs.index, ["majority_voting", "conf_score"]
+        ].rename(columns={
+            "majority_voting": col_name,
+            "conf_score": col_conf
+        })
+
+        df_celltypist.columns = [f"celltypist:{col_name}", f"celltypist:{col_conf}"]
+        df_list.append(df_celltypist)
 
     df_celltypist = pd.concat(df_list, axis=1)
-    
+    print(df_celltypist)
     gex.obs = pd.concat([gex.obs, df_celltypist], axis=1)
+    cols_to_drop = [
+        'predicted_labels',
+        'majority_voting',
+        'conf_score',
+        'over_clustering'
+    ]
+
+    gex.obs = gex.obs.drop(columns=[c for c in cols_to_drop if c in gex.obs.columns])
+    print(gex.obs)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SUMMARY OF CELLTYPIST ANNOTATION
 # --------------------------------------------------------------------------------------------------------------------
-    output_csv_pool = output_csv.with_name(output_csv.stem + "_by_pool.csv")
-    summary_table_pool = gex.obs.groupby(['sample','predicted_labels']).size().reset_index(name='count')   
-    print(summary_table_pool)
-    summary_table_pool.to_csv(output_csv_pool,index=False)
-    print("Done!")
 
-    #output_csv_sample = output_csv.with_name(output_csv.stem + "_by_sample.csv")
-    #summary_table_sample = gex.obs.groupby(['Inferred_donor', 'predicted_labels']).size().reset_index(name='count')   
-    #print(summary_table_sample)
-    #summary_table_sample.to_csv(output_csv_sample,index=False)
-    #print("Done!")
+    for model_name in model_names:
+        clean_model_name = model_name.replace(".pkl", "").replace(" ", "_")
+        col_name = f"celltypist:{clean_model_name}:majority_voting"
+    
+        # Raggruppa per sample e per la colonna di annotazione del modello
+        summary_table_pool = gex.obs.groupby(['sample', col_name]).size().reset_index(name='count')
+
+        output_csv_pool = output_csv.with_name(f"{output_csv.stem}_{clean_model_name}_by_pool.csv")
+        summary_table_pool.to_csv(output_csv_pool, index=False)
+
+        # Per Inferred_donor (idem)
+        #summary_table_sample = gex.obs.groupby(['Inferred_donor', col_name]).size().reset_index(name='count')
+        #output_csv_sample = output_csv.with_name(f"{output_csv.stem}_{clean_model_name}_by_sample.csv")
+        #summary_table_sample.to_csv(output_csv_sample, index=False)
+
+        print(f"Saved summaries for model {clean_model_name}")
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
-
-    # Visualize batch-corrected UMAP plot
-    print("\nVisualized batch-corrected UMAP plot")
-    mu.pl.embedding(gex, color =['predicted_labels'],basis= 'X_umap',legend_loc='on data',show=False)
-    plt.savefig(os.path.join(args.results,'Annotated_UMAP_plot_GEX.png'))
-    plt.close()
-
+        print("\n===== VISUALIZING UMAP PLOT =====")
+        print(f"\nVisualized batch-corrected UMAP plot for model {clean_model_name}")
+        # Visualize batch-corrected UMAP plot
+        mu.pl.embedding(gex, color =col_name ,basis= 'X_umap',legend_loc='on data',show=False)
+        plt.savefig(os.path.join(args.results, f"Annotated_UMAP_{clean_model_name}.png"))
+        plt.close()
+        print(f"Saved summaries and UMAP for model {clean_model_name}")
+    
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE GEX DATA INTO MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
+    gex.var.reset_index(inplace=True)
+    gex.var.index.name = None   
     mdata.mod['gex'] = gex
     mdata.update()
     print(mdata.obs)
@@ -180,14 +210,16 @@ def main():
 #                           SAVE METADATA INFORMATION INTO A EXCEL FILE
 # --------------------------------------------------------------------------------------------------------------------
 
-    mdata.obs.to_excel(output_excel, index=False)
-    print("Metadata information for each cell saved in excel file {}".format(output_excel))
+    mdata.obs.to_csv(output_csv_annotation, index=True)
+    print("Metadata information for each cell saved in csv file {}".format(output_csv_annotation))
 
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
     print(mdata.obs)
+    print(mdata.var)
+
     print("Saving h5ad data to file {}".format(output))
     mdata.write(output)
     print(mdata)
