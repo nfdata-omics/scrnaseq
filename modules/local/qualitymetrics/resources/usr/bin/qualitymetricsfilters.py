@@ -70,6 +70,20 @@ def main():
     parser.add_argument('-d','--input-csv-doublets',metavar= 'CSV_DOUBLETS_TABLE', type=pathlib.Path, dest='input_csv_table',
                         default=pathlib.Path(''),help="paths of existing doublets table in csv format")
     parser.add_argument('-mt', '--mt-thresold',dest='mt_threshold',type=float,default=10,help="parameters used to filter cells based on mithocondrial gene content")
+    parser.add_argument('-min', '--min-umi', dest='min_umi_gex', type=int, default=1400,
+                        help="minimum number of UMI per cell to keep (default is 1400)")
+    parser.add_argument('-max', '--max-umi', dest='max_umi_gex', type=int, default=15000,
+                        help="maximum number of UMI per cell to keep (default is 15000)")
+    parser.add_argument('-ming', '--min-genes', dest='min_genes_gex', type=int, default=200,
+                        help="minimum number of genes per cell to keep (default is 200)")
+    parser.add_argument('-maxg', '--max-genes', dest='max_genes_gex', type=int, default=5000,
+                        help="maximum number of genes per cell to keep (default is 5000)")
+    parser.add_argument('-minc', '--min-cells', dest='min_cells_gex', type=int, default=3,
+                        help="minimum number of cells per gene to keep (default is 3)")
+    parser.add_argument('-minf', '--min-features-adt', dest='min_features_adt', type=int, default=3,
+                        help="minimum number of features per cell to keep (default is 3)")
+    parser.add_argument('-mincadt', '--min-counts-adt', dest='min_counts_adt', type=int, default=1000,
+                        help="minimum number of counts per cell to keep (default is 1000)")
     parser.add_argument('-csv', '--csv_out', metavar='QUALITY_CONTROL', default="summary_qualitycontrol.csv",
                         help="path and name of csv table with ranked marker genes for each cluster and resolution")
     parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered.h5mu",
@@ -89,8 +103,15 @@ def main():
     output_csv= Path(args.csv_out)
     output =args.out
     mt_threshold = args.mt_threshold
-
-
+    min_umi_gex = args.min_umi_gex
+    max_umi_gex = args.max_umi_gex
+    min_genes_gex = args.min_genes_gex
+    max_genes_gex = args.max_genes_gex
+    min_cells_gex = args.min_cells_gex
+    min_features_adt = args.min_features_adt
+    min_counts_adt = args.min_counts_adt
+    
+    
     # print info on the available matrices
     print("Reading combined matrix from the following file:")
     print(f"-File {input_h5mu_file}")
@@ -147,19 +168,7 @@ def main():
         sc.pp.calculate_qc_metrics(gex, qc_vars=["mt", "ribo", "hb"],percent_top=[20], log1p=True, inplace=True)
         print(gex.obs[['pct_counts_mt', 'pct_counts_ribo']].head())
 
-# --------------------------------------------------------------------------------------------------------------------
-#                           EVALUATE PERCENTILE
-# --------------------------------------------------------------------------------------------------------------------
-        percentiles = {
-                'n_genes_by_counts': {
-                    5: round(np.percentile(gex.obs['n_genes_by_counts'], 5)),
-                    95: round(np.percentile(gex.obs['n_genes_by_counts'], 95))
-                },
-                'total_counts': {
-                    5: round(np.percentile(gex.obs['total_counts'], 5)),
-                    95: round(np.percentile(gex.obs['total_counts'], 95))
-                }
-        }
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE QUALITY METRICS
 # --------------------------------------------------------------------------------------------------------------------
@@ -192,13 +201,13 @@ def main():
             print(f"\nVisualize density plot showing number of genes expressed, total counts per cell in {sample}")
             ax1 = plt.subplot(1, 2, 1)
             sns.histplot(gex[gex.obs['sample']== sample].obs['total_counts'], stat="count", bins=500, color='chocolate', kde=True, ax=ax1)
-            plt.axvline(percentiles['total_counts'][5], color='blue', linestyle='--')
-            plt.axvline(percentiles['total_counts'][95], color='blue', linestyle='--')
+            plt.axvline(min_umi_gex, color='blue', linestyle='--')
+            plt.axvline(max_umi_gex, color='blue', linestyle='--')
             #ax1.set_xlim([0., 60000.])
             ax2 = plt.subplot(1, 2, 2)
             sns.histplot(gex[gex.obs['sample']== sample].obs['n_genes_by_counts'], stat="count", bins=100, color='orange', kde=True, ax=ax2)
-            plt.axvline(percentiles['n_genes_by_counts'][5], color='blue', linestyle='--')
-            plt.axvline(percentiles['n_genes_by_counts'][95], color='blue', linestyle='--')
+            plt.axvline(min_genes_gex, color='blue', linestyle='--')
+            plt.axvline(max_genes_gex, color='blue', linestyle='--')
             #ax2.set_xlim([0., 10000.])
 
             plt.tight_layout()
@@ -219,17 +228,18 @@ def main():
 #                           EVALUATE GENES BASED ON NUMBER OF CELLS
 # --------------------------------------------------------------------------------------------------------------------
         min_cells = round(1/100 * gex.shape[0])
+        min_cells = max(min_cells, min_cells_gex)  # Ensure at least 3 cells for a gene to be considered expressed
         gex.var["gene_pass"] = gex.var["n_cells_by_counts"] >= min_cells
         
 # --------------------------------------------------------------------------------------------------------------------
 #                           EVALUATE CELLS BASED ON HARD FILTERS 
-# --------------------------------------------------------------------------------------------------------------------
-        #Hard filtering based on total counts, number of genes expressed and fraction of mitochondrial genes
-        gex.obs["total_counts_outlier"] = ((gex.obs["total_counts"] < percentiles['total_counts'][5]) | (gex.obs["total_counts"] > percentiles['total_counts'][95]))
-        gex.obs["n_genes_by_counts_outlier"] = ((gex.obs["n_genes_by_counts"] < percentiles['n_genes_by_counts'][5]) | (gex.obs["n_genes_by_counts"] > percentiles['n_genes_by_counts'][95]))
-        gex.obs["mt_outlier"] = (gex.obs["pct_counts_mt"] > mt_threshold)
-        #gex.obs["mt_outlier"] = is_outlier(gex, "pct_counts_mt", 3) | ( gex.obs["pct_counts_mt"] > mt_threshold )
+# --------------------------------------------------------------------------------------------------------------------        
 
+        #Hard filtering based on total counts, number of genes expressed and fraction of mitochondrial genes
+        gex.obs["total_counts_outlier"] = gex.obs["total_counts"] > max_umi_gex
+        gex.obs["n_genes_by_counts_outlier"] = ((gex.obs["n_genes_by_counts"] < min_genes_gex) | (gex.obs["n_genes_by_counts"] > max_genes_gex))
+        gex.obs["mt_outlier"] = is_outlier(gex, "pct_counts_mt", 3) | ( gex.obs["pct_counts_mt"] > mt_threshold )
+        
         gex.obs["hard_filter_gex"] = (gex.obs["total_counts_outlier"] | gex.obs["n_genes_by_counts_outlier"] | gex.obs["mt_outlier"])
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -239,16 +249,15 @@ def main():
         gex.obs["soft_filters_gex"] = (
         is_outlier(gex, "log1p_total_counts", 5)
         | is_outlier(gex, "log1p_n_genes_by_counts", 5)
+        | is_outlier(gex, "pct_counts_in_top_20_genes", 5)
+        | gex.obs["mt_outlier"]
         )
-        #| is_outlier(gex, "pct_counts_in_top_20_genes", 5)
         
-
         hard_filter_gex_pool = gex.obs.groupby(['sample', 'hard_filter_gex']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_gex_pass', True: 'hard_filters_gex_fail'})
         soft_filter_gex_pool = gex.obs.groupby(['sample', 'soft_filters_gex']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_gex_pass', True: 'soft_filters_gex_fail'})
         #hard_filter_gex_sample = gex.obs.groupby(['Inferred_donor', 'hard_filter_gex',]).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_gex_pass', True: 'hard_filters_gex_fail'})
         #soft_filter_gex_sample = gex.obs.groupby(['Inferred_donor', 'soft_filters_gex']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_gex_pass', True: 'soft_filters_gex_fail'})
-        
-
+ 
 # --------------------------------------------------------------------------------------------------------------------
 #                           APPLY QUALITY METRICS
 # --------------------------------------------------------------------------------------------------------------------
@@ -260,10 +269,10 @@ def main():
             print('Filter low quality cells on the basis of number of counts per barcode (count depth),number of genes per barcode of mitochondrial, and fraction of counts from mitochondrial genes per barcode')
 
             #Filter based on MIN_COUNT
-            mu.pp.filter_obs(gex, 'total_counts',lambda x: x >= percentiles['total_counts'][5])
+            mu.pp.filter_obs(gex, 'total_counts',lambda x: x >= min_umi_gex)
 
             #Filter based on MIN_GENES
-            mu.pp.filter_obs(gex, 'n_genes_by_counts',lambda x: x >= percentiles['n_genes_by_counts'][5])
+            mu.pp.filter_obs(gex, 'n_genes_by_counts',lambda x: x >= min_genes_gex)
 
             print(f"Count matrix for combined samples has {gex.shape[0]} cells and {gex.shape[1]} genes after filtering")
             #Filter based on MT_PERCENTAGE
@@ -273,7 +282,6 @@ def main():
             mu.pp.filter_obs(gex,'pct_counts_mt', lambda x: x < mt_threshold)
 
             #Filter based on number of cells
-            min_cells = round(1/100 * gex.shape[0])
             mu.pp.filter_var(gex, 'n_cells_by_counts', lambda x: x >= min_cells)
 
 
@@ -318,19 +326,7 @@ def main():
 
         sc.pp.calculate_qc_metrics(pro, inplace=True,log1p=True,percent_top=[20])
 
-# --------------------------------------------------------------------------------------------------------------------
-#                           EVALUATE PERCENTILE
-# --------------------------------------------------------------------------------------------------------------------
-        percentiles = {
-                'n_genes_by_counts': {
-                    5: round(np.percentile(pro.obs['n_genes_by_counts'], 5)),
-                    95: round(np.percentile(pro.obs['n_genes_by_counts'], 95))
-                },
-                'total_counts': {
-                    5: round(np.percentile(pro.obs['total_counts'], 5)),
-                    95: round(np.percentile(pro.obs['total_counts'], 95))
-                }
-        }       
+           
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE QUALITY METRICS
 # --------------------------------------------------------------------------------------------------------------------
@@ -345,13 +341,11 @@ def main():
                 print(f"\nVisualized the distribution of ADTs per cell per {sample} before filtering ")
                 ax1 = plt.subplot(1, 2, 1)
                 sns.histplot(pro[pro.obs['sample']== sample].obs.total_counts,ax=ax1)
-                plt.axvline(percentiles['total_counts'][5], color='blue', linestyle='--')
-                plt.axvline(percentiles['total_counts'][95], color='blue', linestyle='--')
+                plt.axvline(min_counts_adt, color='blue', linestyle='--')
                 ax1.set_xlim([0., 8000.])
                 ax2 = plt.subplot(1, 2, 2)
                 sns.histplot(pro[pro.obs['sample']== sample].obs.n_genes_by_counts,ax=ax2)
-                plt.axvline(percentiles['n_genes_by_counts'][5], color='blue', linestyle='--')
-                plt.axvline(percentiles['n_genes_by_counts'][95], color='blue', linestyle='--')
+                plt.axvline(min_features_adt, color='blue', linestyle='--')
                 ax2.set_xlim([0., 200.])
                 plt.savefig(os.path.join(args.results, f'ADTs_Distribution_{sample}.png'))
                 plt.close()
@@ -361,9 +355,11 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           EVALUATE CELLS BASED ON HARD FILTERS 
 # --------------------------------------------------------------------------------------------------------------------
+        
+
         #Hard filtering based on total counts, number of genes expressed and fraction of mitochondrial genes
-        pro.obs["total_counts_outlier"] = ((pro.obs["total_counts"] < percentiles['total_counts'][5]) | (pro.obs["total_counts"] > percentiles['total_counts'][95]))
-        pro.obs["n_genes_by_counts_outlier"] = ((pro.obs["n_genes_by_counts"] < percentiles['n_genes_by_counts'][5]) | (pro.obs["n_genes_by_counts"] > percentiles['n_genes_by_counts'][95]))
+        pro.obs["total_counts_outlier"] = pro.obs["total_counts"] < min_counts_adt
+        pro.obs["n_genes_by_counts_outlier"] = pro.obs["n_genes_by_counts"] < min_features_adt
         
         pro.obs["hard_filter_pro"] = (pro.obs["total_counts_outlier"] | pro.obs["n_genes_by_counts_outlier"])
 
