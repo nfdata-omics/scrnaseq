@@ -8,7 +8,7 @@ process CONVERT_MUDATA  {
     tuple val(meta), path(input_h5ad)
     tuple val(meta), path(input_vdj)
     tuple val(meta), path (demultiplexing_doublets)
-    tuple val(meta), path(input_h5ad_atac)
+    
 
     output:
     tuple val(meta), path("*.mudata.h5mu") , emit: h5mu
@@ -28,7 +28,7 @@ process CONVERT_MUDATA  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    convert.py -ad $input_h5ad $ai $csv -at $input_h5ad_atac
+    convert.py -ad $input_h5ad $ai $csv 
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
