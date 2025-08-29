@@ -1,15 +1,16 @@
 process MOFA_INTEGRATION {
     tag "$meta.id"
-    label 'process_medium'
+    label 'process_high'
 
     container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.2'
 
     input:
     tuple val(meta), path(input_h5mu)
+    tuple val(meta), path(input_h5ad_atac)
 
     output:
     tuple val(meta), path("*.mofa.h5mu"), emit: h5mu
-    path "umap_mofa.png", emit: graph_UMAP_mofa
+    path "umap_mofa.png", emit: umap_mofa, optional: true
     path "versions.yml",  emit: versions
 
     when:
@@ -21,7 +22,7 @@ process MOFA_INTEGRATION {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    mofa_integration.py -ad $input_h5mu
+    mofa_integration.py -ad $input_h5mu -at $input_h5ad_atac
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
