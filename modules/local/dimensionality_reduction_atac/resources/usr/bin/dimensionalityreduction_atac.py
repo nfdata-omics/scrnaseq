@@ -93,18 +93,41 @@ def main():
     snap.tl.spectral(adata_atac,n_comps=30,features="selected",random_state=0,inplace=True)
     print("Done!")
 
+# --------------------------------------------------------------------------------------------------------------------
+#                           BATCH CORRECTION
+# --------------------------------------------------------------------------------------------------------------------
+
+    # Perform batch correction
+    # Importantly set groupby='variable to preserve' parameter if you want to preserve that difference in the batch correction
+    print("\n===== PERFORM BATCH CORRECTION =====")
+    print("Performing batch correction ... ", end='')
+    snap.pp.mnc_correct(adata_atac, batch="sample", key_added='X_spectral')
+    print("Done!")
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           CLUSTERING ON TILE MATRIX
+# --------------------------------------------------------------------------------------------------------------------
+
+    # Perform clustering
+    print("\n===== PERFORM CLUSTERING =====")
+    print("Performing clustering ... ", end='')
+    snap.pp.knn(adata_atac)
+    snap.tl.leiden(adata_atac,key_added='leiden_tile',inplace=True) 
+    print("Done!")
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           COMPUTE AND VISUALIZE UMAP PLOT
+# --------------------------------------------------------------------------------------------------------------------
+    
     # Compute UMAP for visualization
     print("\n===== COMPUTE UMAP =====")
     print("Computing UMAP ... ", end='')
     #snap.tl.umap(adata_atac)
     print("Done!")
 
-# --------------------------------------------------------------------------------------------------------------------
-#                           VISUALIZE UMAP PLOT
-# --------------------------------------------------------------------------------------------------------------------
     # Visualize UMAP plot
     print("\nVisualized UMAP plot")
-    #sc.pl.umap(adata_atac, color="sample")
+    #snap.pl.umap(adata_atac, color="sample",interactive=False)
     print("Done!")
     
     
