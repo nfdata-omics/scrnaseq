@@ -421,21 +421,6 @@ workflow SCRNASEQ {
     }
 
     
-    def blacklist_path = params.blacklist_path ?: file(params.genomes[params.genome].blacklist, checkIfExists: true)
-
-    // SUBWORKFLOW: Atac preprocessing
-    if (params.aligner == "cellrangerarc") {
-        ATAC_PREPROCESSING (
-            ch_transformed_fragments_channel,
-            ch_transformed_fragments_index_channel,
-            params.nucleosome_threshold,
-            params.tss_threshold,
-            blacklist_path
-    
-        )
-        ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
-    }
-    
     if (params.demultiplexing_doublets) {
     ch_metadata_demuxafy = Channel.fromPath(params.demultiplexing_doublets, checkIfExists: true)
         .splitCsv(header: true, sep: '\t')
@@ -453,8 +438,7 @@ workflow SCRNASEQ {
         CONVERT_MUDATA(
             ch_h5ad_selected,
             ch_vdj,
-            ch_metadata_demuxafy,
-            ATAC_PREPROCESSING.out.h5ad
+            ch_metadata_demuxafy
         )
         ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
     } else {
@@ -476,9 +460,11 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
+    ch_cellcycle_file = Channel.fromPath(params.cell_cycle_file, checkIfExists: true)
     NORMALIZATION_AND_HVG (
         DOUBLETS_QUALITYFILTERING.out.h5mu,
-        H5AD_CONVERSION.out.h5ad_raw
+        H5AD_CONVERSION.out.h5ad_raw,
+        ch_cellcycle_file
     )
     ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
     
@@ -490,12 +476,33 @@ workflow SCRNASEQ {
         params.input_model
     )
     ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
+
+    //
+    // SUBWORKFLOW: Run ATAC preprocessing 
+    //
+    def blacklist_path = params.blacklist_path ?: file(params.genomes[params.genome].blacklist, checkIfExists: true)
+    def cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata 
+
+    if (params.aligner == "cellrangerarc") {
+        ATAC_PREPROCESSING (
+            ch_transformed_fragments_channel,
+            ch_transformed_fragments_index_channel,
+            params.nucleosome_threshold,
+            params.tss_threshold,
+            params.blacklist_path,
+            cell_annotation_meta_ch
+        )
+        ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
+    }
     
+    // PARTE INTEGRATION_MODALITIES
     //
     // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
     //
+    
     INTEGRATION_MODALITIES (
-        CELL_ANNOTATION.out.h5mu
+        CELL_ANNOTATION.out.h5mu,
+        ATAC_PREPROCESSING.out.h5ad
     )
     ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
     
@@ -514,6 +521,8 @@ workflow SCRNASEQ {
         CLUSTERING.out.metadata_final
     )
     ch_versions = ch_versions.mix(CLUSTREE.out.versions)
+    
+    // SUBWORKFLOW: Atac preprocessing
     
     '''
     //
