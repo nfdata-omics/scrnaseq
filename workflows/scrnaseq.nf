@@ -481,7 +481,7 @@ workflow SCRNASEQ {
     // SUBWORKFLOW: Run ATAC preprocessing 
     //
     def cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata
-    def atac_out_h5ad = Channel.empty() 
+    atac_out_h5ad = Channel.empty() 
 
     if (params.aligner == "cellrangerarc") {
         def blacklist_path = params.blacklist_path ?: file(params.genomes[params.genome].blacklist, checkIfExists: true)
