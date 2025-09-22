@@ -480,7 +480,8 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run ATAC preprocessing 
     //
-    def cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata 
+    def cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata
+    def atac_out_h5ad = Channel.empty() 
 
     if (params.aligner == "cellrangerarc") {
         def blacklist_path = params.blacklist_path ?: file(params.genomes[params.genome].blacklist, checkIfExists: true)
@@ -490,9 +491,10 @@ workflow SCRNASEQ {
             ch_transformed_fragments_index_channel,
             params.nucleosome_threshold,
             params.tss_threshold,
-            params.blacklist_path,
+            blacklist_path,
             cell_annotation_meta_ch
         )
+        atac_out_h5ad = ATAC_PREPROCESSING.out.h5ad
         ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
     }
     
@@ -503,7 +505,7 @@ workflow SCRNASEQ {
     
     INTEGRATION_MODALITIES (
         CELL_ANNOTATION.out.h5mu,
-        ATAC_PREPROCESSING.out.h5ad
+        atac_out_h5ad
     )
     ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
     
