@@ -11,10 +11,10 @@ process INTEGRATION {
     tuple val(meta), path("*.integrated.h5mu"), emit: h5mu
     path "versions.yml",  emit: versions
 
-    
+
     path "Harmony_UMAP_coordinates_GEX.csv", emit: csv_harmony
     path "Harmony-corrected_UMAP_plot_*.png", emit: graph_UMAP_integrated
-    
+
 
     when:
     task.ext.when == null || task.ext.when
@@ -27,14 +27,14 @@ process INTEGRATION {
 
     # Verify the command that will run
     integration.py -ad $input_h5mu
-    
+
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
         integration.py --version >> versions.yml
     END_VERSIONS
-    
-    
+
+
     """
     stub:
     """
@@ -47,7 +47,7 @@ process INTEGRATION {
     "${task.process}":
         integration.py --version >> versions.yml
     END_VERSIONS
-    
-    
+
+
     """
 }

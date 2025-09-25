@@ -26,9 +26,9 @@ process CLUSTREE  {
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
         clustree.R --version >> versions.yml
-    END_VERSIONS 
+    END_VERSIONS
     """
-    
+
     stub:
     """
     touch clustree_plot.png
@@ -38,5 +38,5 @@ process CLUSTREE  {
         clustree.R --version >> versions.yml
     END_VERSIONS
     """
-    
+
 }
