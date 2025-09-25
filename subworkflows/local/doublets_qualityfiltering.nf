@@ -13,15 +13,15 @@ workflow DOUBLETS_QUALITYFILTERING {
     mt_threshold
     //nucleosome_threshold
     //tss_threshold
-    
+
 
     main:
         ch_versions = Channel.empty()
-        
+
         //
         // MODULE: Compute doublet score for each sample in the concatenated rds file
         //
-        
+
         if ( !params.skip_doublets ) {
             DOUBLETS (
                 ch_convert_concat_filtered
@@ -33,11 +33,11 @@ workflow DOUBLETS_QUALITYFILTERING {
         } else {
             doublets_out = [[id: 'dummy'], []]
         }
-        
+
         //
         // MODULE: Filtered cells of low quality for GEX and CITE modalities in the concatenated h5mu file
         //
-        
+
         QUALITY_FILTERING (
             ch_h5mu_concat_filtered,
             doublets_out,
@@ -49,7 +49,7 @@ workflow DOUBLETS_QUALITYFILTERING {
         // MODULE: Filtered cells of low quality for ATAC modality in the concatenated h5mu file
         //
         //capire come passare il canale se non c'e atac
-        
+
         '''
         QUALITY_FILTERING_ATAC (
             fragments,

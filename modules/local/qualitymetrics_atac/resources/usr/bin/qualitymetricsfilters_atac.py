@@ -10,7 +10,7 @@ import warnings
 import os                           # filesystem utilities
 import pathlib                      # library for handle filesystem paths
 import numpy as np
-import pandas as pd                 # library for data analysis and manipulation                
+import pandas as pd                 # library for data analysis and manipulation
 import snapatac2 as snap
 import glob
 import anndata as ad
@@ -76,11 +76,11 @@ def main():
 
     for run, fragment in zip(input_run_id, input_fragment_file):
         print(f"Run: {run} - File: {fragment}")
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ FRAGMENT FILES
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     # Read folders with the fragment files and compute basic QC metrics like the number of unique fragments per cell, fraction of duplicated reads and fraction of mitochondrial read
     print("\n===== READING FRAGMENT FILES =====")
     # read the fragment file for each sample
@@ -92,10 +92,10 @@ def main():
 
     print(fragment_files)
 
-    
+
     files = list(zip(input_run_id, fragment_files))
     print(files)
-    
+
     adatas_atac = snap.pp.import_fragments(
         [fl for _, fl in files],
         file=[name + '.h5ad' for name, _ in files],
@@ -103,15 +103,15 @@ def main():
         sorted_by_barcode=False
     )
     print(adatas_atac)
-    
+
     #adata_atac = snap.pp.import_fragments(input_fragment_file,file=output,chrom_sizes=snap.genome.GRCh38,sorted_by_barcode=False)
-    
+
     #print(f"MuData matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           COMPUTE AND VISUALIZE QUALITY METRICS
 # --------------------------------------------------------------------------------------------------------------------
-        
+
     # Compute the fragment size distribution for each sample
 
     print("\n===== COMPUTE QUALITY METRICS {} =====")
@@ -133,33 +133,33 @@ def main():
     snap.pp.add_tile_matrix(adatas_atac,bin_size=500)
     snap.pp.select_features(adatas_atac, n_features=100000)
     snap.pp.scrublet(adatas_atac)
-    
-    
-    
+
+
+
     data = snap.AnnDataSet(
     adatas=[(name, adata) for (name, _), adata in zip(files, adatas_atac)],
     filename=output
     )
     print(data)
-    
-    
+
+
     unique_cell_ids = [sa + ':' + bc for sa, bc in zip(data.obs['sample'], data.obs_names)]
     data.obs_names = unique_cell_ids
     assert data.n_obs == np.unique(data.obs_names).size
-    
+
 
     #adata_merged = ad.concat(adatas_atac, label="sample", keys=[name for name, _ in files])
     #adata_merged.obs_names = [f"{name}_{bc}" for name, bc in zip(adata_merged.obs["sample"], adata_merged.obs_names)]
 
 
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING OUTPUT FILE =====")
     data.close()
     #adata_merged.write(output)
-    
+
     print("Done!")
 
 #####################################################################################################

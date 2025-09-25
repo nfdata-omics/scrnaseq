@@ -72,14 +72,14 @@ def main():
 
     print("Reading filtered annotation table from the following file:")
     print(f"-File {input_vdj_file}")
-    
+
     print("Reading combined atac count matrix from the following file:")
     print(f"-File {input_atac_file}")
 
     print("Reading metadata table from the following file:")
     print(f"-File {input_csv_file}")
 
-   
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ GEX AND AB FILES
@@ -119,7 +119,7 @@ def main():
         adata_atac= sc.read_h5ad(input_atac_file)
         print("Done!")
         print(f"Atac count matrix for combined samples has {adata_atac.shape[0]} cells and {adata_atac.shape[1]} peaks")
-    
+
 
     adata_vdj = None
     adata_atac = None
@@ -140,10 +140,10 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 ADDED METADATA TO OBS
 # --------------------------------------------------------------------------------------------------------------------
- 
+
     if metadata_df is not None:
         print("\n===== ADDING METADATA TO OBS =====")
-    
+
         if 'Barcode' in metadata_df.columns:
             metadata_df = metadata_df.set_index('pool_barcode')
             obs_names_index = pd.Index(adata.obs_names)

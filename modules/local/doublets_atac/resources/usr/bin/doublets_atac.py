@@ -10,7 +10,7 @@ import warnings
 import os                           # filesystem utilities
 import pathlib                      # library for handle filesystem paths
 import numpy as np
-import pandas as pd                 # library for data analysis and manipulation                
+import pandas as pd                 # library for data analysis and manipulation
 import snapatac2 as snap
 
 
@@ -57,14 +57,14 @@ def main():
     input_h5ad_file = args.input_h5ad_files
     #input_run_id = args.input_run_id
     output =args.out
-    
+
     # print info on the available matrices
     print("Reading fragment file from the following file:")
     print(f"-File {input_h5ad_file}")
 
     #for run, fragment in zip(input_run_id, input_fragment_file):
     #print(f"Run: {run:15s} - File: {fragment}")
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ H5AD FILES
 # --------------------------------------------------------------------------------------------------------------------
@@ -88,8 +88,8 @@ def main():
     snap.pp.select_features(adata_atac, n_features=100000)
     snap.pp.scrublet(adata_atac)
     print("Done!")
-    
-    
+
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------

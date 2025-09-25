@@ -101,7 +101,7 @@ def main():
     mu.tl.mofa(mdata_subset,use_obs='union')
     sc.pp.neighbors(mdata_subset, use_rep="X_mofa")
     print("Done!")
-    
+
     print("\n===== DIMENSIONALITY REDUCTION FOR DATA VISUALIZATION=====")
     print("\nPerforming dimensionality reduction by running uniform manifold approximation and projection (UMAP)")
     sc.tl.umap(mdata_subset)
@@ -144,4 +144,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    

@@ -94,7 +94,7 @@ def main():
     # select highly=variable genes for each sample
     print("\nSelecting highly-variable genes are selected within each batch separately and merged")
     sc.pp.highly_variable_genes(gex, min_mean=0.0125, max_mean=3, min_disp=0.5,subset=False)
- 
+
     print("\n===== DIMENSIONALITY REDUCTION =====")
     print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
     sc.tl.pca(gex,use_highly_variable = True, n_comps=50)
@@ -193,7 +193,7 @@ def main():
     if 'atac' in mdata.mod:
         print("\n===== ATAC MODALITY DATA =====")
         atac = mdata.mod['atac']
-       
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 FEATURE SELECTION & DIMENSIONALITY REDUCTION
 # --------------------------------------------------------------------------------------------------------------------
@@ -202,7 +202,7 @@ def main():
         # select highly-variable peaks for each sample
         print("\nSelecting highly-variable paeks are selected within each batch separately and merged")
         sc.pp.highly_variable_genes(atac, min_mean=0.05, max_mean=1.53, min_disp=5,batch_key = 'sample',subset=False)
- 
+
         print("\n===== DIMENSIONALITY REDUCTION =====")
         print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
         sc.pp.scale(atac)

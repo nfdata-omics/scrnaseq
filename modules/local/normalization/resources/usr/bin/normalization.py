@@ -68,7 +68,7 @@ def main():
     print("Reading raw count matrix from the following file:")
     print(f"-File {str(input_h5ad_files)}:")
 
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ H5MU AND H5AD FILES
 # --------------------------------------------------------------------------------------------------------------------
@@ -100,7 +100,7 @@ def main():
         pro_raw = adata_raw[:, adata_raw.var["feature_types"] == "Antibody Capture"].copy()
         print("Done!")
         print(f"Raw count matrix for combined samples has {pro_raw.shape[0]} cells and {pro_raw.shape[1]} genes/ab")
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 GEX MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
@@ -206,4 +206,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    

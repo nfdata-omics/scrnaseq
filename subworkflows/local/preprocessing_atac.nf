@@ -9,12 +9,12 @@ workflow ATAC_PREPROCESSING {
     fragments_index
     nucleosome_threshold
     tss_threshold
-    
+
 
     main:
         ch_versions = Channel.empty()
 
-        
+
         QUALITY_FILTERING_ATAC (
             fragments,
             fragments_index,
@@ -22,7 +22,7 @@ workflow ATAC_PREPROCESSING {
             tss_threshold
         )
         ch_versions = ch_versions.mix(QUALITY_FILTERING_ATAC.out.versions.first())
-        
+
         DOUBLETS_ATAC (
             QUALITY_FILTERING_ATAC.out.h5ad
         )

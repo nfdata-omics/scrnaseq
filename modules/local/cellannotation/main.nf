@@ -4,7 +4,7 @@ process CELL_ANNOTATION  {
 
 
     container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.3'
-    
+
 
     input:
     tuple val(meta), path(input_h5mu)
@@ -20,7 +20,7 @@ process CELL_ANNOTATION  {
 
     when:
     task.ext.when == null || task.ext.when
-    
+
     script:
     """
     export NUMBA_CACHE_DIR=/tmp

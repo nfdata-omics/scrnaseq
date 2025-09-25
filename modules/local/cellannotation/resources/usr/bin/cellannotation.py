@@ -7,9 +7,9 @@
 import os
 import platform
 import warnings
-import argparse                 
+import argparse
 import pathlib
-from pathlib import Path 
+from pathlib import Path
 import pandas as pd
 import scanpy as sc
 import muon as  mu
@@ -31,7 +31,7 @@ VERSION = "0.0.1"
 # ====================================================================================================================
 def load_model(model_name):
     model_file = f"{model_name}.pkl" if not str(model_name).endswith(".pkl") else model_name
-    
+
     # Check if the model file exists in the current directory
     if os.path.exists(model_file):
         print(f"Loading model {model_file} from local directory.")
@@ -41,7 +41,7 @@ def load_model(model_name):
         print(f"Model {model_file} not found locally, downloading...")
         ct_models.download_models(model=model_file)
         model_obj = ct_models.Model.load(str(model_file))
-    
+
     return model_obj
 
 
@@ -56,7 +56,7 @@ def main():
 
     sc.settings.verbosity = 3             # verbosity: errors (0), warnings (1), info (2), hints (3)
     sc.logging.print_header()
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                          INPUT FROM COMMAND LINE
 # --------------------------------------------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ def main():
                         help="path and name of csv table cell annotation summary")
     parser.add_argument('-e', '--excel_out', metavar='METADATA', default="metadata.xlsx",
                         help="path and name of excel table with metadata information for each cell")
-    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'), 
+    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
                         help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
@@ -92,7 +92,7 @@ def main():
     output_excel= args.excel_out
     output = args.out
 
-    
+
     # print info on the available matrices
     print("Reading combined count matrix from the following file:")
     print("-File {}:".format(str(input_h5mu_file)))
@@ -118,17 +118,17 @@ def main():
     gex.var = gex.var.set_index('gene_symbols')
     print(gex.var)
 
-   
+
 
 # -------------------------------------------------------------------------------------------------------------------
 #                                 CELLTYPIST ANNOTATION
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     df_list = []
 
     model = load_model(input_model_list)
     model_name = input_model_list.stem
-    
+
     predictions = celltypist.annotate(gex, model=model, majority_voting=True,mode = 'prob match', p_thres = 0.5)
     predictions_adata = predictions.to_adata()
 
@@ -140,20 +140,20 @@ def main():
     df_list.append(df_celltypist)
 
     df_celltypist = pd.concat(df_list, axis=1)
-    
+
     gex.obs = pd.concat([gex.obs, df_celltypist], axis=1)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SUMMARY OF CELLTYPIST ANNOTATION
 # --------------------------------------------------------------------------------------------------------------------
     output_csv_pool = output_csv.with_name(output_csv.stem + "_by_pool.csv")
-    summary_table_pool = gex.obs.groupby(['sample','predicted_labels']).size().reset_index(name='count')   
+    summary_table_pool = gex.obs.groupby(['sample','predicted_labels']).size().reset_index(name='count')
     print(summary_table_pool)
     summary_table_pool.to_csv(output_csv_pool,index=False)
     print("Done!")
 
     output_csv_sample = output_csv.with_name(output_csv.stem + "_by_sample.csv")
-    summary_table_sample = gex.obs.groupby(['Inferred_donor', 'predicted_labels']).size().reset_index(name='count')   
+    summary_table_sample = gex.obs.groupby(['Inferred_donor', 'predicted_labels']).size().reset_index(name='count')
     print(summary_table_sample)
     summary_table_sample.to_csv(output_csv_sample,index=False)
     print("Done!")

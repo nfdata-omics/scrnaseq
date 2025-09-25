@@ -3,13 +3,13 @@ process QUALITY_FILTERING  {
     label 'process_medium'
 
     container = 'docker.io/nfdata/sc_atacseq:v1.0.0'
-    
+
 
     input:
     tuple val(meta), path(input_h5mu)
     tuple val(meta), path (doublets_csv)
     val mt_threshold
-    
+
     output:
     tuple val(meta), path("*.filtered.h5mu"), emit: h5mu
     path "Cells_before_filtering_*.png", emit: cells_before_filtering, optional: true
@@ -23,10 +23,10 @@ process QUALITY_FILTERING  {
     when:
     task.ext.when == null || task.ext.when
 
-    
+
     script:
-    
-    
+
+
     def d = doublets_csv ? "-d $doublets_csv" : ''
 
     """
@@ -34,17 +34,17 @@ process QUALITY_FILTERING  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    
+
 
     qualitymetricsfilters.py -ad $input_h5mu $d -mt $mt_threshold
-    
-    
+
+
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
         qualitymetricsfilters.py --version >> versions.yml
     END_VERSIONS
     """
-    
+
     stub:
     """
     touch matrix.filtered.h5mu

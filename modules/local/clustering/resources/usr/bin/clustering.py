@@ -15,7 +15,7 @@ import seaborn as sns               # library for statistical data visualization
 import pandas as pd                 # library for data analysis and manipulation
 import scanpy as sc                 # single-cell data processing
 import scanpy.external as sce       # library for harmony integration
-import muon as mu 
+import muon as mu
 import numpy as np
 import anndata as ad
 
@@ -40,7 +40,7 @@ def main():
 
     sc.settings.verbosity = 3             # verbosity: errors (0), warnings (1), info (2), hints (3)
     sc.logging.print_header()
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                          INPUT FROM COMMAND LINE
 # --------------------------------------------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ def main():
                         help="path and name of excel table with ranked marker genes for each cluster and resolution")
     parser.add_argument('-csv', '--csv_out', metavar='H5AD_OUTPUT_FILE', default="final_metadata.csv",
                         help="path and name of csv tabel with UMAP coordinates for each cell")
-    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'), 
+    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
                         help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
@@ -72,7 +72,7 @@ def main():
     output = args.out
     output_excel= args.excel_out
     output_csv= args.csv_out
-    
+
     # print info on the available matrices
     print("Reading combined count matrix from the following file:")
     print("-File {}:".format(str(input_h5mu_file)))
@@ -97,7 +97,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CLUSTERING
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     print("\n===== CLUSTERING =====")
     # Clusters cells based on transcriptional similarities
     print("\nComputing Leiden clustering at different resolutions")
@@ -113,9 +113,9 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           COMPUTE MARKER GENES FOR EACH RESOLUTION AND FOR EACH CLUSTER
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     with pd.ExcelWriter(output_excel) as writer:
-    
+
         for res in np.round(np.arange(0.1, 1.0, 0.3),2):
             print("\nComputing top 20 marker genes for each clusters at resolution {}".format(res))
             #Compute top 20 marker genes for each cluster, expects logarithmized data
@@ -126,7 +126,7 @@ def main():
             print("\nSaving top 20 marker genes for each cluster and resolution in excel file")
             df.to_excel(writer, sheet_name=f"Leiden_{res}", index=False)
             print("Done!")
-    
+
 
         print("\nComputing top 20 marker genes for each sample {}".format(res))
         #Compute top 20 marker genes for each sample, expects logarithmized data
@@ -141,7 +141,7 @@ def main():
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Visualize Leiden clustering on UMAP plot 
+    # Visualize Leiden clustering on UMAP plot
 
     print("\nVisualized Leiden clustering on UMAP plot")
     sc.pl.umap(gex, color=clustering_labels ,legend_loc='on data',show=False)

@@ -13,7 +13,7 @@ process CONVERT_MUDATA  {
     output:
     tuple val(meta), path("*.mudata.h5mu") , emit: h5mu
     path "versions.yml",  emit: versions
-    
+
     when:
     task.ext.when == null || task.ext.when
 
@@ -33,13 +33,13 @@ process CONVERT_MUDATA  {
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
         convert.py --version >> versions.yml
-    END_VERSIONS   
+    END_VERSIONS
     """
 
     stub:
     """
     touch matrix.mudata.h5mu
-    
+
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

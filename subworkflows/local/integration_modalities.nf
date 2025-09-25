@@ -36,9 +36,9 @@ workflow INTEGRATION_MODALITIES {
             ch_versions
             h5mu = INTEGRATION.out.h5mu
          }
-        
+
         emit:
         ch_versions
         h5mu
-    
+
 }
