@@ -7,6 +7,7 @@ workflow NORMALIZATION_AND_HVG {
     take:
     h5mus
     ch_h5ad_concat_raw
+    ch_cellcycle_file
 
     main:
         ch_versions = Channel.empty()
@@ -16,7 +17,8 @@ workflow NORMALIZATION_AND_HVG {
         //
         NORMALIZATION (
             h5mus,
-            ch_h5ad_concat_raw
+            ch_h5ad_concat_raw,
+            ch_cellcycle_file
         )
         ch_versions = ch_versions.mix(NORMALIZATION.out.versions.first())
 

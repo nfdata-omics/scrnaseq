@@ -6,6 +6,8 @@ workflow INTEGRATION_MODALITIES {
 
     take:
     h5mu
+    h5ad
+
 
     main:
         ch_versions = Channel.empty()
@@ -23,7 +25,8 @@ workflow INTEGRATION_MODALITIES {
         //
         if (!params.skip_integration){
             MOFA_INTEGRATION (
-                INTEGRATION.out.h5mu
+                INTEGRATION.out.h5mu,
+                h5ad
             )
             ch_versions = ch_versions.mix(MOFA_INTEGRATION.out.versions.first())
 
@@ -42,3 +45,5 @@ workflow INTEGRATION_MODALITIES {
         h5mu
     
 }
+
+
