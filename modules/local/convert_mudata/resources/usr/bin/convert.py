@@ -46,8 +46,6 @@ def main():
                         help="paths of existing count matrix files in h5ad format (including file names)")
     parser.add_argument('-ai', '--input-vdj-file', metavar='VDJ_INPUT_FILES',type=pathlib.Path, dest='input_vdj_files',
                         default=pathlib.Path(''),help="paths of existing vdj matrix files in h5ad format (including file names)")
-    parser.add_argument('-at', '--input-atac-file', metavar='ATAC_INPUT_FILES',type=pathlib.Path, dest='input_atac_files',
-                        default=pathlib.Path(''),help="paths of existing atac matrix files in h5ad format (including file names)")
     parser.add_argument('-csv','--input-csv-file',metavar= 'CSV_INPUT_FILES', type=pathlib.Path,  dest='input_csv_files',
                         help="paths of existing metadata table in csv format")
     parser.add_argument('-o', '--out', metavar='MUDATA_OUTPUT_FILE', type=pathlib.Path, default="matrix.mudata.h5mu",
@@ -62,7 +60,6 @@ def main():
     print("\n===== INPUT GEX and VDJ FILES =====")
     input_file = args.input_files
     input_vdj_file = args.input_vdj_files
-    input_atac_file = args.input_atac_files
     input_csv_file = args.input_csv_files
     output = args.out
 
@@ -72,9 +69,6 @@ def main():
 
     print("Reading filtered annotation table from the following file:")
     print(f"-File {input_vdj_file}")
-
-    print("Reading combined atac count matrix from the following file:")
-    print(f"-File {input_atac_file}")
 
     print("Reading metadata table from the following file:")
     print(f"-File {input_csv_file}")
@@ -108,21 +102,10 @@ def main():
     else:
         print("No valid input file provided. Skipping reading of the vdj annotation.")
 
-# --------------------------------------------------------------------------------------------------------------------
-#                                 READ ATAC FILES
-# --------------------------------------------------------------------------------------------------------------------
-    if input_atac_file and input_atac_file != pathlib.Path(''):
-        # Read folders with the ATAC combined count matrice and store datasets in a dictionary
-        print("\n===== READING COMBINED ATAC MATRIX =====")
-        # read the gex count matrix for the combined samples and print some initial info
-        print("\nProcessing count matrix in folder ... ", end ='')
-        adata_atac= sc.read_h5ad(input_atac_file)
-        print("Done!")
-        print(f"Atac count matrix for combined samples has {adata_atac.shape[0]} cells and {adata_atac.shape[1]} peaks")
 
 
     adata_vdj = None
-    adata_atac = None
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ CSV FILES
@@ -173,11 +156,6 @@ def main():
         # Add 'airr' modality if defined
         if adata_vdj is not None:
             modalities["airr"] = adata_vdj
-    except NameError:
-        pass
-        # Add 'atac' modality if defined
-        if adata_atac is not None:
-            modalities["atac"] = adata_atac
     except NameError:
         pass
 
