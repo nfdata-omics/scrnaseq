@@ -484,7 +484,7 @@ workflow SCRNASEQ {
     atac_out_h5ad = Channel.empty()
 
     if (params.aligner == "cellrangerarc") {
-        def blacklist_path = params.blacklist_path ?: file(params.genomes[params.genome].blacklist, checkIfExists: true)
+        def blacklist_path = file(params.blacklist_path, checkIfExists: true)
 
         ATAC_PREPROCESSING (
             ch_transformed_fragments_channel,
@@ -513,7 +513,7 @@ workflow SCRNASEQ {
     // MODULES: Run clustering for GEX
     //
     CLUSTERING (
-        INTEGRATION_MODALITIES.out.h5mu
+        INTEGRATION_MODALITIES.out.h5mu_out
     )
     ch_versions = ch_versions.mix(CLUSTERING.out.versions)
 
