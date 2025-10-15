@@ -174,7 +174,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 # Visualize quality metrics: highest expressed genes, number of genes expressed, total counts per cell and fraction of mitochondrial, ribosomal and hemoglobin genes
 
-        fig, ax = plt.subplots(figsize=(90,55))
+        fig, ax = plt.subplots(figsize=(100,75))
 
         print("\nVisualized the number of cells for each pool before filtering")
         sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
@@ -262,42 +262,40 @@ def main():
 #                           APPLY QUALITY METRICS
 # --------------------------------------------------------------------------------------------------------------------
 
-        if input_csv_table and input_csv_table != pathlib.Path(''):
-        # Filter cells of low quality
 
-            print("\n===== FILTER CELLS BASED ON QUALITY METRICS =====")
-            print('Filter low quality cells on the basis of number of counts per barcode (count depth),number of genes per barcode of mitochondrial, and fraction of counts from mitochondrial genes per barcode')
+        print("\n===== FILTER CELLS BASED ON QUALITY METRICS =====")
+        print('Filter low quality cells on the basis of number of counts per barcode (count depth),number of genes per barcode of mitochondrial, and fraction of counts from mitochondrial genes per barcode')
 
-            #Filter based on MIN_COUNT
-            mu.pp.filter_obs(gex, 'total_counts',lambda x: x >= min_umi_gex)
+        #Filter based on MIN_COUNT
+        mu.pp.filter_obs(gex, 'total_counts',lambda x: x >= min_umi_gex)
 
-            #Filter based on MIN_GENES
-            mu.pp.filter_obs(gex, 'n_genes_by_counts',lambda x: x >= min_genes_gex)
+        #Filter based on MIN_GENES
+        mu.pp.filter_obs(gex, 'n_genes_by_counts',lambda x: x >= min_genes_gex)
 
-            print(f"Count matrix for combined samples has {gex.shape[0]} cells and {gex.shape[1]} genes after filtering")
-            #Filter based on MT_PERCENTAGE
-            cell_number =gex[gex.obs.pct_counts_mt >= mt_threshold].shape[0]
-            print(cell_number)
-            print(f'filter out {cell_number} cells for which the expression of mithocondrial genes is more than {mt_threshold}%')
-            mu.pp.filter_obs(gex,'pct_counts_mt', lambda x: x < mt_threshold)
+        print(f"Count matrix for combined samples has {gex.shape[0]} cells and {gex.shape[1]} genes after filtering")
+        #Filter based on MT_PERCENTAGE
+        cell_number =gex[gex.obs.pct_counts_mt >= mt_threshold].shape[0]
+        print(cell_number)
+        print(f'filter out {cell_number} cells for which the expression of mithocondrial genes is more than {mt_threshold}%')
+        mu.pp.filter_obs(gex,'pct_counts_mt', lambda x: x < mt_threshold)
 
-            #Filter based on number of cells
-            mu.pp.filter_var(gex, 'n_cells_by_counts', lambda x: x >= min_cells)
+        #Filter based on number of cells
+        mu.pp.filter_var(gex, 'n_cells_by_counts', lambda x: x >= min_cells)
 
 
-            print(f"Count matrix has {gex.shape[0]} cells and {gex.shape[1]} genes")
+        print(f"Count matrix has {gex.shape[0]} cells and {gex.shape[1]} genes")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE QUALITY METRICS
 # --------------------------------------------------------------------------------------------------------------------
 
-            fig, ax = plt.subplots(figsize=(20,10))
-            print("\nVisualized the number of cells after filtering for each sample")
-            sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
-            locs, labels = plt.xticks()
-            plt.setp(labels, rotation=90.)
-            plt.savefig(os.path.join(args.results,'Cells_after_filtering.png'))
-            plt.close()
+        fig, ax = plt.subplots(figsize=(20,10))
+        print("\nVisualized the number of cells after filtering for each sample")
+        sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
+        locs, labels = plt.xticks()
+        plt.setp(labels, rotation=90.)
+        plt.savefig(os.path.join(args.results,'Cells_after_filtering.png'))
+        plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE GEX DATA INTO MUDATA OBJECT
