@@ -97,7 +97,9 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CLUSTERING
 # --------------------------------------------------------------------------------------------------------------------
-
+    # Clustering was performed on the Harmony representation (integrated reduced matrix)
+    print(gex.uns['neighbors']['params']['use_rep'])
+    
     print("\n===== CLUSTERING =====")
     # Clusters cells based on transcriptional similarities
     print("\nComputing Leiden clustering at different resolutions")
