@@ -34,6 +34,7 @@ process QUALITY_FILTERING_ATAC  {
     "${task.process}":
         qualitymetricsfilters_atac.py --version >> versions.yml
     END_VERSIONS
+    """
 
     stub:
     """
