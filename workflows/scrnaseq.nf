@@ -218,14 +218,14 @@ workflow SCRNASEQ {
         )
         ch_versions = ch_versions.mix(CELLRANGERARC_ALIGN.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix( CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_raw, CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_filtered )
-        
+
 
         // Collect the fragments files and their index
         ch_fragments =
             CELLRANGERARC_ALIGN.out.cellrangerarc_out.map { meta, outs ->
             def desired_files = outs.findAll { it.name == "atac_fragments.tsv.gz" }
-            
-        
+
+
             if (desired_files.size() > 0) {
                 [meta, desired_files]
             }
@@ -233,25 +233,25 @@ workflow SCRNASEQ {
             }
         }
         ch_fragments_collect =  ch_fragments.collect()
-        
-        
+
+
         ch_transformed_fragments_channel = ch_fragments_collect.map { list ->
         def meta = []
         def files = []
- 
+
         list.collate(2).each { pair ->
             meta << pair[0]
             files << pair[1]
         }
-        return [meta, files.flatten()]  
-        } 
-        
+        return [meta, files.flatten()]
+        }
+
 
         ch_fragments_index =
             CELLRANGERARC_ALIGN.out.cellrangerarc_out.map { meta, outs ->
             def desired_files = outs.findAll { it.name == "atac_fragments.tsv.gz.tbi" }
-            
-        
+
+
             if (desired_files.size() > 0) {
                 [meta, desired_files]
             }
@@ -259,21 +259,21 @@ workflow SCRNASEQ {
             }
         }
         ch_vdj_fragments_index_collect =  ch_fragments_index.collect()
-        
-        
+
+
         ch_transformed_fragments_index_channel = ch_vdj_fragments_index_collect.map { list ->
         def meta = []
         def files = []
- 
+
         list.collate(2).each { pair ->
             meta << pair[0]
             files << pair[1]
         }
-        return [meta, files.flatten()]  
+        return [meta, files.flatten()]
         }
     }
-    
-    
+
+
     // Run cellrangermulti pipeline
     if (params.aligner == 'cellrangermulti') {
 
@@ -361,7 +361,7 @@ workflow SCRNASEQ {
         ch_count_matrix = ch_mtx_matrices
     }
 
-    
+
     //
     // MODULE: Convert mtx matrices to h5ad
     //
@@ -389,7 +389,7 @@ workflow SCRNASEQ {
             H5AD_REMOVEBACKGROUND_BARCODES_CELLBENDER_ANNDATA.out.h5ad
         )
     }
-    
+
     //
     // SUBWORKFLOW: Concat samples and convert h5ad to other formats
     //
@@ -402,14 +402,14 @@ workflow SCRNASEQ {
     //
     // MODULE: Concat vdj samples and save as h5ad format
     //
-    
+
     if (params.aligner == "cellrangermulti") {
         CONCATENATE_VDJ (
             CELLRANGER_MULTI_ALIGN.out.vdj
         )
         ch_versions = ch_versions.mix(CONCATENATE_VDJ.out.versions)
-    
-    
+
+
     //
     // SUBWORKFLOW: Concat GEX, VDJ and CITE data and save as MuData object
     //
@@ -420,7 +420,7 @@ workflow SCRNASEQ {
         ch_vdj = [[id: 'dummy'], []]
     }
 
-    
+
     if (params.demultiplexing_doublets) {
     ch_metadata_demuxafy = Channel.fromPath(params.demultiplexing_doublets, checkIfExists: true)
         .splitCsv(header: true, sep: '\t')
@@ -432,7 +432,7 @@ workflow SCRNASEQ {
     } else {
         ch_metadata_demuxafy = Channel.value([ [id: 'dummy'], [] ])
     }
-    
+
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc" || params.aligner == "cellranger" ) {
         def ch_h5ad_selected = params.counts ? H5AD_CONVERSION.out.h5ad_cellbender : H5AD_CONVERSION.out.h5ad_filtered
         CONVERT_MUDATA(
@@ -444,14 +444,14 @@ workflow SCRNASEQ {
     } else {
         println 'Nothing to convert to MuData'
     }
-    
+
     //
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
     // Da togliere questa cosa ch_rds_selected, se counts, canale vuoto tanto non faro' la parte dei doppietti
-    def ch_rds_selected = params.counts ? H5AD_CONVERSION.out.rds_cellbender : H5AD_CONVERSION.out.rds_concat   
+    def ch_rds_selected = params.counts ? H5AD_CONVERSION.out.rds_cellbender : H5AD_CONVERSION.out.rds_concat
     DOUBLETS_QUALITYFILTERING (
-        ch_rds_selected, 
+        ch_rds_selected,
         CONVERT_MUDATA.out.h5mu,
         params.mt_threshold,
     )
@@ -467,7 +467,7 @@ workflow SCRNASEQ {
         ch_cellcycle_file
     )
     ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
-    
+
     //
     // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
     //
@@ -478,14 +478,14 @@ workflow SCRNASEQ {
     ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
 
     //
-    // SUBWORKFLOW: Run ATAC preprocessing 
+    // SUBWORKFLOW: Run ATAC preprocessing
     //
     def cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata
-    atac_out_h5ad = Channel.empty() 
+    atac_out_h5ad = Channel.empty()
 
     if (params.aligner == "cellrangerarc") {
-        def blacklist_path = params.blacklist_path ?: file(params.genomes[params.genome].blacklist, checkIfExists: true)
-        
+        def blacklist_path = file(params.blacklist_path, checkIfExists: true)
+
         ATAC_PREPROCESSING (
             ch_transformed_fragments_channel,
             ch_transformed_fragments_index_channel,
@@ -497,26 +497,26 @@ workflow SCRNASEQ {
         atac_out_h5ad = ATAC_PREPROCESSING.out.h5ad
         ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
     }
-    
+
     // PARTE INTEGRATION_MODALITIES
     //
     // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
     //
-    
+
     INTEGRATION_MODALITIES (
         CELL_ANNOTATION.out.h5mu,
         atac_out_h5ad
     )
     ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
-    
+
     //
     // MODULES: Run clustering for GEX
     //
     CLUSTERING (
-        INTEGRATION_MODALITIES.out.h5mu
+        INTEGRATION_MODALITIES.out.h5mu_out
     )
     ch_versions = ch_versions.mix(CLUSTERING.out.versions)
-    
+
     //
     // MODULES: Plot clustree graph
     //
@@ -524,9 +524,9 @@ workflow SCRNASEQ {
         CLUSTERING.out.metadata_final
     )
     ch_versions = ch_versions.mix(CLUSTREE.out.versions)
-    
+
     // SUBWORKFLOW: Atac preprocessing
-    
+
     '''
     //
     // MODULE: Run differential analysis
@@ -547,48 +547,53 @@ workflow SCRNASEQ {
             newLine: true
         ).set { ch_collated_versions }
 
+    if (!params.skip_multiqc) {
+        //
+        // MODULE: MultiQC
+        //
+        ch_multiqc_config        = Channel.fromPath(
+            "$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+        ch_multiqc_custom_config = params.multiqc_config ?
+            Channel.fromPath(params.multiqc_config, checkIfExists: true) :
+            Channel.empty()
+        ch_multiqc_logo          = params.multiqc_logo ?
+            Channel.fromPath(params.multiqc_logo, checkIfExists: true) :
+            Channel.empty()
 
-    //
-    // MODULE: MultiQC
-    //
-    ch_multiqc_config        = Channel.fromPath(
-        "$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-    ch_multiqc_custom_config = params.multiqc_config ?
-        Channel.fromPath(params.multiqc_config, checkIfExists: true) :
-        Channel.empty()
-    ch_multiqc_logo          = params.multiqc_logo ?
-        Channel.fromPath(params.multiqc_logo, checkIfExists: true) :
-        Channel.empty()
+        summary_params      = paramsSummaryMap(
+            workflow, parameters_schema: "nextflow_schema.json")
+        ch_workflow_summary = Channel.value(paramsSummaryMultiqc(summary_params))
+        ch_multiqc_files = ch_multiqc_files.mix(
+            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
+            file(params.multiqc_methods_description, checkIfExists: true) :
+            file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
+        ch_methods_description                = Channel.value(
+            methodsDescriptionText(ch_multiqc_custom_methods_description))
 
-    summary_params      = paramsSummaryMap(
-        workflow, parameters_schema: "nextflow_schema.json")
-    ch_workflow_summary = Channel.value(paramsSummaryMultiqc(summary_params))
-    ch_multiqc_files = ch_multiqc_files.mix(
-        ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
-        file(params.multiqc_methods_description, checkIfExists: true) :
-        file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
-    ch_methods_description                = Channel.value(
-        methodsDescriptionText(ch_multiqc_custom_methods_description))
-
-    ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
-    ch_multiqc_files = ch_multiqc_files.mix(
-        ch_methods_description.collectFile(
-            name: 'methods_description_mqc.yaml',
-            sort: true
+        ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
+        ch_multiqc_files = ch_multiqc_files.mix(
+            ch_methods_description.collectFile(
+                name: 'methods_description_mqc.yaml',
+                sort: true
+            )
         )
-    )
 
-    MULTIQC (
-        ch_multiqc_files.collect(),
-        ch_multiqc_config.toList(),
-        ch_multiqc_custom_config.toList(),
-        ch_multiqc_logo.toList(),
-        [],
-        []
-    )
+        MULTIQC (
+            ch_multiqc_files.collect(),
+            ch_multiqc_config.toList(),
+            ch_multiqc_custom_config.toList(),
+            ch_multiqc_logo.toList(),
+            [],
+            []
+        )
+        ch_multiqc_report = MULTIQC.out.report
+    } else {
+        ch_multiqc_report = Channel.empty()
+    }
 
-    emit:multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
+    emit:
+    multiqc_report = ch_multiqc_report           // channel: /path/to/multiqc_report.html
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
 }

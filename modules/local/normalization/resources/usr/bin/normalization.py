@@ -12,7 +12,7 @@ import os
 import scanpy as sc                 # single-cell data processing
 import mudata as md
 import muon as mu
-import matplotlib.pyplot as plt  
+import matplotlib.pyplot as plt
 
 warnings.filterwarnings("ignore")
 
@@ -74,7 +74,7 @@ def main():
     print("Reading raw count matrix from the following file:")
     print(f"-File {str(input_h5ad_files)}:")
 
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ H5MU AND H5AD FILES
 # --------------------------------------------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ def main():
         pro_raw = adata_raw[:, adata_raw.var["feature_types"] == "Antibody Capture"].copy()
         print("Done!")
         print(f"Raw count matrix for combined samples has {pro_raw.shape[0]} cells and {pro_raw.shape[1]} genes/ab")
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 GEX MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ def main():
     original_var_names = gex.var_names.copy()
     gex.var['gene_symbols'] = gex.var['gene_symbols'].astype(str)
     gex.var_names = gex.var['gene_symbols']
-    gex.var_names_make_unique() 
+    gex.var_names_make_unique()
     # Define genes associated to the S phase and genes associated to the G2M phase
     s_genes = cell_cycle_genes[:43]
     g2m_genes = cell_cycle_genes[43:]
@@ -224,4 +224,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    

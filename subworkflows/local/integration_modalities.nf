@@ -19,7 +19,7 @@ workflow INTEGRATION_MODALITIES {
             h5mu
         )
         ch_versions = ch_versions.mix(INTEGRATION.out.versions.first())
-
+	    integration_out = INTEGRATION.out.h5mu
         //
         // MODULE: Compute WNN graph for each modality
         //
@@ -29,21 +29,14 @@ workflow INTEGRATION_MODALITIES {
                 h5ad
             )
             ch_versions = ch_versions.mix(MOFA_INTEGRATION.out.versions.first())
+            mofa_out = MOFA_INTEGRATION.out.h5mu
+            h5mu_out = integration_out.mix(mofa_out)
+	    } else {
+            h5mu = integration_out
+        }
 
-            emit:
-            ch_versions
-            h5mu = MOFA_INTEGRATION.out.h5mu
-
-         } else {
-            emit:
-            ch_versions
-            h5mu = INTEGRATION.out.h5mu
-         }
-        
         emit:
         ch_versions
-        h5mu
-    
+        h5mu_out
+
 }
-
-

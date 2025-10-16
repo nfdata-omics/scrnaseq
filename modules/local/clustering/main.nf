@@ -24,11 +24,11 @@ process CLUSTERING  {
     export XDG_CONFIG_HOME=/tmp
 
     clustering.py -ad $input_h5mu
-    
+
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
         clustering.py --version >> versions.yml
-    END_VERSIONS 
+    END_VERSIONS
     """
 
     stub:
@@ -42,6 +42,6 @@ process CLUSTERING  {
         clustering.py --version >> versions.yml
     END_VERSIONS
     """
-    
-    
+
+
 }

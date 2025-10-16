@@ -8,12 +8,12 @@ process CONVERT_MUDATA  {
     tuple val(meta), path(input_h5ad)
     tuple val(meta), path(input_vdj)
     tuple val(meta), path (demultiplexing_doublets)
-    
+
 
     output:
     tuple val(meta), path("*.mudata.h5mu") , emit: h5mu
     path "versions.yml",  emit: versions
-    
+
     when:
     task.ext.when == null || task.ext.when
 
@@ -28,18 +28,18 @@ process CONVERT_MUDATA  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    convert.py -ad $input_h5ad $ai $csv 
+    convert.py -ad $input_h5ad $ai $csv
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
         convert.py --version >> versions.yml
-    END_VERSIONS   
+    END_VERSIONS
     """
 
     stub:
     """
     touch matrix.mudata.h5mu
-    
+
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
