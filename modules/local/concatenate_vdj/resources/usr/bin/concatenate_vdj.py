@@ -11,7 +11,7 @@ import glob
 import scanpy as sc                 # single-cell data processing
 import scirpy as ir                 # single-cell AIRR-data
 import anndata as ad                # store annotated matrix as anndata object
-
+import os
 
 warnings.filterwarnings("ignore")
 
@@ -70,7 +70,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ VDJ FILES
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     vdj_files = []
     for folder in glob.glob("*/filtered_contig_annotations.csv"):
         vdj_files.append(folder)

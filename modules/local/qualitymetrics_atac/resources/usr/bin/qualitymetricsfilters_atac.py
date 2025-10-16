@@ -10,7 +10,7 @@ import warnings
 import os                           # filesystem utilities
 import pathlib                      # library for handle filesystem paths
 import numpy as np
-import pandas as pd                 # library for data analysis and manipulation                
+import pandas as pd                 # library for data analysis and manipulation
 import snapatac2 as snap
 import glob
 import anndata as ad
@@ -82,11 +82,11 @@ def main():
 
     for run, fragment in zip(input_run_id, input_fragment_file):
         print(f"Run: {run} - File: {fragment}")
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ FRAGMENT FILES
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     # Read folders with the fragment files and compute basic QC metrics like the number of unique fragments per cell, fraction of duplicated reads and fraction of mitochondrial read
     print("\n===== READING FRAGMENT FILES =====")
     # read the fragment file for each sample
@@ -98,10 +98,10 @@ def main():
 
     print(fragment_files)
 
-    
+
     files = list(zip(input_run_id, fragment_files))
     print(files)
-    
+
     adatas_atac = snap.pp.import_fragments(
         [fl for _, fl in files],
         file=[name + '.h5ad' for name, _ in files],
@@ -109,11 +109,11 @@ def main():
         chrM=['chrM', 'M'],
         sorted_by_barcode=False
     )
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           COMPUTE AND VISUALIZE QUALITY METRICS
 # --------------------------------------------------------------------------------------------------------------------
-        
+
     # Compute the fragment size distribution for each sample
 
     print("\n===== COMPUTE QUALITY METRICS {} =====")
@@ -154,15 +154,15 @@ def main():
         fig2 = snap.pl.tsse(adata, show=False)
         fig2.show()
         fig2.write_image(f"TSS_score_sample_{i}.png", width=1000, height=600)
-    
+
 
     print(f"\n# Calculate the FRIP for {input_fragment_file}")
     snap.metrics.frip(adatas_atac,{"peaks_frac": snap.datasets.cre_HEA()},normalized=True,inplace=True)
 
     print(f"\n# Calculate the metric summary for each chrom for {input_fragment_file}")
     snap.metrics.summary_by_chrom(adatas_atac, mode='sum')
-    
-        
+
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           FILTERS CELLS BASED ON QC METRICS
@@ -196,20 +196,20 @@ def main():
     # Filter out doublets based on the doublet score
     print("\n===== FILTER OUT DOUBLETS =====")
     snap.pp.filter_doublets(adatas_atac)
-    
 
-    
+
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           CREATE ANNDATASET OBJECT
 # --------------------------------------------------------------------------------------------------------------------
- 
+
     # Create an AnnDataSet object to store the processed data
     print("\n===== CREATE ANNDATASET OBJECT =====")
     data = snap.AnnDataSet(
     adatas=[(name, adata) for (name, _), adata in zip(files, adatas_atac)],
     filename=output
     )
-    
+
     unique_cell_ids = [sa + ':' + bc for sa, bc in zip(data.obs['sample'], data.obs_names)]
     data.obs_names = unique_cell_ids
     assert data.n_obs == np.unique(data.obs_names).size
@@ -232,8 +232,8 @@ def main():
 
 
     for name, adata in data.adatas:
-        if 'frag_size_distr' in adata.uns: 
-            frag_sizes.append(pd.Series( 
+        if 'frag_size_distr' in adata.uns:
+            frag_sizes.append(pd.Series(
                 adata.uns['frag_size_distr'], index=adata.obs.index
             ))
         if 'nucleosome_signal' in adata.uns:
@@ -262,8 +262,8 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING OUTPUT FILE =====")
     data.close()
-    
-    
+
+
     print("Done!")
 
 #####################################################################################################

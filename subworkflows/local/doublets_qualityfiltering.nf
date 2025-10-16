@@ -8,15 +8,15 @@ workflow DOUBLETS_QUALITYFILTERING {
     ch_convert_concat_filtered
     ch_h5mu_concat_filtered
     mt_threshold
-    
+
 
     main:
         ch_versions = Channel.empty()
-        
+
         //
         // MODULE: Compute doublet score for each sample in the concatenated rds file
         //
-        
+
         if ( !params.skip_doublets ) {
             DOUBLETS (
                 ch_convert_concat_filtered
@@ -28,11 +28,11 @@ workflow DOUBLETS_QUALITYFILTERING {
         } else {
             doublets_out = [[id: 'dummy'], []]
         }
-        
+
         //
         // MODULE: Filtered cells of low quality for GEX and CITE modalities in the concatenated h5mu file
         //
-        
+
         QUALITY_FILTERING (
             ch_h5mu_concat_filtered,
             doublets_out,
@@ -40,11 +40,11 @@ workflow DOUBLETS_QUALITYFILTERING {
         )
         ch_versions = ch_versions.mix(QUALITY_FILTERING.out.versions.first())
 
-        
+
     emit:
     ch_versions
     h5mu = QUALITY_FILTERING.out.h5mu
-    
+
 
 
 }

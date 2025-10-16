@@ -110,12 +110,12 @@ def main():
     min_cells_gex = args.min_cells_gex
     min_features_adt = args.min_features_adt
     min_counts_adt = args.min_counts_adt
-    
-    
+
+
     # print info on the available matrices
     print("Reading combined matrix from the following file:")
     print(f"-File {input_h5mu_file}")
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ H5MU FILES
 # --------------------------------------------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ def main():
 #                                 FILTER DOUBLETS
 # --------------------------------------------------------------------------------------------------------------------
         #print("\n===== READING DOUBLETS TABLE =====")
-        if input_csv_table and input_csv_table != pathlib.Path(''):
+        if input_csv_table and input_csv_file.exists():
             input_csv_table=pd.read_csv(input_csv_table,index_col=0)
 
             gex.obs["doublets"] = input_csv_table['scDblFinder.class']
@@ -162,9 +162,11 @@ def main():
 
         print("\n===== COMPUTE QUALITY METRICS {} =====")
         print(f"\nCompute fraction of mitochondrial, ribosomal and hemoglobin genes for {input_h5mu_file}")
-        gex.var["mt"] = gex.var["gene_symbols"].str.startswith("MT-")
-        gex.var["ribo"] = gex.var["gene_symbols"].str.startswith(("RPS", "RPL")) 
-        gex.var["hb"] = gex.var["gene_symbols"].str.startswith(("^HB[^(P)]"))
+        gex.var["gene_symbols_upper"] = gex.var["gene_symbols"].str.upper()
+
+        gex.var["mt"] = gex.var["gene_symbols_upper"].str.startswith("MT-")
+        gex.var["ribo"] = gex.var["gene_symbols_upper"].str.startswith(("RPS", "RPL"))
+        gex.var["hb"] = gex.var["gene_symbols_upper"].str.startswith("HB") & ~gex.var["gene_symbols_upper"].str.startswith("HBP")
         sc.pp.calculate_qc_metrics(gex, qc_vars=["mt", "ribo", "hb"],percent_top=[20], log1p=True, inplace=True)
         print(gex.obs[['pct_counts_mt', 'pct_counts_ribo']].head())
 
@@ -174,7 +176,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 # Visualize quality metrics: highest expressed genes, number of genes expressed, total counts per cell and fraction of mitochondrial, ribosomal and hemoglobin genes
 
-        fig, ax = plt.subplots(figsize=(90,55))
+        fig, ax = plt.subplots(figsize=(100,75))
 
         print("\nVisualized the number of cells for each pool before filtering")
         sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
@@ -186,7 +188,7 @@ def main():
         plt.close()
 
         '''
-        fig, ax = plt.subplots(figsize=(70, 35)) 
+        fig, ax = plt.subplots(figsize=(70, 35))
         print("\nVisualized the number of cells for each sample before filtering")
         sns.histplot(gex.obs, x="Inferred_donor", stat="count", ax=ax)
         locs, labels = plt.xticks()
@@ -230,16 +232,16 @@ def main():
         min_cells = round(1/100 * gex.shape[0])
         min_cells = max(min_cells, min_cells_gex)  # Ensure at least 3 cells for a gene to be considered expressed
         gex.var["gene_pass"] = gex.var["n_cells_by_counts"] >= min_cells
-        
+
 # --------------------------------------------------------------------------------------------------------------------
-#                           EVALUATE CELLS BASED ON HARD FILTERS 
-# --------------------------------------------------------------------------------------------------------------------        
+#                           EVALUATE CELLS BASED ON HARD FILTERS
+# --------------------------------------------------------------------------------------------------------------------
 
         #Hard filtering based on total counts, number of genes expressed and fraction of mitochondrial genes
         gex.obs["total_counts_outlier"] = gex.obs["total_counts"] > max_umi_gex
         gex.obs["n_genes_by_counts_outlier"] = ((gex.obs["n_genes_by_counts"] < min_genes_gex) | (gex.obs["n_genes_by_counts"] > max_genes_gex))
         gex.obs["mt_outlier"] = is_outlier(gex, "pct_counts_mt", 3) | ( gex.obs["pct_counts_mt"] > mt_threshold )
-        
+
         gex.obs["hard_filter_gex"] = (gex.obs["total_counts_outlier"] | gex.obs["n_genes_by_counts_outlier"] | gex.obs["mt_outlier"])
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -252,52 +254,50 @@ def main():
         | is_outlier(gex, "pct_counts_in_top_20_genes", 5)
         | gex.obs["mt_outlier"]
         )
-        
+
         hard_filter_gex_pool = gex.obs.groupby(['sample', 'hard_filter_gex']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_gex_pass', True: 'hard_filters_gex_fail'})
         soft_filter_gex_pool = gex.obs.groupby(['sample', 'soft_filters_gex']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_gex_pass', True: 'soft_filters_gex_fail'})
         #hard_filter_gex_sample = gex.obs.groupby(['Inferred_donor', 'hard_filter_gex',]).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_gex_pass', True: 'hard_filters_gex_fail'})
         #soft_filter_gex_sample = gex.obs.groupby(['Inferred_donor', 'soft_filters_gex']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_gex_pass', True: 'soft_filters_gex_fail'})
- 
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           APPLY QUALITY METRICS
 # --------------------------------------------------------------------------------------------------------------------
 
-        if input_csv_table and input_csv_table != pathlib.Path(''):
-        # Filter cells of low quality
 
-            print("\n===== FILTER CELLS BASED ON QUALITY METRICS =====")
-            print('Filter low quality cells on the basis of number of counts per barcode (count depth),number of genes per barcode of mitochondrial, and fraction of counts from mitochondrial genes per barcode')
+        print("\n===== FILTER CELLS BASED ON QUALITY METRICS =====")
+        print('Filter low quality cells on the basis of number of counts per barcode (count depth),number of genes per barcode of mitochondrial, and fraction of counts from mitochondrial genes per barcode')
 
-            #Filter based on MIN_COUNT
-            mu.pp.filter_obs(gex, 'total_counts',lambda x: x >= min_umi_gex)
+        #Filter based on MIN_COUNT
+        mu.pp.filter_obs(gex, 'total_counts',lambda x: x >= min_umi_gex)
 
-            #Filter based on MIN_GENES
-            mu.pp.filter_obs(gex, 'n_genes_by_counts',lambda x: x >= min_genes_gex)
+        #Filter based on MIN_GENES
+        mu.pp.filter_obs(gex, 'n_genes_by_counts',lambda x: x >= min_genes_gex)
 
-            print(f"Count matrix for combined samples has {gex.shape[0]} cells and {gex.shape[1]} genes after filtering")
-            #Filter based on MT_PERCENTAGE
-            cell_number =gex[gex.obs.pct_counts_mt >= mt_threshold].shape[0]
-            print(cell_number)
-            print(f'filter out {cell_number} cells for which the expression of mithocondrial genes is more than {mt_threshold}%')
-            mu.pp.filter_obs(gex,'pct_counts_mt', lambda x: x < mt_threshold)
+        print(f"Count matrix for combined samples has {gex.shape[0]} cells and {gex.shape[1]} genes after filtering")
+        #Filter based on MT_PERCENTAGE
+        cell_number =gex[gex.obs.pct_counts_mt >= mt_threshold].shape[0]
+        print(cell_number)
+        print(f'filter out {cell_number} cells for which the expression of mithocondrial genes is more than {mt_threshold}%')
+        mu.pp.filter_obs(gex,'pct_counts_mt', lambda x: x < mt_threshold)
 
-            #Filter based on number of cells
-            mu.pp.filter_var(gex, 'n_cells_by_counts', lambda x: x >= min_cells)
+        #Filter based on number of cells
+        mu.pp.filter_var(gex, 'n_cells_by_counts', lambda x: x >= min_cells)
 
 
-            print(f"Count matrix has {gex.shape[0]} cells and {gex.shape[1]} genes")
+        print(f"Count matrix has {gex.shape[0]} cells and {gex.shape[1]} genes")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE QUALITY METRICS
 # --------------------------------------------------------------------------------------------------------------------
 
-            fig, ax = plt.subplots(figsize=(20,10))
-            print("\nVisualized the number of cells after filtering for each sample")
-            sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
-            locs, labels = plt.xticks()
-            plt.setp(labels, rotation=90.)
-            plt.savefig(os.path.join(args.results,'Cells_after_filtering.png'))
-            plt.close()
+        fig, ax = plt.subplots(figsize=(20,10))
+        print("\nVisualized the number of cells after filtering for each sample")
+        sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
+        locs, labels = plt.xticks()
+        plt.setp(labels, rotation=90.)
+        plt.savefig(os.path.join(args.results,'Cells_after_filtering.png'))
+        plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE GEX DATA INTO MUDATA OBJECT
@@ -305,7 +305,7 @@ def main():
         print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
         mdata.mod['gex'] = gex
         mdata.update()
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CITE MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
@@ -326,7 +326,7 @@ def main():
 
         sc.pp.calculate_qc_metrics(pro, inplace=True,log1p=True,percent_top=[20])
 
-           
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE QUALITY METRICS
 # --------------------------------------------------------------------------------------------------------------------
@@ -351,22 +351,22 @@ def main():
                 plt.close()
             else:
                 print(f"\nNo Antibody Capture feature type in {sample}")
-    
+
 # --------------------------------------------------------------------------------------------------------------------
-#                           EVALUATE CELLS BASED ON HARD FILTERS 
+#                           EVALUATE CELLS BASED ON HARD FILTERS
 # --------------------------------------------------------------------------------------------------------------------
-        
+
 
         #Hard filtering based on total counts, number of genes expressed and fraction of mitochondrial genes
         pro.obs["total_counts_outlier"] = pro.obs["total_counts"] < min_counts_adt
         pro.obs["n_genes_by_counts_outlier"] = pro.obs["n_genes_by_counts"] < min_features_adt
-        
+
         pro.obs["hard_filter_pro"] = (pro.obs["total_counts_outlier"] | pro.obs["n_genes_by_counts_outlier"])
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           EVALUATE CELLS BASED ON SOFT FILTERS
 # --------------------------------------------------------------------------------------------------------------------
-        
+
         pro.obs["soft_filter_pro"] = (
         is_outlier(pro, "log1p_total_counts", 5)
         | is_outlier(pro, "log1p_n_genes_by_counts", 5)
@@ -379,7 +379,7 @@ def main():
         soft_filter_pro_pool = pro.obs.groupby(['sample', 'soft_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_pro_pass', True: 'soft_filters_pro_fail'})
         #hard_filter_pro_sample = pro.obs.groupby(['Inferred_donor', 'hard_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'hard_filters_pro_pass', True: 'hard_filters_pro_fail'})
         #soft_filter_pro_sample = pro.obs.groupby(['Inferred_donor', 'soft_filter_pro']).size().unstack(fill_value=0).rename(columns={False: 'soft_filters_pro_pass', True: 'soft_filters_pro_fail'})
-        
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE GEX DATA INTO MUDATA OBJECT
@@ -394,9 +394,9 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           ADDED QUALITY METRICS INTO ADATA.OBS AND PRINT SUMMARY TABLE
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     output_csv_pool = output_csv.with_name(output_csv.stem + "_by_pool.csv")
-    print("\n===== ADDED QUALITY METRICS INTO ADATA.OBS AND PRINT SUMMARY TABLE =====")  
+    print("\n===== ADDED QUALITY METRICS INTO ADATA.OBS AND PRINT SUMMARY TABLE =====")
     dfs = []
     for name in ['hard_filter_gex_pool', 'soft_filter_gex_pool','hard_filter_pro_pool','soft_filter_pro_pool']:
         df = locals().get(name)
@@ -406,12 +406,12 @@ def main():
         summary_table = pd.concat(dfs, axis=1).fillna(0).astype(int)
         summary_table.to_csv(output_csv_pool)
         print("Done!")
-        
+
     else:
         print("No dataframe available for concatenation.")
 
     output_csv_sample = output_csv.with_name(output_csv.stem + "_by_sample.csv")
-    print("\n===== ADDED QUALITY METRICS INTO ADATA.OBS AND PRINT SUMMARY TABLE =====")  
+    print("\n===== ADDED QUALITY METRICS INTO ADATA.OBS AND PRINT SUMMARY TABLE =====")
     dfs = []
     for name in ['hard_filter_gex_sample', 'soft_filter_gex_sample','hard_filter_pro_sample','soft_filter_pro_sample']:
         df = locals().get(name)
@@ -421,15 +421,15 @@ def main():
         summary_table = pd.concat(dfs, axis=1).fillna(0).astype(int)
         summary_table.to_csv(output_csv_sample)
         print("Done!")
-        
+
     else:
         print("No dataframe available for concatenation.")
-       
-    
+
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     print("\n===== SAVING OUTPUT FILE =====")
     print(f"Saving h5mu data to file {output}")
     mdata.write(output)

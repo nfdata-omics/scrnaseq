@@ -11,13 +11,13 @@
                 "cdna.fa:md5,7bca59288fab822451de250d2eee48dc"
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ]
         ],
         "meta": {
@@ -69,28 +69,28 @@
                     "cdna.fa:md5,d41d8cd98f00b204e9800998ecf8427e"
                 ],
                 "4": [
-                    
+
                 ],
                 "5": [
-                    
+
                 ],
                 "6": [
-                    
+
                 ],
                 "cdna": [
                     "cdna.fa:md5,d41d8cd98f00b204e9800998ecf8427e"
                 ],
                 "cdna_t2c": [
-                    
+
                 ],
                 "index": [
                     "kb_ref_out.idx:md5,d41d8cd98f00b204e9800998ecf8427e"
                 ],
                 "intron": [
-                    
+
                 ],
                 "intron_t2c": [
-                    
+
                 ],
                 "t2g": [
                     "t2g.txt:md5,d41d8cd98f00b204e9800998ecf8427e"

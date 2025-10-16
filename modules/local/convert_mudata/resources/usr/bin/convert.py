@@ -69,11 +69,11 @@ def main():
 
     print("Reading filtered annotation table from the following file:")
     print(f"-File {input_vdj_file}")
-    
+
     print("Reading metadata table from the following file:")
     print(f"-File {input_csv_file}")
 
-   
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ GEX AND AB FILES
@@ -102,10 +102,10 @@ def main():
     else:
         print("No valid input file provided. Skipping reading of the vdj annotation.")
 
- 
+
 
     adata_vdj = None
-    
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ CSV FILES
@@ -123,10 +123,10 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 ADDED METADATA TO OBS
 # --------------------------------------------------------------------------------------------------------------------
- 
+
     if metadata_df is not None:
         print("\n===== ADDING METADATA TO OBS =====")
-    
+
         if 'Barcode' in metadata_df.columns:
             metadata_df = metadata_df.set_index('pool_barcode')
             obs_names_index = pd.Index(adata.obs_names)
@@ -158,7 +158,7 @@ def main():
             modalities["airr"] = adata_vdj
     except NameError:
         pass
-        
+
     # Creates MuData object
     mdata = MuData(modalities)
     if 'airr' in mdata.mod:

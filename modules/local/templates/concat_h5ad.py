@@ -5,12 +5,12 @@ import os
 
 os.environ["NUMBA_CACHE_DIR"] = "."
 
-import scanpy as sc
+import platform
+from pathlib import Path
+
 import anndata as ad
 import pandas as pd
-from pathlib import Path
-import platform
-
+import scanpy as sc
 
 def read_samplesheet(samplesheet):
     df = pd.read_csv(samplesheet)
@@ -30,13 +30,17 @@ def read_samplesheet(samplesheet):
 
     return df
 
+
 def format_yaml_like(data: dict, indent: int = 0) -> str:
     """Formats a dictionary to a YAML-like string.
+
     Args:
         data (dict): The dictionary to format.
         indent (int): The current indentation level.
+
     Returns:
         str: A string formatted as YAML.
+
     """
     yaml_str = ""
     for key, value in data.items():
@@ -46,6 +50,7 @@ def format_yaml_like(data: dict, indent: int = 0) -> str:
         else:
             yaml_str += f"{spaces}{key}: {value}\\n"
     return yaml_str
+
 
 def dump_versions():
     versions = {
@@ -58,8 +63,8 @@ def dump_versions():
     with open("versions.yml", "w") as f:
         f.write(format_yaml_like(versions))
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     # Open samplesheet as dataframe
     df_samplesheet = read_samplesheet("${samplesheet}")
 

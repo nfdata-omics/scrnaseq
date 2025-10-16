@@ -10,11 +10,11 @@ import warnings
 import os                           # filesystem utilities
 import pathlib                      # library for handle filesystem paths
 import numpy as np
-import pandas as pd                 # library for data analysis and manipulation                
+import pandas as pd                 # library for data analysis and manipulation
 import snapatac2 as snap
 import anndata as ad
 
- 
+
 
 
 
@@ -63,12 +63,12 @@ def main():
     input_meta_file = args.meta_file
     output_tile = args.tile_out
     output_peak = args.peak_out
-    
+
     # print info on the available matrices
     print("Reading fragment file from the following file:")
     print(f"-File {input_h5ad_file}")
 
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ H5AD FILES
 # --------------------------------------------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ def main():
         print(meta_data)
         print("Done!")
 
-        
+
         def transform_id(x):
             # remove '_filtered'
             x = x.replace('_filtered', '')
@@ -106,14 +106,14 @@ def main():
             cell_id = "_".join(parts[:-1])
             return f"{sample}:{cell_id}"
 
-        
+
         meta_data['cell_id'] = meta_data['Unnamed: 0'].apply(transform_id)
 
-        
+
         meta_data = meta_data.set_index('cell_id')
 
         print(meta_data.head())
-        
+
         meta_data.index = meta_data.index.astype(str)
         adata_atac.obs.index = adata_atac.obs.index.astype(str)
 
@@ -129,11 +129,11 @@ def main():
 
         # Join metadata into adata_atac.obs
         adata_atac.obs = adata_atac.obs.join(meta_data_filtered, how='left')
-    
+
         print("Done!")
 
     else:
-        print("No metadata file provided. Continuing without metadata.")    
+        print("No metadata file provided. Continuing without metadata.")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -143,6 +143,11 @@ def main():
     # Perform peak calling with MACS3
     print("\n===== COMPUTE PEAK CALLING =====")
     print("Computing peak calling ... ", end='')
+    adata_atac.obs['gex:celltypist:Immune_All_High:majority_voting'] = (
+    adata_atac.obs['gex:celltypist:Immune_All_High:majority_voting']
+    .astype(str)
+    .str.replace('/', '_')
+    )
     snap.tl.macs3(adata_atac,groupby='gex:celltypist:Immune_All_High:majority_voting',call_broad_peaks=False,inplace=True)
     print("Done!")
 
@@ -160,7 +165,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE TILE MATRIX AS LAYER
 # --------------------------------------------------------------------------------------------------------------------
-   
+
     print("\n===== SAVE TILE MATRIX AS LAYER =====")
     print("Saving tile matrix as layer ... ", end='')
     adata_atac.layers["tile"] = adata_atac.X.copy()
@@ -169,7 +174,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           CREATE PEAKS COUNT MATRIX
 # --------------------------------------------------------------------------------------------------------------------
- 
+
     # Create peaks count matrix
     print("\n===== CREATE PEAKS COUNT MATRIX =====")
     print("Creating peaks count matrix ... ", end='')

@@ -7,9 +7,9 @@
 import os
 import platform
 import warnings
-import argparse                 
+import argparse
 import pathlib
-from pathlib import Path 
+from pathlib import Path
 import pandas as pd
 import scanpy as sc
 import muon as  mu
@@ -31,7 +31,7 @@ VERSION = "0.0.1"
 # ====================================================================================================================
 def load_model(model_name):
     model_file = f"{model_name}.pkl" if not str(model_name).endswith(".pkl") else model_name
-    
+
     # Check if the model file exists in the current directory
     if os.path.exists(model_file):
         print(f"Loading model {model_file} from local directory.")
@@ -41,7 +41,7 @@ def load_model(model_name):
         print(f"Model {model_file} not found locally, downloading...")
         ct_models.download_models(model=model_file)
         model_obj = ct_models.Model.load(str(model_file))
-    
+
     return model_obj
 
 
@@ -56,7 +56,7 @@ def main():
 
     sc.settings.verbosity = 3             # verbosity: errors (0), warnings (1), info (2), hints (3)
     sc.logging.print_header()
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                          INPUT FROM COMMAND LINE
 # --------------------------------------------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ def main():
                         help="path and name of csv table cell annotation summary")
     parser.add_argument('-csv_annotation', '--csv_annotation_out', metavar='METADATA', default="metadata.csv",
                         help="path and name of csv table with metadata information for each cell")
-    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'), 
+    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
                         help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
@@ -92,7 +92,7 @@ def main():
     output_csv_annotation= args.csv_annotation_out
     output = args.out
 
-    
+
     # print info on the available matrices
     print("Reading combined count matrix from the following file:")
     print("-File {}:".format(str(input_h5mu_file)))
@@ -118,7 +118,7 @@ def main():
     gex.var = gex.var.set_index('gene_symbols')
     print(gex.var)
 
-   
+
 
 # -------------------------------------------------------------------------------------------------------------------
 #                                 CELLTYPIST ANNOTATION
@@ -131,13 +131,13 @@ def main():
     for model_name in model_names:
         print(f"\n=== Annotating with model: {model_name} ===")
         model = load_model(model_name)
-        
+
 
         predictions = celltypist.annotate(gex, model=model, majority_voting=True,mode = 'best match')
         predictions_adata = predictions.to_adata()
 
         model_base = model_name.replace(".pkl", "").replace(" ", "_")
-        col_name = f"{model_base}:majority_voting"  
+        col_name = f"{model_base}:majority_voting"
         col_conf = f"{model_base}:conf"
 
         df_celltypist = predictions_adata.obs.loc[
@@ -170,7 +170,7 @@ def main():
     for model_name in model_names:
         clean_model_name = model_name.replace(".pkl", "").replace(" ", "_")
         col_name = f"celltypist:{clean_model_name}:majority_voting"
-    
+
         # Raggruppa per sample e per la colonna di annotazione del modello
         summary_table_pool = gex.obs.groupby(['sample', col_name]).size().reset_index(name='count')
 
@@ -194,14 +194,14 @@ def main():
         plt.savefig(os.path.join(args.results, f"Annotated_UMAP_{clean_model_name}.png"))
         plt.close()
         print(f"Saved summaries and UMAP for model {clean_model_name}")
-    
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE GEX DATA INTO MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
     gex.var.reset_index(inplace=True)
-    gex.var.index.name = None   
+    gex.var.index.name = None
     mdata.mod['gex'] = gex
     mdata.update()
     print(mdata.obs)

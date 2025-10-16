@@ -103,14 +103,14 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 GEX MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     print("\n===== GEX MODALITY DATA =====")
     gex = mdata.mod['gex']
     gex.var['gene_symbols'] = gex.var['gene_symbols'].astype('str')
     gex.var_names = gex.var["gene_symbols"]
     gex.var_names_make_unique()
-    
-    
+
+
     amplified_samples = ["SK-N-DZ", "CHP134","BE2c"]
     no_amplified_samples = ["SHSY5Y", "SK-N-SH", "SK-N-AS"]
 
@@ -138,7 +138,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           DIFFERENTIAL EXPRESSION ANALYSIS
 # --------------------------------------------------------------------------------------------------------------------
- 
+
 
     #formula_str = '~Tissue'
     #print(type(content))
@@ -147,10 +147,10 @@ def main():
     pds2.fit()
     print(pds2.design.head())
 
-  
+
     res_df = pds2.test_contrasts(pds2.contrast(column='MYCN_status', baseline="no_amplified", group_to_compare="amplified"))
     res_df.head(10)
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE DIFFERENTIAL GENES INTO EXCEL FILE
 # --------------------------------------------------------------------------------------------------------------------
@@ -182,7 +182,7 @@ def main():
     plt.close()
 
 #####################################################################################################
-    
+
 
 if __name__ == '__main__':
     main()

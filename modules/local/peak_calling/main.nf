@@ -3,13 +3,13 @@ process PEAK_CALLING  {
     label 'process_medium'
 
     container = 'quay.io/biocontainers/snapatac2:2.8.0--py311h284d45d_1'
-    
+
 
     input:
     tuple val(meta), path (input_h5ad)
     path input_meta_file
-    
-    
+
+
     output:
     tuple val(meta), path("matrix.tile_atac.h5ad"), emit: h5ad_tile, optional: true
     tuple val(meta), path("matrix.peak_atac.h5ad"), emit: h5ad_peak
@@ -26,13 +26,13 @@ process PEAK_CALLING  {
     export XDG_CACHE_HOME=/tmp
 
     peak_calling.py  -ad $input_h5ad -meta $input_meta_file
-    
+
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
         peak_calling.py --version >> versions.yml
     END_VERSIONS
     """
-    
+
     stub:
     """
     touch matrix.tile_atac.h5ad

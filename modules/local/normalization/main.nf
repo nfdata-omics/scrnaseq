@@ -24,7 +24,7 @@ process NORMALIZATION   {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    normalization.py -ad $input_h5mu -rw $input_raw_h5ad --input_cellcycle_file $input_cellcycle_file 
+    normalization.py -ad $input_h5mu -rw $input_raw_h5ad --input_cellcycle_file $input_cellcycle_file
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":

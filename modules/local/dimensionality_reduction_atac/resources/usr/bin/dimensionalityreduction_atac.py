@@ -10,10 +10,10 @@ import warnings
 import os                           # filesystem utilities
 import pathlib                      # library for handle filesystem paths
 import numpy as np
-import pandas as pd                 # library for data analysis and manipulation                
+import pandas as pd                 # library for data analysis and manipulation
 import snapatac2 as snap
 import anndata as ad
- 
+
 
 
 
@@ -55,12 +55,12 @@ def main():
     print("\n===== INPUT H5AD FILES =====")
     input_h5ad_file = args.input_h5ad_files
     output =args.out
-    
+
     # print info on the available matrices
     print("Reading fragment file from the following file:")
     print(f"-File {input_h5ad_file}")
 
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ H5AD FILES
 # --------------------------------------------------------------------------------------------------------------------
@@ -112,13 +112,13 @@ def main():
     print("\n===== PERFORM CLUSTERING =====")
     print("Performing clustering ... ", end='')
     snap.pp.knn(adata_atac)
-    snap.tl.leiden(adata_atac,key_added='leiden_tile',inplace=True) 
+    snap.tl.leiden(adata_atac,key_added='leiden_tile',inplace=True)
     print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           COMPUTE AND VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     # Compute UMAP for visualization
     print("\n===== COMPUTE UMAP =====")
     print("Computing UMAP ... ", end='')
@@ -129,8 +129,8 @@ def main():
     print("\nVisualized UMAP plot")
     #snap.pl.umap(adata_atac, color="sample",interactive=False)
     print("Done!")
-    
-    
+
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
