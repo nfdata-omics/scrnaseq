@@ -118,7 +118,7 @@ def main():
 
     with pd.ExcelWriter(output_excel) as writer:
 
-        for res in np.round(np.arange(0.1, 1.0, 0.3),2):
+        for res in np.round(np.arange(0.1, 1.0, 0.1),2):
             print("\nComputing top 20 marker genes for each clusters at resolution {}".format(res))
             #Compute top 20 marker genes for each cluster, expects logarithmized data
             sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res),method="wilcoxon",key_added="leiden_{}".format(res), n_genes=100,pts=True)

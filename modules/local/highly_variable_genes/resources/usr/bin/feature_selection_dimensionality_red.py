@@ -101,7 +101,7 @@ def main():
 
     # Visualize PCA plot
     print("\nVisualized PCA plot")
-    plt.figure(figsize=(12, 10))
+    plt.figure(figsize=(25, 15))
     sc.pl.pca(gex, color='sample',show=False)
     plt.savefig(os.path.join(args.results,'pca_GEX.png'))
     plt.close()
@@ -124,7 +124,7 @@ def main():
 
     # Visualize UMAP plot
     print("\nVisualized UMAP plot")
-    plt.figure(figsize=(14, 13))
+    plt.figure(figsize=(25, 15))
     sc.pl.umap(gex, color ='sample',show=False)
     plt.savefig(os.path.join(args.results,'umap_plot_GEX.png'),dpi=300)
     plt.close()
@@ -172,7 +172,7 @@ def main():
 
         # Visualize UMAP plot
         print("\nVisualized UMAP plot")
-        plt.figure(figsize=(14, 13))
+        plt.figure(figsize=(25, 15))
         sc.pl.umap(pro, color ='sample',show=False)
         plt.savefig(os.path.join(args.results,'umap_plot_CITE.png'),dpi=300)
         plt.close()
