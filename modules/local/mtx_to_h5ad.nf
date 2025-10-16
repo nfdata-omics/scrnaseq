@@ -26,7 +26,7 @@ process MTX_TO_H5AD {
     task.ext.when == null || task.ext.when
 
     script:
-    def aligner = (input_aligner in [ 'cellranger', 'cellrangerarc', 'cellrangermulti' ]) ? 'cellranger' : input_aligner
+    def aligner = (meta.input_type == 'parse') ? 'parse' : ((input_aligner in ['cellranger','cellrangerarc','cellrangermulti']) ? 'cellranger' : input_aligner)
 
     template "mtx_to_h5ad_${aligner}.py"
 

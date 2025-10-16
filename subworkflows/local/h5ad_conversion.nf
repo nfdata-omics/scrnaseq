@@ -59,6 +59,10 @@ workflow H5AD_CONVERSION {
         item[0].id == 'combined' && item[0].input_type == 'cellbender_filter'
     }
 
+    // Filter input_type:'parse_matrix'
+    ch_h5ad_concat_parse_matrix = ch_h5ad_concat.filter { item ->
+        item[0].input_type == 'parse'
+    }
     ch_versions = ch_versions.mix(ANNDATAR_CONVERT.out.versions.first())
 
 
@@ -68,6 +72,7 @@ workflow H5AD_CONVERSION {
     h5ad_raw = ch_h5ad_concat_raw
     h5ad_filtered = ch_h5ad_concat_filtered
     h5ad_cellbender = ch_h5ad_concat_cellbender
+    h5ad_parse = ch_h5ad_concat_parse_matrix
     rds_concat = ch_convert_concat_filtered
     rds_cellbender = ch_convert_concat_cellbender
 }

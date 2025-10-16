@@ -33,6 +33,7 @@ workflow PIPELINE_INITIALISATION {
     outdir            //  string: The output directory where the results will be saved
     input             //  string: Path to input samplesheet
     counts            //  string: Path to input counts matrix file
+    matrix            //  string: Path to input counts matrix file
 
     main:
 
@@ -71,6 +72,11 @@ workflow PIPELINE_INITIALISATION {
 
     if ( counts) {
         ch_counts = counts ? Channel.fromPath( counts, checkIfExists: true ) : Channel.empty()
+        ch_samplesheet = Channel.empty()
+        ch_matrix = Channel.empty()
+    } else if ( matrix ) {
+        ch_matrix = matrix ? Channel.fromPath( matrix, checkIfExists: true ) : Channel.empty()
+        ch_counts = Channel.empty() 
         ch_samplesheet = Channel.empty()
     } else {
         //
@@ -137,12 +143,14 @@ workflow PIPELINE_INITIALISATION {
                 .set { ch_samplesheet }
         }
         ch_counts = Channel.empty()
+        ch_matrix = Channel.empty()
     }
 
     emit:
     samplesheet = ch_samplesheet
     versions    = ch_versions
     counts      = ch_counts
+    matrix      = ch_matrix
 }
 
 /*
