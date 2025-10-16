@@ -45,6 +45,7 @@ workflow NFCORE_SCRNASEQ {
     take:
     samplesheet // channel: samplesheet read in from --input
     counts      // channel: count matrix file read as --counts
+    matrix      // channel: matrix file read as --matrix
 
     main:
 
@@ -53,7 +54,8 @@ workflow NFCORE_SCRNASEQ {
     //
     SCRNASEQ (
         samplesheet,
-        counts
+        counts,
+        matrix
     )
     emit:
     multiqc_report = SCRNASEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
@@ -77,7 +79,8 @@ workflow {
         args,
         params.outdir,
         params.input,
-        params.counts
+        params.counts,
+        params.matrix
     )
 
     //
@@ -85,7 +88,8 @@ workflow {
     //
     NFCORE_SCRNASEQ (
         PIPELINE_INITIALISATION.out.samplesheet,
-        PIPELINE_INITIALISATION.out.counts
+        PIPELINE_INITIALISATION.out.counts,
+        PIPELINE_INITIALISATION.out.matrix
     )
     //
     // SUBWORKFLOW: Run completion tasks

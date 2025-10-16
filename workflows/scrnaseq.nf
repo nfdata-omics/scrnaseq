@@ -38,6 +38,7 @@ workflow SCRNASEQ {
     take:
     ch_fastq
     counts
+    matrix
 
     main:
     ch_multiqc_files = Channel.empty()
@@ -68,6 +69,7 @@ workflow SCRNASEQ {
     // AnnData objects.
     ch_input = params.input                ? file(params.input, checkIfExists: true)    : []
     ch_counts = params.counts              ? file(params.counts, checkIfExists: true)    : []
+    ch_matrix = params.matrix              ? file(params.matrix, checkIfExists: true)    : []
 
 
     //kallisto params
@@ -357,6 +359,20 @@ workflow SCRNASEQ {
             def matrix_file = file(row.h5)
             tuple(meta, matrix_file)
         }
+    } else if ( params.matrix ) {
+        ch_count_matrix = Channel
+        .fromPath(params.matrix, checkIfExists: true)
+        .splitCsv(header: true)
+        .map { row ->
+            def meta = [
+                id         : row.sample,
+                genes      : row.genes,
+                metadata   : row.metadata,
+                input_type : row.input_type
+            ]
+            def matrix_file = file(row.mtx)
+            tuple(meta, matrix_file)
+        }
     } else {
         ch_count_matrix = ch_mtx_matrices
     }
@@ -395,7 +411,7 @@ workflow SCRNASEQ {
     //
     H5AD_CONVERSION (
         ch_h5ads,
-        ch_input ?: ch_counts
+            ch_input ?: ch_counts ?: ch_matrix
     )
     ch_versions = ch_versions.mix(H5AD_CONVERSION.out.ch_versions)
 
@@ -434,7 +450,9 @@ workflow SCRNASEQ {
     }
 
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc" || params.aligner == "cellranger" ) {
-        def ch_h5ad_selected = params.counts ? H5AD_CONVERSION.out.h5ad_cellbender : H5AD_CONVERSION.out.h5ad_filtered
+        def ch_h5ad_selected = params.counts ? H5AD_CONVERSION.out.h5ad_cellbender :
+                         (params.matrix ? H5AD_CONVERSION.out.h5ad_parse :
+                                          H5AD_CONVERSION.out.h5ad_filtered)
         CONVERT_MUDATA(
             ch_h5ad_selected,
             ch_vdj,
@@ -461,9 +479,10 @@ workflow SCRNASEQ {
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
     ch_cellcycle_file = Channel.fromPath(params.cell_cycle_file, checkIfExists: true)
+    def ch_h5ad_raw = params.matrix ? Channel.value( [ [id: 'dummy'], [] ] ) : H5AD_CONVERSION.out.h5ad_raw
     NORMALIZATION_AND_HVG (
         DOUBLETS_QUALITYFILTERING.out.h5mu,
-        H5AD_CONVERSION.out.h5ad_raw,
+        ch_h5ad_raw,
         ch_cellcycle_file
     )
     ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
