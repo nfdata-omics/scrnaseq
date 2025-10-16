@@ -171,7 +171,6 @@ def main():
         clean_model_name = model_name.replace(".pkl", "").replace(" ", "_")
         col_name = f"celltypist:{clean_model_name}:majority_voting"
 
-        # Raggruppa per sample e per la colonna di annotazione del modello
         summary_table_pool = gex.obs.groupby(['sample', col_name]).size().reset_index(name='count')
 
         output_csv_pool = output_csv.with_name(f"{output_csv.stem}_{clean_model_name}_by_pool.csv")
