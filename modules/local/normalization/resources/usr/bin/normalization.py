@@ -47,7 +47,7 @@ def main():
     parser.add_argument('-ad','--input-h5mu-file',metavar= 'H5MU_INPUT_FILES',type=pathlib.Path, dest='input_h5mu_files',
                         required=True, help="paths of existing matrix files in h5mu format (including file names)")
     parser.add_argument('-rw','--input-h5ad-raw-file',metavar= 'H5AD_RAW_INPUT_FILES', type=pathlib.Path, dest='input_h5ad_raw_files',
-                        required=True, help="paths of existing raw matrix files in h5ad format (including file names)")
+                        default=pathlib.Path(""),help="paths of existing raw matrix files in h5ad format (including file names)")
     parser.add_argument('-cycle', '--input_cellcycle_file',metavar='CELLCYCLE_FILE', type=pathlib.Path, dest='cellcycle_file',
                     help="Path of an csv input file (.csv)")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.norm.h5mu",
@@ -71,8 +71,11 @@ def main():
     # print info on the available matrices
     print("Reading combined count matrix from the following file:")
     print(f"-File {str(input_h5mu_files)}:")
-    print("Reading raw count matrix from the following file:")
-    print(f"-File {str(input_h5ad_files)}:")
+    if input_h5ad_files and input_h5ad_files != pathlib.Path(""):
+        print("Reading raw count matrix from the following file:")
+        print(f"-File {str(input_h5ad_files)}:")
+    else:
+        print("No raw H5AD file provided, skipping raw/CITE processing.")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -100,12 +103,19 @@ def main():
     # read the raw count matrix for the combined samples and print some initial info
     print("\nProcessing raw count matrix in folder ... ", end ='')
 
-    adata_raw= sc.read_h5ad(input_h5ad_files)
-    # Extract only CITE counts
-    if 'feature_types' in adata_raw.var:
-        pro_raw = adata_raw[:, adata_raw.var["feature_types"] == "Antibody Capture"].copy()
-        print("Done!")
-        print(f"Raw count matrix for combined samples has {pro_raw.shape[0]} cells and {pro_raw.shape[1]} genes/ab")
+    if input_h5ad_files and input_h5ad_files != pathlib.Path(""):
+        adata_raw = sc.read_h5ad(input_h5ad_files)
+        if 'feature_types' in adata_raw.var:
+            pro_raw = adata_raw[:, adata_raw.var["feature_types"] == "Antibody Capture"].copy()
+            print("Done!")
+            print(f"Raw count matrix for combined samples has {pro_raw.shape[0]} cells and {pro_raw.shape[1]} genes/ab")
+        else:
+            print("No Antibody Capture features found in raw H5AD.")
+            pro_raw = None
+    else:
+        adata_raw = None
+        pro_raw = None
+        print("No raw H5AD file provided.")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 GEX MODALITY DATA
@@ -144,8 +154,8 @@ def main():
         cell_cycle_genes = [x.strip() for x in f]
 
     original_var_names = gex.var_names.copy()
-    gex.var['gene_symbols'] = gex.var['gene_symbols'].astype(str)
-    gex.var_names = gex.var['gene_symbols']
+    gex.var['gene_name'] = gex.var['gene_name'].astype(str)
+    gex.var_names = gex.var['gene_name']
     gex.var_names_make_unique()
     # Define genes associated to the S phase and genes associated to the G2M phase
     s_genes = cell_cycle_genes[:43]
@@ -167,7 +177,7 @@ def main():
 
     # Visualize PCA plot
     print("\nVisualized PCA plot")
-    plt.figure(figsize=(12, 10))
+    plt.figure(figsize=(14, 13))
     sc.pl.pca(gex_cc_genes, color='sample',show=False)
     plt.savefig(os.path.join(args.results,'pca_cellcycle_GEX_sample.png'))
     plt.close()
