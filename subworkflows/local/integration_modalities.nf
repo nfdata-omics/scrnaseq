@@ -30,7 +30,7 @@ workflow INTEGRATION_MODALITIES {
             )
             ch_versions = ch_versions.mix(MOFA_INTEGRATION.out.versions.first())
             mofa_out = MOFA_INTEGRATION.out.h5mu
-            h5mu_out = integration_out.mix(mofa_out) 
+            h5mu_out = integration_out.mix(mofa_out)
 	    } else {
             h5mu = integration_out
         }
