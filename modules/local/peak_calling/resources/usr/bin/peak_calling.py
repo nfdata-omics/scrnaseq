@@ -143,6 +143,11 @@ def main():
     # Perform peak calling with MACS3
     print("\n===== COMPUTE PEAK CALLING =====")
     print("Computing peak calling ... ", end='')
+    adata_atac.obs['gex:celltypist:Immune_All_High:majority_voting'] = (
+    adata_atac.obs['gex:celltypist:Immune_All_High:majority_voting']
+    .astype(str)
+    .str.replace('/', '_')
+    )
     snap.tl.macs3(adata_atac,groupby='gex:celltypist:Immune_All_High:majority_voting',call_broad_peaks=False,inplace=True)
     print("Done!")
 
