@@ -105,7 +105,7 @@ def main():
     print("\nComputing Leiden clustering at different resolutions")
 
     clustering_labels = []
-    for res in np.round(np.arange(0.1, 1.0, 0.3),2):
+    for res in np.round(np.arange(0.1, 1.0, 0.1),2):
         clustering_labels.append("leiden_{}".format(res))
         if "leiden_{}".format(res) in gex.obs:
             print("leiden_{}".format(res) + " already exists... going on with next resolution.")
