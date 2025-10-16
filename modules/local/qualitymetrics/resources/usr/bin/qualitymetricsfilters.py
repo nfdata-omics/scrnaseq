@@ -141,7 +141,7 @@ def main():
 #                                 FILTER DOUBLETS
 # --------------------------------------------------------------------------------------------------------------------
         #print("\n===== READING DOUBLETS TABLE =====")
-        if input_csv_table and input_csv_table != pathlib.Path(''):
+        if input_csv_table and input_csv_file.exists():
             input_csv_table=pd.read_csv(input_csv_table,index_col=0)
 
             gex.obs["doublets"] = input_csv_table['scDblFinder.class']
@@ -162,9 +162,11 @@ def main():
 
         print("\n===== COMPUTE QUALITY METRICS {} =====")
         print(f"\nCompute fraction of mitochondrial, ribosomal and hemoglobin genes for {input_h5mu_file}")
-        gex.var["mt"] = gex.var["gene_symbols"].str.startswith("MT-")
-        gex.var["ribo"] = gex.var["gene_symbols"].str.startswith(("RPS", "RPL"))
-        gex.var["hb"] = gex.var["gene_symbols"].str.startswith(("^HB[^(P)]"))
+        gex.var["gene_symbols_upper"] = gex.var["gene_symbols"].str.upper()
+
+        gex.var["mt"] = gex.var["gene_symbols_upper"].str.startswith("MT-")
+        gex.var["ribo"] = gex.var["gene_symbols_upper"].str.startswith(("RPS", "RPL"))
+        gex.var["hb"] = gex.var["gene_symbols_upper"].str.startswith("HB") & ~gex.var["gene_symbols_upper"].str.startswith("HBP")
         sc.pp.calculate_qc_metrics(gex, qc_vars=["mt", "ribo", "hb"],percent_top=[20], log1p=True, inplace=True)
         print(gex.obs[['pct_counts_mt', 'pct_counts_ribo']].head())
 
