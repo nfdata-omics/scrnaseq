@@ -114,8 +114,8 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== GEX MODALITY DATA =====")
     gex = mdata.mod['gex']
-    gex.var['gene_symbols'] = gex.var['gene_symbols'].astype(str)
-    gex.var = gex.var.set_index('gene_symbols')
+    gex.var['gene_name'] = gex.var['gene_name'].astype(str)
+    gex.var = gex.var.set_index('gene_name')
     print(gex.var)
 
 
