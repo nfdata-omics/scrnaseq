@@ -19,12 +19,14 @@ process NORMALIZATION   {
     task.ext.when == null || task.ext.when
 
     script:
+    def rw = input_raw_h5ad ? "-rw $input_raw_h5ad" : ''
+
     """
     export NUMBA_CACHE_DIR=/tmp
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    normalization.py -ad $input_h5mu -rw $input_raw_h5ad --input_cellcycle_file $input_cellcycle_file
+    normalization.py -ad $input_h5mu $rw --input_cellcycle_file $input_cellcycle_file
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
