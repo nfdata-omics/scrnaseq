@@ -189,7 +189,7 @@ def main():
         print("\n===== VISUALIZING UMAP PLOT =====")
         print(f"\nVisualized batch-corrected UMAP plot for model {clean_model_name}")
         # Visualize batch-corrected UMAP plot
-        plt.figure(figsize=(25, 15))
+        plt.figure(figsize=(35, 12))
         mu.pl.embedding(gex, color =col_name ,basis= 'X_umap',show=False)
         plt.savefig(os.path.join(args.results, f"Annotated_UMAP_{clean_model_name}.png"))
         plt.close()

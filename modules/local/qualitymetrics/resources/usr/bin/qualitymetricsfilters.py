@@ -176,7 +176,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 # Visualize quality metrics: highest expressed genes, number of genes expressed, total counts per cell and fraction of mitochondrial, ribosomal and hemoglobin genes
 
-        fig, ax = plt.subplots(figsize=(30,15))
+        fig, ax = plt.subplots(figsize=(35,25))
 
         print("\nVisualized the number of cells for each pool before filtering")
         sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
@@ -184,7 +184,7 @@ def main():
         ax.set_xlabel("Sample name", fontsize=30)
         ax.set_ylabel("Cell number", fontsize=30)
         plt.setp(labels, rotation=90.,fontsize=30)
-        plt.savefig(os.path.join(args.results,'Cells_before_filtering_pool.png'))
+        plt.savefig(os.path.join(args.results,'Cells_before_filtering.png'))
         plt.close()
 
         '''

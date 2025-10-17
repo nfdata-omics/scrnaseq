@@ -172,8 +172,8 @@ def main():
 
         # Visualize UMAP plot
         print("\nVisualized UMAP plot")
-        plt.figure(figsize=(25, 15))
-        sc.pl.umap(pro, color ='sample',show=False)
+        plt.figure(figsize=(35, 25))
+        sc.pl.umap(pro, color ='sample',show=False,legend_loc='bottom', legend_fontsize=12)
         plt.savefig(os.path.join(args.results,'umap_plot_CITE.png'),dpi=300)
         plt.close()
 
