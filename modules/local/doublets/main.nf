@@ -8,7 +8,7 @@ process DOUBLETS  {
     tuple val(meta), path(input_sce)
 
     output:
-    path "doublets_score.csv", emit: doublets
+    tuple val(meta), path("doublets_score.csv"), emit: doublets
     path "versions.yml"  , emit: versions
 
     when:
