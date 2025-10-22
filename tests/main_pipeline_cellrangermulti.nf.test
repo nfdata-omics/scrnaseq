@@ -1,0 +1,87 @@
+nextflow_pipeline {
+
+    name "Test Workflow main.nf"
+    script "main.nf"
+
+    test("test-dataset_cellrangermulti_aligner_human") {
+
+        tag 'human'
+
+        when {
+            // the rest is taken from shared config
+            params {
+                aligner                   = 'cellrangermulti'
+                outdir                    = "$outputDir"
+                input                     = "${baseDir}/assets/cellrangermulti_samplesheet.csv"
+                cellranger_multi_barcodes = "${baseDir}/assets/cellranger_barcodes_samplesheet.csv"
+                gex_frna_probe_set        = "${baseDir}/assets/frna_probeset_subset.csv"
+                fb_reference              = "${baseDir}/assets/fb_reference.csv"
+                fasta                     = 'https://ftp.ensembl.org/pub/release-110/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.14.fa.gz'
+                gtf                       = 'https://ftp.ensembl.org/pub/release-110/gtf/homo_sapiens/Homo_sapiens.GRCh38.110.gtf.gz'
+                aligner                   = 'cellrangermulti'
+                protocol                  = 'auto'
+                skip_cellbender           = true
+            }
+        }
+
+        then {
+            // stable_name: All files + folders in ${params.outdir}/ with a stable name
+            def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
+            // stable_path: All files in ${params.outdir}/ with stable content
+            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+            assertAll(
+                { assert workflow.success},
+                { assert snapshot(
+                    // Number of successful tasks
+                    workflow.trace.succeeded().size(),
+                    // pipeline versions.yml file for multiqc from which Nextflow version is removed because we test pipelines on multiple Nextflow versions
+                    removeFromYamlMap("$params.outdir/pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml", "Workflow"),
+                    // All stable path name, with a relative path
+                    stable_name,
+                    // All files with stable contents
+                    stable_path
+                ).match() }
+            )
+        }
+    }
+
+    test("test-dataset_cellrangermulti_aligner_rat") {
+
+        tag 'rat'
+
+        when {
+            params {
+                aligner                   = 'cellrangermulti'
+                outdir                    = "$outputDir"
+                input                     = "${baseDir}/assets/cellrangermulti_samplesheet_rat.csv"
+                cellranger_multi_barcodes = "${baseDir}/assets/cellranger_barcodes_samplesheet_rat.csv"
+                fasta                     = 'https://ftp.ensembl.org/pub/release-114/fasta/rattus_norvegicus/dna/Rattus_norvegicus.GRCr8.dna.primary_assembly.6.fa.gz'
+                gtf                       = 'https://ftp.ensembl.org/pub/release-114/gtf/rattus_norvegicus/Rattus_norvegicus.GRCr8.114.chr.gtf.gz'
+                protocol                  = 'auto'
+                skip_cellbender           = true
+            }
+        }
+
+        then {
+            // stable_name: All files + folders in ${params.outdir}/ with a stable name
+            def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
+            // stable_path: All files in ${params.outdir}/ with stable content
+            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+            assertAll(
+                { assert workflow.success},
+                { assert snapshot(
+                    // Number of successful tasks
+                    workflow.trace.succeeded().size(),
+                    // pipeline versions.yml file for multiqc from which Nextflow version is removed because we test pipelines on multiple Nextflow versions
+                    removeFromYamlMap("$params.outdir/pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml", "Workflow"),
+                    // All stable path name, with a relative path
+                    stable_name,
+                    // All files with stable contents
+                    stable_path
+                ).match() }
+            )
+        }
+    }
+
+
+}
