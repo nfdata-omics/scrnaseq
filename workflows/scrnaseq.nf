@@ -467,7 +467,8 @@ workflow SCRNASEQ {
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
     // Da togliere questa cosa ch_rds_selected, se counts, canale vuoto tanto non faro' la parte dei doppietti
-    def ch_rds_selected = params.counts ? H5AD_CONVERSION.out.rds_cellbender : H5AD_CONVERSION.out.rds_concat
+    def ch_rds_selected = (params.counts && !params.skip_cellbender) ? H5AD_CONVERSION.out.rds_cellbender : 
+                          (params.matrix ? H5AD_CONVERSION.out.rds_parse : H5AD_CONVERSION.out.rds_concat)
     DOUBLETS_QUALITYFILTERING (
         ch_rds_selected,
         CONVERT_MUDATA.out.h5mu,
