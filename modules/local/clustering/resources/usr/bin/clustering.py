@@ -94,6 +94,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== GEX MODALITY DATA =====")
     gex = mdata.mod['gex']
+    gex.var_names = gex.var['gene_name'].astype(str)
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CLUSTERING
 # --------------------------------------------------------------------------------------------------------------------
@@ -121,7 +122,7 @@ def main():
         for res in np.round(np.arange(0.1, 1.0, 0.1),2):
             print("\nComputing top 20 marker genes for each clusters at resolution {}".format(res))
             #Compute top 20 marker genes for each cluster, expects logarithmized data
-            sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res),method="wilcoxon",key_added="leiden_{}".format(res), n_genes=100,pts=True)
+            sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res),method="wilcoxon",key_added="leiden_{}".format(res),pts=True)
             df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.25,key="leiden_{}".format(res))
             #df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
 
@@ -133,7 +134,7 @@ def main():
         print("\nComputing top 20 marker genes for each sample {}".format(res))
         #Compute top 20 marker genes for each sample, expects logarithmized data
         sc.tl.rank_genes_groups(gex, groupby="sample",method="wilcoxon",key_added="sample_marker", n_genes=100,pts=True)
-        df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.25,key="sample_marker")
+        df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.5,key="sample_marker")
         #df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
 
         print("\nSaving top 20 marker genes for each cluster and resolution in excel file")

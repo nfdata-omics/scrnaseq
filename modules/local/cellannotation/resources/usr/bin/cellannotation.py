@@ -115,6 +115,7 @@ def main():
     print("\n===== GEX MODALITY DATA =====")
     gex = mdata.mod['gex']
     gex.var['gene_name'] = gex.var['gene_name'].astype(str)
+    gex.var['gene_id'] = gex.var.index.astype(str)
     gex.var = gex.var.set_index('gene_name')
     print(gex.var)
 
@@ -154,10 +155,10 @@ def main():
     print(df_celltypist)
     gex.obs = pd.concat([gex.obs, df_celltypist], axis=1)
     cols_to_drop = [
-        'predicted_labels',
-        'majority_voting',
-        'conf_score',
-        'over_clustering'
+            'predicted_labels',   # raw cell-level predicted label before majority voting
+            'majority_voting',    # label after local subcluster majority voting (already renamed and saved)
+            'conf_score',         # confidence score (already renamed and saved)
+            'over_clustering'     # internal over-clustering information used by CellTypist
     ]
 
     gex.obs = gex.obs.drop(columns=[c for c in cols_to_drop if c in gex.obs.columns])
