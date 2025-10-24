@@ -36,13 +36,14 @@ jobs:
           parameters: |
             {
               "hook_url": "${{ secrets.MEGATESTS_ALERTS_SLACK_HOOK_URL }}",
-              "outdir": "s3://${{ vars.AWS_S3_BUCKET }}/scrnaseq/results-${{ steps.revision.outputs.revision }}"
+              "outdir": "s3://${{ vars.AWS_S3_BUCKET }}/scrnaseq/results-${{ steps.revision.outputs.revision }}/aligner_${{ matrix.aligner }}",
+              "aligner": "${{ matrix.aligner }}"
             }
           profiles: test_full
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: Seqera Platform debug log file
+          name: seqera_platform_debug_log_${{ matrix.aligner }}
           path: |
-            tower_action_*.log
-            tower_action_*.json
+            seqera_platform_action_*.log
+            seqera_platform_action_*.json
