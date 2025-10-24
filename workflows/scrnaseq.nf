@@ -449,6 +449,8 @@ workflow SCRNASEQ {
         ch_metadata_demuxafy = Channel.value([ [id: 'dummy'], [] ])
     }
 
+    ch_metadata = params.metadata ? Channel.value(params.metadata) : Channel.empty()
+    
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc" || params.aligner == "cellranger" ) {
         def ch_h5ad_selected = params.counts ? H5AD_CONVERSION.out.h5ad_cellbender :
                          (params.matrix ? H5AD_CONVERSION.out.h5ad_parse :
@@ -456,7 +458,8 @@ workflow SCRNASEQ {
         CONVERT_MUDATA(
             ch_h5ad_selected,
             ch_vdj,
-            ch_metadata_demuxafy
+            ch_metadata_demuxafy,
+            ch_metadata
         )
         ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
     } else {
