@@ -12,8 +12,8 @@ process INTEGRATION {
     path "versions.yml",  emit: versions
 
 
-    path "Harmony_UMAP_coordinates_GEX.csv", emit: csv_harmony
-    path "Harmony-corrected_UMAP_plot_*.png", emit: graph_UMAP_integrated
+    path "Harmony_UMAP_coordinates_GEX.csv" , emit: csv_harmony
+    path "Harmony_corrected_UMAP_plot_GEX.pdf", emit: graph_UMAP_integrated
 
 
     when:

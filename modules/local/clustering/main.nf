@@ -8,11 +8,11 @@ process CLUSTERING  {
     tuple val(meta), path(input_h5mu)
 
     output:
-    tuple val(meta), path("*.clustered.h5mu"), emit: h5mu
+    tuple val(meta), path("*.clustered.h5mu")  , emit: h5mu
     tuple val(meta), path("final_metadata.csv"), emit: metadata_final
-    path "cluster_id.png", emit: clusters
-    path "ranked_genes.xlsx", emit: ranked_genes
-    path "versions.yml",  emit: versions
+    path "cluster_id.pdf"                      , emit: clusters
+    path "ranked_genes.xlsx"                   , emit: ranked_genes
+    path "versions.yml"                        , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
