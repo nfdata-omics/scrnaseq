@@ -11,8 +11,8 @@ process NORMALIZATION   {
 
     output:
     tuple val(meta), path("*.norm.h5mu"), emit: h5mu
-    path "pca_cellcycle_GEX_phase.png", emit: pca_cellcycle_GEX_phase,optional: true
-    path "pca_cellcycle_GEX_sample.png", emit: pca_cellcycle_GEX_sample,optional: true
+    path "pca_cellcycle_GEX_phase.pdf",   emit: pca_cellcycle_GEX_phase,  optional: true
+    path "pca_cellcycle_GEX_sample.pdf",  emit: pca_cellcycle_GEX_sample, optional: true
     path "versions.yml",  emit: versions
 
     when:

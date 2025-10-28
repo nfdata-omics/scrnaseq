@@ -148,7 +148,7 @@ def main():
 
     print("\nVisualized Leiden clustering on UMAP plot")
     sc.pl.umap(gex, color=clustering_labels ,legend_loc='on data',show=False)
-    plt.savefig(os.path.join(args.results,'cluster_id.png'))
+    plt.savefig(os.path.join(args.results,'cluster_id.pdf'), bbox_inches='tight', dpi=300)
     plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------

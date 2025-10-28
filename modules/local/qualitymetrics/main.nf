@@ -12,10 +12,10 @@ process QUALITY_FILTERING  {
 
     output:
     tuple val(meta), path("*.filtered.h5mu"), emit: h5mu
-    path "Cells_before_filtering.png", emit: cells_before_filtering, optional: true
-    path "Cells_after_filtering.png", emit: cells_after_filtering, optional: true
-    path "QC_Density_*.png", emit: qc_density, optional: true
-    path "QC_Density_MT-Ribo*.png", emit: qc_density_mito, optional: true
+    path "Cells_before_filtering.pdf", emit: cells_before_filtering, optional: true
+    path "Cells_after_filtering.pdf", emit: cells_after_filtering, optional: true
+    path "QC_Density_all_samples.pdf", emit: qc_density, optional: true
+    path "QC_Density_MT-Ribo_all_samples.pdf", emit: qc_density_mito, optional: true
     path "ADTs_Distribution_*.png", emit: adts_distribution, optional: true
     path  "summary_qualitycontrol_*.csv", emit: summary_qualitycontrol, optional: true
     path "versions.yml",  emit: versions
@@ -48,8 +48,8 @@ process QUALITY_FILTERING  {
     stub:
     """
     touch matrix.filtered.h5mu
-    touch cells_before_filtering.png
-    touch cells_after_filtering.png
+    touch Cells_before_filtering.pdf
+    touch Cells_after_filtering.pdf
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

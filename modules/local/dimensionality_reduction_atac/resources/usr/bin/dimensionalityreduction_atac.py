@@ -70,7 +70,7 @@ def main():
     # read the count matrix for the combined samples and print some initial info
     print(f"\nProcessing AnnData object in folder {input_h5ad_file} ... ", end ='')
 
-    adata_atac= snap.read(input_h5ad_file,backed=None)
+    adata_atac= snap.read(input_h5ad_file, backed=None)
     print(adata_atac.obs)
     print(adata_atac.var)
     print("Done!")
@@ -83,14 +83,14 @@ def main():
 
     # Compute the spectral embedding for dimensionality reduction
     print("\n===== COMPUTE SPECTRAL EMBEDDING =====")
-    snap.pp.add_tile_matrix(adata_atac,bin_size=500,exclude_chroms=["chrM"],min_frag_size=50,max_frag_size=1000,counting_strategy='paired-insertion',inplace=True)
+    snap.pp.add_tile_matrix(adata_atac, bin_size=500, exclude_chroms=["chrM"], min_frag_size=50, max_frag_size=1000, counting_strategy='paired-insertion', inplace=True)
 
 
     # Normalize the data using TF-IDF normalization
     print("\nNormalizing data using TF-IDF normalization ... ", end='')
     snap.pp.select_features(adata_atac, n_features=500000)
     print(adata_atac)
-    snap.tl.spectral(adata_atac,n_comps=30,features="selected",random_state=0,inplace=True)
+    snap.tl.spectral(adata_atac, n_comps=30, features="selected", random_state=0, inplace=True)
     print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ def main():
     print("\n===== PERFORM CLUSTERING =====")
     print("Performing clustering ... ", end='')
     snap.pp.knn(adata_atac)
-    snap.tl.leiden(adata_atac,key_added='leiden_tile',inplace=True)
+    snap.tl.leiden(adata_atac, key_added='leiden_tile', inplace=True)
     print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
