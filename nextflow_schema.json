@@ -332,7 +332,7 @@
                 },
                 "gex_reference_version": {
                     "type": "string",
-                    "description": "Reference version (e.g. GRCh38, GRCm39). Required if `gex_frna_probe_set` is used at `cellranger_index` is not set. Must match the genome version in the `gex_frna_probe_set` file."
+                    "description": "Reference version (e.g. GRCh38, GRCm39). Required if `gex_frna_probe_set` is used and `cellranger_index` is not set. Must match the genome version in the `gex_frna_probe_set` file."
                 },
                 "gex_target_panel": {
                     "type": "string",
