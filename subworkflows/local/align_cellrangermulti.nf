@@ -146,9 +146,13 @@ workflow CELLRANGER_MULTI_ALIGN {
                 def probeset_file = file(params.gex_frna_probe_set)
                 if ( probeset_file.exists() ) {
                     def probeset_reference = null
-                    probeset_file.readLines().each { line ->
-                        if ( line.startsWith("#reference_genome=") ) {
-                            probeset_reference = line.split("=")[1].trim()
+                    probeset_file.withReader { reader ->
+                        String line
+                        while ((line = reader.readLine()) != null) {
+                            if (line.startsWith("#reference_genome=")) {
+                                probeset_reference = line.split("=")[1].trim()
+                                break
+                            }
                         }
                     }
                     if ( probeset_reference && probeset_reference != params.gex_reference_version ) {
