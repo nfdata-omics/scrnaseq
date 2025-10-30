@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template update for nf-core/tools v3.3.2 ([#474](https://github.com/nf-core/scrnaseq/pull/474))
 
 ### Fixes
+
 - Fix [#375](https://github.com/nf-core/scrnaseq/issues/375): mismatch between index and probeset when cellranger multi is used without a prebuilt index and an FFPE probeset is passed ([#502](https://github.com/nf-core/scrnaseq/pull/502))
 
 ## v4.0.0 - 2025-03-10
