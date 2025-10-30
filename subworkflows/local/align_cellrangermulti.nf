@@ -136,13 +136,13 @@ workflow CELLRANGER_MULTI_ALIGN {
         //
         if ( !cellranger_gex_index ) {
 
-            // Validate that gex_reference is provided when required
-            if ( params.gex_frna_probe_set && !params.gex_reference ) {
-                error "Parameter 'gex_reference' is required when 'gex_frna_probe_set' is provided and 'cellranger_index' is not provided. The reference genome version must match the probeset reference."
+            // Validate that gex_reference_version is provided when required
+            if ( params.gex_frna_probe_set && !params.gex_reference_version ) {
+                error "Parameter 'gex_reference_version' is required when 'gex_frna_probe_set' is provided and 'cellranger_index' is not provided. The reference genome version must match the probeset reference."
             }
 
-            // Validate that gex_reference matches the probeset reference genome
-            if ( params.gex_frna_probe_set && params.gex_reference ) {
+            // Validate that gex_reference_version matches the probeset reference genome
+            if ( params.gex_frna_probe_set && params.gex_reference_version ) {
                 def probeset_file = file(params.gex_frna_probe_set)
                 if ( probeset_file.exists() ) {
                     def probeset_reference = null
@@ -151,14 +151,14 @@ workflow CELLRANGER_MULTI_ALIGN {
                             probeset_reference = line.split("=")[1].trim()
                         }
                     }
-                    if ( probeset_reference && probeset_reference != params.gex_reference ) {
-                        error "Parameter 'gex_reference' (${params.gex_reference}) does not match the probeset reference genome (${probeset_reference}). Please ensure the reference genome version matches the probeset file."
+                    if ( probeset_reference && probeset_reference != params.gex_reference_version ) {
+                        error "Parameter 'gex_reference_version' (${params.gex_reference_version}) does not match the probeset reference genome (${probeset_reference}). Please ensure the reference genome version matches the probeset file."
                     }
                 }
             }
 
             // Make reference genome
-            def reference_name = params.gex_reference ?: "gex_reference"
+            def reference_name = params.gex_reference_version ?: "gex_reference_version"
             CELLRANGER_MKREF(
                 ch_fasta,
                 CELLRANGER_MKGTF.out.gtf,
