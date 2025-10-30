@@ -150,12 +150,15 @@ workflow CELLRANGER_MULTI_ALIGN {
                         String line
                         while ((line = reader.readLine()) != null) {
                             if (line.startsWith("#reference_genome=")) {
-                                probeset_reference = line.split("=")[1].trim()
+                                ref_split = line.split("=")
+                                if (ref_split.size() > 1) {
+                                    probeset_reference = ref_split[1].trim()
+                                }
                                 break
                             }
                         }
                     }
-                    if ( probeset_reference && probeset_reference != params.gex_reference_version ) {
+                    if ( probeset_reference != params.gex_reference_version ) {
                         error "Parameter 'gex_reference_version' (${params.gex_reference_version}) does not match the probeset reference genome (${probeset_reference}). Please ensure the reference genome version matches the probeset file."
                     }
                 }
