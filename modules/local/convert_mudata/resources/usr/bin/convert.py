@@ -127,7 +127,7 @@ def main():
         print("No valid CSV file provided. Skipping reading of the metadata table.")
 
     meta_df = None
-    if input_metadata_file and input_metadata_file.exists():
+    if input_metadata_file and input_metadata_file.exists() and input_metadata_file.stat().st_size > 0:
         print("\n===== READING SAMPLE METADATA CSV =====")
         meta_df = pd.read_csv(input_metadata_file, sep=',', header=0)
         print(meta_df)

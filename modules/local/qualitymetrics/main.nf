@@ -17,7 +17,7 @@ process QUALITY_FILTERING  {
     path "QC_Density_all_samples.pdf", emit: qc_density, optional: true
     path "QC_Density_MT-Ribo_all_samples.pdf", emit: qc_density_mito, optional: true
     path "ADTs_Distribution_*.png", emit: adts_distribution, optional: true
-    path  "summary_qualitycontrol_*.csv", emit: summary_qualitycontrol, optional: true
+    path "summary_qualitycontrol_*.csv", emit: summary_qualitycontrol, optional: true
     path "versions.yml",  emit: versions
 
     when:

@@ -44,15 +44,17 @@ def main():
 
 # Define command line arguments with argparse
 
-    parser = argparse.ArgumentParser(prog='Int',usage='%(prog)s [options]',description = "Data integration",
+    parser = argparse.ArgumentParser(prog='Int', usage='%(prog)s [options]', description = "Data integration",
         epilog = "This function integrate the single-cell dataset based on run_id.")
-    parser.add_argument('-ad','--input-h5mu-file',metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
+    parser.add_argument('-ad', '--input-h5mu-file', metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
                         required=True, help="paths of existing count matrix files in h5 format (including file names)")
     parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.integrated.h5mu",
                         help="name of the output h5ad file after integration")
-    parser.add_argument('-csv', '--csv_out', metavar='CSV_TABLE',type=pathlib.Path,default="Harmony_UMAP_coordinates_GEX.csv",
+    parser.add_argument('-csv', '--csv_out', metavar='CSV_TABLE', type=pathlib.Path, default="Harmony_UMAP_coordinates_GEX.csv",
                         help="path and name of csv tabel with UMAP coordinates for each cell")
-    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),help="directory to save the results files (default is the current directory)")
+    parser.add_argument('-nnh', '--n_neighbors_harmony', dest='n_neighbors_harmony', type=int, default=20, help="Size of local neighborhood used for manifold approximation. Larger values result in more global views of the manifold, while smaller values result in more local data being preserved. Values should be in the range 2 to 100")
+    parser.add_argument('-mdh', '--min_dist_harmony', dest='min_dist_harmony', type=float, default=0.1, help="minimum distance between embedded points. Smaller values will result in a more clustered/clumped embedding where nearby points on the manifold are drawn closer together")
+    parser.add_argument('-r', '--results', type=pathlib.Path, default=pathlib.Path('./'), help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
 
@@ -63,7 +65,9 @@ def main():
     print("\n===== INPUT H5AD FILES =====")
     input_h5mu_file = args.input_h5mu_files
     output = args.out
-    output_csv=args.csv_out
+    output_csv = args.csv_out
+    n_neighbors_harmony = args.n_neighbors_harmony
+    min_dist_harmony = args.min_dist_harmony
 
     # print info on the available matrices
     print("Reading combined count matrix from the following file:")
@@ -77,7 +81,7 @@ def main():
     print("\n===== READING COMBINED MATRIX =====")
     # read the count matrix for the combined samples and print some initial info
     print("\nProcessing count matrix in folder ... ", end ='')
-    mdata= md.read(input_h5mu_file)
+    mdata = md.read(input_h5mu_file)
     print("Done!")
     print(f"Count matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
 
@@ -102,8 +106,8 @@ def main():
 
     print("\n===== BATCH-CORRECTED UMAP =====")
     # Compute neighbors and UMAP
-    sc.pp.neighbors(gex, n_neighbors=20, use_rep="X_pca_harmony")
-    sc.tl.umap(gex,min_dist=0.5)
+    sc.pp.neighbors(gex, n_neighbors=n_neighbors_harmony, use_rep="X_pca_harmony")
+    sc.tl.umap(gex, min_dist=min_dist_harmony)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
@@ -112,7 +116,7 @@ def main():
     # Visualize batch-corrected UMAP plot
     print("\nVisualized batch-corrected UMAP plot")
     plt.figure(figsize=(45, 35))
-    mu.pl.embedding(gex, color ='sample',basis= 'X_umap',show=False)
+    mu.pl.embedding(gex, color='sample', basis='X_umap', show=False)
     plt.savefig(os.path.join(args.results,'Harmony_corrected_UMAP_plot_GEX.pdf'), bbox_inches='tight', dpi=300)
     plt.close()
 
