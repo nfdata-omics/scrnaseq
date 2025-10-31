@@ -161,15 +161,15 @@ def main():
     gex_cc_genes = gex[:, cell_cycle_genes]
     sc.tl.pca(gex_cc_genes)
     sc.pl.pca_scatter(gex_cc_genes, color='phase',show=False)
-    plt.savefig(os.path.join(args.results,'pca_cellcycle_GEX_phase.png'))
+    plt.savefig(os.path.join(args.results,'pca_cellcycle_GEX_phase.pdf'), bbox_inches='tight', dpi=300)
     print("Done!")
     plt.close()
 
     # Visualize PCA plot
     print("\nVisualized PCA plot")
     plt.figure(figsize=(12, 10))
-    sc.pl.pca(gex_cc_genes, color='sample',show=False)
-    plt.savefig(os.path.join(args.results,'pca_cellcycle_GEX_sample.png'))
+    sc.pl.pca(gex_cc_genes, color='sample', show=False)
+    plt.savefig(os.path.join(args.results,'pca_cellcycle_GEX_sample.pdf'), bbox_inches='tight', dpi=300)
     plt.close()
 
     # Add cell cycle score to the gex object

@@ -9,10 +9,10 @@ process HIGHLY_VARIABLE_GENES  {
 
     output:
     tuple val(meta), path("*.hvg.h5mu") , emit: h5mu
-    path "umap_coordinates.csv", emit: umap
-    path "umap_plot_*.png", emit: graph_umap
-    path "pca_GEX.png", emit: pca_gex
-    path "versions.yml",  emit: versions
+    path "umap_coordinates.csv",          emit: umap
+    path "umap_plot_*.pdf",               emit: graph_umap
+    path "pca_GEX.pdf",                   emit: pca_gex
+    path "versions.yml",                  emit: versions
 
     when:
     task.ext.when == null || task.ext.when
