@@ -63,13 +63,12 @@ def main():
 
 #Define command line arguments with argparse
     parser = argparse.ArgumentParser(prog='QC_filter', usage='%(prog)s [options]', description = "QC metrics and filtering",
-                                    epilog = "This function calculates common quality control (QC) metrics for each sample and modality, inspects QC plots for each sample and filters cells based on QC plots.",
-                                    )
-    parser.add_argument('-ad','--input-h5mu-combined',metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
+                                    epilog = "This function calculates common quality control (QC) metrics for each sample and modality, inspects QC plots for each sample and filters cells based on QC plots.")
+    parser.add_argument('-ad','--input-h5mu-combined', metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
                         required=True, help="paths of existing matrix files in h5mu format (including file names)")
-    parser.add_argument('-d','--input-csv-doublets',metavar= 'CSV_DOUBLETS_TABLE', type=pathlib.Path, dest='input_csv_table',
-                        default=pathlib.Path(''),help="paths of existing doublets table in csv format")
-    parser.add_argument('-mt', '--mt-thresold',dest='mt_threshold',type=float,default=10,help="parameters used to filter cells based on mithocondrial gene content")
+    parser.add_argument('-d','--input-csv-doublets', metavar= 'CSV_DOUBLETS_TABLE', type=pathlib.Path, dest='input_csv_table',
+                        default=pathlib.Path(''), help="paths of existing doublets table in csv format")
+    parser.add_argument('-mt', '--mt-thresold', dest='mt_threshold', type=float, default=15, help="parameters used to filter cells based on mithocondrial gene content")
     parser.add_argument('-min', '--min-umi', dest='min_umi_gex', type=int, default=1400,
                         help="minimum number of UMI per cell to keep (default is 1400)")
     parser.add_argument('-max', '--max-umi', dest='max_umi_gex', type=int, default=15000,

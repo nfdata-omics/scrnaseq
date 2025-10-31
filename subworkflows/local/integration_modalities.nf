@@ -7,6 +7,8 @@ workflow INTEGRATION_MODALITIES {
     take:
     h5mu
     h5ad
+    n_neighbors_harmony
+    min_dist_harmony
 
 
     main:
@@ -16,7 +18,9 @@ workflow INTEGRATION_MODALITIES {
         // MODULE: Integrate GEX and ADT modalities indipendently with Harmony
         //
         INTEGRATION (
-            h5mu
+            h5mu,
+            params.n_neighbors_harmony,
+            params.min_dist_harmony
         )
         ch_versions = ch_versions.mix(INTEGRATION.out.versions.first())
 	    integration_out = INTEGRATION.out.h5mu
