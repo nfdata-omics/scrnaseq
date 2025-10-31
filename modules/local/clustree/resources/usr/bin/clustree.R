@@ -39,9 +39,9 @@ df_filtered <- df[, startsWith(names(df), "leiden")]
 
 
 # Defining the output file path in the specified directory
-output_file <- paste(output_dir, "/clustree_plot.png", sep = "")
+output_file <- paste(output_dir, "/clustree_plot.pdf", sep = "")
 
 #Save clustree plot
-png(output_file, width = 800, height = 600)
+pdf(output_file, width=10, height=12)
 clustree(df_filtered, prefix = "leiden_", suffix = "")
 dev.off()

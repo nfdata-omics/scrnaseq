@@ -8,12 +8,10 @@ process INTEGRATION {
     tuple val(meta), path(input_h5mu)
 
     output:
-    tuple val(meta), path("*.integrated.h5mu"), emit: h5mu
-    path "versions.yml",  emit: versions
-
-
-    path "Harmony_UMAP_coordinates_GEX.csv", emit: csv_harmony
-    path "Harmony-corrected_UMAP_plot_*.png", emit: graph_UMAP_integrated
+    tuple val(meta), path("*.integrated.h5mu"),     emit: h5mu
+    path "Harmony_UMAP_coordinates_GEX.csv" ,       emit: csv_harmony
+    path "Harmony_corrected_UMAP_plot_GEX.pdf",     emit: graph_UMAP_integrated
+    path "versions.yml",                            emit: versions
 
 
     when:

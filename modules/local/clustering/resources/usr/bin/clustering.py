@@ -94,6 +94,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== GEX MODALITY DATA =====")
     gex = mdata.mod['gex']
+    #gex.var_names = gex.var['gene_name'].astype(str)
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CLUSTERING
 # --------------------------------------------------------------------------------------------------------------------
@@ -105,7 +106,7 @@ def main():
     print("\nComputing Leiden clustering at different resolutions")
 
     clustering_labels = []
-    for res in np.round(np.arange(0.1, 1.0, 0.3),2):
+    for res in np.round(np.arange(0.1, 1.0, 0.1),2):
         clustering_labels.append("leiden_{}".format(res))
         if "leiden_{}".format(res) in gex.obs:
             print("leiden_{}".format(res) + " already exists... going on with next resolution.")
@@ -132,13 +133,13 @@ def main():
 
         print("\nComputing top 20 marker genes for each sample {}".format(res))
         #Compute top 20 marker genes for each sample, expects logarithmized data
-        sc.tl.rank_genes_groups(gex, groupby="sample",method="wilcoxon",key_added="sample_marker", n_genes=100,pts=True)
-        df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.25,key="sample_marker")
-        #df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
+        sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res),method="wilcoxon",key_added="leiden_{}".format(res),pts=True)
+        #df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.5,key="sample_marker")
+        
 
-        print("\nSaving top 20 marker genes for each cluster and resolution in excel file")
-        df.to_excel(writer, sheet_name="Sample_Markers",index=False)
-        print("Done!")
+        #print("\nSaving top 20 marker genes for each cluster and resolution in excel file")
+        #df.to_excel(writer, sheet_name="Sample_Markers",index=False)
+        #print("Done!")
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
@@ -147,7 +148,7 @@ def main():
 
     print("\nVisualized Leiden clustering on UMAP plot")
     sc.pl.umap(gex, color=clustering_labels ,legend_loc='on data',show=False)
-    plt.savefig(os.path.join(args.results,'cluster_id.png'))
+    plt.savefig(os.path.join(args.results,'cluster_id.pdf'), bbox_inches='tight', dpi=300)
     plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------

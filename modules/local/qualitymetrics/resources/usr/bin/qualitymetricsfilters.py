@@ -19,6 +19,7 @@ import mudata as md
 import muon as mu
 from muon import atac as ac
 from scipy.stats import median_abs_deviation
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 
@@ -141,7 +142,7 @@ def main():
 #                                 FILTER DOUBLETS
 # --------------------------------------------------------------------------------------------------------------------
         #print("\n===== READING DOUBLETS TABLE =====")
-        if input_csv_table and input_csv_file.exists():
+        if input_csv_table and input_csv_table != pathlib.Path(''):
             input_csv_table=pd.read_csv(input_csv_table,index_col=0)
 
             gex.obs["doublets"] = input_csv_table['scDblFinder.class']
@@ -184,48 +185,47 @@ def main():
         ax.set_xlabel("Sample name", fontsize=30)
         ax.set_ylabel("Cell number", fontsize=30)
         plt.setp(labels, rotation=90.,fontsize=30)
-        plt.savefig(os.path.join(args.results,'Cells_before_filtering_pool.png'))
+        ax.tick_params(axis='y', labelsize=30)
+        plt.savefig(os.path.join(args.results,'Cells_before_filtering.pdf'), bbox_inches='tight', dpi=300)
         plt.close()
 
-        '''
-        fig, ax = plt.subplots(figsize=(70, 35))
-        print("\nVisualized the number of cells for each sample before filtering")
-        sns.histplot(gex.obs, x="Inferred_donor", stat="count", ax=ax)
-        locs, labels = plt.xticks()
-        ax.set_xlabel("Inferred_donor name", fontsize=30)
-        ax.set_ylabel("Cell number", fontsize=30)
-        plt.setp(labels, rotation=90.,fontsize=30)
-        plt.savefig(os.path.join(args.results,'Cells_before_filtering_sample.png'))
-        plt.close()
-        '''
+        with PdfPages(os.path.join(args.results, "QC_Density_all_samples.pdf")) as pdf_counts, PdfPages(os.path.join(args.results, "QC_Density_MT-Ribo_all_samples.pdf")) as pdf_mt_ribo:
+            for sample in gex.obs['sample'].unique():
 
-        for sample in gex.obs['sample'].unique():
-            print(f"\nVisualize density plot showing number of genes expressed, total counts per cell in {sample}")
-            ax1 = plt.subplot(1, 2, 1)
-            sns.histplot(gex[gex.obs['sample']== sample].obs['total_counts'], stat="count", bins=500, color='chocolate', kde=True, ax=ax1)
-            plt.axvline(min_umi_gex, color='blue', linestyle='--')
-            plt.axvline(max_umi_gex, color='blue', linestyle='--')
-            #ax1.set_xlim([0., 60000.])
-            ax2 = plt.subplot(1, 2, 2)
-            sns.histplot(gex[gex.obs['sample']== sample].obs['n_genes_by_counts'], stat="count", bins=100, color='orange', kde=True, ax=ax2)
-            plt.axvline(min_genes_gex, color='blue', linestyle='--')
-            plt.axvline(max_genes_gex, color='blue', linestyle='--')
-            #ax2.set_xlim([0., 10000.])
+                # Counts distribution
+                print(f"\nVisualizing density plot showing number of genes expressed, total counts per cell in {sample}")
+                fig, axs = plt.subplots(1, 2, figsize=(14, 8))
+                sns.histplot(gex[gex.obs['sample'] == sample].obs['total_counts'], stat="count", bins=500, color='chocolate', kde=True, ax=axs[0])
+                axs[0].axvline(min_umi_gex, color='blue', linestyle='--')
+                axs[0].axvline(max_umi_gex, color='blue', linestyle='--')
+                axs[0].set_title("Total Counts per Cell")
 
-            plt.tight_layout()
-            plt.savefig(os.path.join(args.results, f'QC_Density_{sample}.png'))
-            plt.close()
-            print(f"\nVisualize density plot showing fraction of mitochondrial and ribosomal genes in {sample}")
-            ax1 = plt.subplot(1, 2, 1)
-            sns.histplot(gex[gex.obs['sample']== sample].obs['pct_counts_mt'], stat="count", bins=100, kde=True, color='limegreen', ax=ax1)
-            plt.axvline(mt_threshold, 0, 1, c='red', linestyle='--')
-            #ax1.set_xlim([0., 25.])
-            ax2 = plt.subplot(1, 2, 2)
-            sns.histplot(gex[gex.obs['sample']== sample].obs['pct_counts_ribo'], stat="count", bins=100, kde=True, color='deepskyblue', ax=ax2)
-            #ax2.set_xlim([0., 60.])
-            plt.savefig(os.path.join(args.results, f'QC_Density_MT-Ribo_{sample}.png'))
-            plt.close()
+                sns.histplot(gex[gex.obs['sample'] == sample].obs['n_genes_by_counts'], stat="count", bins=100, color='orange', kde=True, ax=axs[1])
+                axs[1].axvline(min_genes_gex, color='blue', linestyle='--')
+                axs[1].axvline(max_genes_gex, color='blue', linestyle='--')
+                axs[1].set_title("Genes per Cell")
 
+                fig.suptitle(f"QC – Counts and Genes per Cell\n\nSample: {sample}", fontsize=18, fontweight='bold', y=1.02)
+                plt.tight_layout()
+                pdf_counts.savefig(fig, bbox_inches='tight')
+                plt.close(fig)
+
+                # Mito/Ribo distribution
+                print(f"\nVisualizing density plot showing fraction of mitochondrial and ribosomal genes in {sample}")
+                fig, axs = plt.subplots(1, 2, figsize=(14, 8))
+                sns.histplot(gex[gex.obs['sample'] == sample].obs['pct_counts_mt'], stat="count", bins=100, kde=True, color='limegreen', ax=axs[0])
+                axs[0].axvline(mt_threshold, 0, 1, c='red', linestyle='--')
+                axs[0].set_title("Mitochondrial Fraction")
+
+                sns.histplot(gex[gex.obs['sample'] == sample].obs['pct_counts_ribo'], stat="count", bins=100, kde=True, color='deepskyblue', ax=axs[1])
+                axs[1].set_title("Ribosomal Fraction")
+
+                fig.suptitle(f"QC – Mitochondrial & Ribosomal Fractions\n\nSample: {sample}", fontsize=18, fontweight='bold', y=1.02)
+                plt.tight_layout()
+                pdf_mt_ribo.savefig(fig, bbox_inches='tight')
+                plt.close(fig)
+
+        print(f"\nSaved multi-page PDFs")
 # --------------------------------------------------------------------------------------------------------------------
 #                           EVALUATE GENES BASED ON NUMBER OF CELLS
 # --------------------------------------------------------------------------------------------------------------------
@@ -288,15 +288,18 @@ def main():
         print(f"Count matrix has {gex.shape[0]} cells and {gex.shape[1]} genes")
 
 # --------------------------------------------------------------------------------------------------------------------
-#                           VISUALIZE QUALITY METRICS
+#                           VISUALIZE FILTERING RESULT
 # --------------------------------------------------------------------------------------------------------------------
 
         fig, ax = plt.subplots(figsize=(20,10))
         print("\nVisualized the number of cells after filtering for each sample")
         sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
         locs, labels = plt.xticks()
-        plt.setp(labels, rotation=90.)
-        plt.savefig(os.path.join(args.results,'Cells_after_filtering.png'))
+        ax.set_xlabel("Sample name", fontsize=30)
+        ax.set_ylabel("Cell number", fontsize=30)
+        plt.setp(labels, rotation=90.,fontsize=30)
+        ax.tick_params(axis='y', labelsize=30)
+        plt.savefig(os.path.join(args.results,'Cells_after_filtering.pdf'), bbox_inches='tight', dpi=300)
         plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------

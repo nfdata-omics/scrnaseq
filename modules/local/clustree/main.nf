@@ -8,8 +8,8 @@ process CLUSTREE  {
     tuple val(meta), path(cluster_id)
 
     output:
-    path "clustree_plot.png", emit: clustree
-    path "versions.yml"  , emit: versions
+    path "clustree_plot.pdf", emit: clustree
+    path "versions.yml"     , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
