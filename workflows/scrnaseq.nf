@@ -420,7 +420,7 @@ workflow SCRNASEQ {
         ch_vdj = [[id: 'dummy'], []]
     }
 
-
+    //TODO: modify this part beacuse only one input is present
     if (params.demultiplexing_doublets) {
     ch_metadata_demuxafy = Channel.fromPath(params.demultiplexing_doublets, checkIfExists: true)
         .splitCsv(header: true, sep: '\t')
@@ -433,12 +433,16 @@ workflow SCRNASEQ {
         ch_metadata_demuxafy = Channel.value([ [id: 'dummy'], [] ])
     }
 
+    ch_metadata = params.metadata ? Channel.value(params.metadata) : Channel.value(file('dummy_metadata.csv'))
+    
+
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc" || params.aligner == "cellranger" ) {
         def ch_h5ad_selected = params.counts ? H5AD_CONVERSION.out.h5ad_cellbender : H5AD_CONVERSION.out.h5ad_filtered
         CONVERT_MUDATA(
             ch_h5ad_selected,
             ch_vdj,
-            ch_metadata_demuxafy
+            ch_metadata_demuxafy,
+            ch_metadata
         )
         ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
     } else {
