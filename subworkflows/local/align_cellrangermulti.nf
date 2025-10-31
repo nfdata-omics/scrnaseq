@@ -144,23 +144,21 @@ workflow CELLRANGER_MULTI_ALIGN {
             // Validate that gex_reference_version matches the probeset reference genome
             if ( params.gex_frna_probe_set && params.gex_reference_version ) {
                 def probeset_file = file(params.gex_frna_probe_set)
-                if ( probeset_file.exists() ) {
-                    def probeset_reference = null
-                    probeset_file.withReader { reader ->
-                        String line
-                        while ((line = reader.readLine()) != null) {
-                            if (line.startsWith("#reference_genome=")) {
-                                ref_split = line.split("=")
-                                if (ref_split.size() > 1) {
-                                    probeset_reference = ref_split[1].trim()
-                                }
-                                break
+                def probeset_reference = null
+                probeset_file.withReader { reader ->
+                    String line
+                    while ((line = reader.readLine()) != null) {
+                        if (line.startsWith("#reference_genome=")) {
+                            ref_split = line.split("=")
+                            if (ref_split.size() > 1) {
+                                probeset_reference = ref_split[1].trim()
                             }
+                            break
                         }
                     }
-                    if ( probeset_reference != params.gex_reference_version ) {
-                        error "Parameter 'gex_reference_version' (${params.gex_reference_version}) does not match the probeset reference genome (${probeset_reference}). Please ensure the reference genome version matches the probeset file."
-                    }
+                }
+                if ( probeset_reference != params.gex_reference_version ) {
+                    error "Parameter 'gex_reference_version' (${params.gex_reference_version}) does not match the probeset reference genome (${probeset_reference}). Please ensure the reference genome version matches the probeset file."
                 }
             }
 
