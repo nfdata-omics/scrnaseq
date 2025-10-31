@@ -8,6 +8,7 @@ process CONVERT_MUDATA  {
     tuple val(meta), path(input_h5ad)
     tuple val(meta), path(input_vdj)
     tuple val(meta), path (demultiplexing_doublets)
+    path (metadata_file)
 
 
     output:
@@ -20,15 +21,15 @@ process CONVERT_MUDATA  {
     script:
     def ai = input_vdj ? "-ai $input_vdj" : ''
     def csv = demultiplexing_doublets ? "-csv $demultiplexing_doublets" : ''
+    def meta_file = metadata_file ? "-meta $metadata_file" : ''
 
-    //convert.py -ad $input_h5ad $ai -at $input_h5ad_atac
 
     """
     export NUMBA_CACHE_DIR=/tmp
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    convert.py -ad $input_h5ad $ai $csv
+    convert.py -ad $input_h5ad $ai $csv $meta_file
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":

@@ -48,6 +48,8 @@ def main():
                         default=pathlib.Path(''),help="paths of existing vdj matrix files in h5ad format (including file names)")
     parser.add_argument('-csv','--input-csv-file',metavar= 'CSV_INPUT_FILES', type=pathlib.Path,  dest='input_csv_files',
                         help="paths of existing metadata table in csv format")
+    parser.add_argument('-meta','--metadata-file',metavar= 'METADATA_INPUT_FILES', type=pathlib.Path,  dest='input_metadata_files',
+                        help="paths of existing metadata table in csv format")
     parser.add_argument('-o', '--out', metavar='MUDATA_OUTPUT_FILE', type=pathlib.Path, default="matrix.mudata.h5mu",
                         help="name of the muData object")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -61,6 +63,7 @@ def main():
     input_file = args.input_files
     input_vdj_file = args.input_vdj_files
     input_csv_file = args.input_csv_files
+    input_metadata_file = args.input_metadata_files
     output = args.out
 
     # print info on the available matrices
@@ -73,7 +76,8 @@ def main():
     print("Reading metadata table from the following file:")
     print(f"-File {input_csv_file}")
 
-
+    print("Reading sample metadata information from the following file:")
+    print(f"-File {input_metadata_file}")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ GEX AND AB FILES
@@ -120,6 +124,15 @@ def main():
     else:
         print("No valid CSV file provided. Skipping reading of the metadata table.")
 
+    meta_df = None
+    if input_metadata_file and input_metadata_file.exists() and input_metadata_file.stat().st_size > 0:
+        print("\n===== READING SAMPLE METADATA CSV =====")
+        meta_df = pd.read_csv(input_metadata_file, sep=',', header=0)
+        print(meta_df)
+        print(f"Sample metadata table has {meta_df.shape[0]} rows and {meta_df.shape[1]} columns")
+    else:
+        print("No valid metadata CSV file provided. Skipping reading of the sample metadata table.")
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 ADDED METADATA TO OBS
 # --------------------------------------------------------------------------------------------------------------------
@@ -137,6 +150,17 @@ def main():
             print(f"Metadata joined to MuData obs for {len(intersect_barcodes)} barcodes.")
         else:
             print("No 'Barcode' column found in metadata CSV; skipping join.")
+
+        if meta_df is not None:
+            print("\n===== ADDING SAMPLE METADATA TO OBS =====")
+
+        if 'sample' in meta_df.columns:
+            adata.obs['sample'] = adata.obs['sample'].astype(str).str.replace('_filtered', '', regex=False).str.replace('_parse', '', regex=False).str.strip()
+            meta_df['sample'] = meta_df['sample'].astype(str)
+            adata.obs = adata.obs.join(meta_df.set_index('sample'), on='sample', how='left').astype(str)
+            print("Sample metadata joined to MuData obs.")
+        else:
+            print("No 'sample' column found in metadata CSV; skipping join.")
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CREATE MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
