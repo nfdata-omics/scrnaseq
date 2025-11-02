@@ -457,7 +457,7 @@ workflow SCRNASEQ {
     DOUBLETS_QUALITYFILTERING (
         ch_rds_selected,
         CONVERT_MUDATA.out.h5mu,
-        params.mt_threshold,
+        params.mt_threshold
     )
     ch_versions = ch_versions.mix(DOUBLETS_QUALITYFILTERING.out.ch_versions)
 
@@ -468,7 +468,10 @@ workflow SCRNASEQ {
     NORMALIZATION_AND_HVG (
         DOUBLETS_QUALITYFILTERING.out.h5mu,
         H5AD_CONVERSION.out.h5ad_raw,
-        ch_cellcycle_file
+        ch_cellcycle_file,
+        params.n_pcs,
+        params.n_neighbors,
+        params.min_dist
     )
     ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
 
@@ -509,7 +512,9 @@ workflow SCRNASEQ {
 
     INTEGRATION_MODALITIES (
         CELL_ANNOTATION.out.h5mu,
-        atac_out_h5ad
+        atac_out_h5ad,
+        params.n_neighbors_harmony,
+        params.min_dist_harmony
     )
     ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
 
