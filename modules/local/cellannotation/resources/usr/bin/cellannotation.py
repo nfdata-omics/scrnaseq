@@ -191,7 +191,7 @@ def main():
         print(f"\nVisualized batch-corrected UMAP plot for model {clean_model_name}")
         # Visualize batch-corrected UMAP plot
         plt.figure(figsize=(35, 25))
-        mu.pl.embedding(gex, color =col_name ,basis= 'X_umap',legend_loc='on data',show=False)
+        mu.pl.embedding(gex, color =col_name, basis= 'X_umap', legend_loc='on data', show=False)
         plt.savefig(os.path.join(args.results, f"Annotated_UMAP_{clean_model_name}.pdf"), bbox_inches='tight', dpi=300)
         plt.close()
         print(f"Saved summaries and UMAP for model {clean_model_name}")

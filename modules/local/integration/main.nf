@@ -6,6 +6,8 @@ process INTEGRATION {
 
     input:
     tuple val(meta), path(input_h5mu)
+    val n_neighbors_harmony
+    val min_dist_harmony
 
     output:
     tuple val(meta), path("*.integrated.h5mu"),     emit: h5mu
@@ -23,8 +25,8 @@ process INTEGRATION {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    # Verify the command that will run
-    integration.py -ad $input_h5mu
+    
+    integration.py -ad $input_h5mu -nnh $n_neighbors_harmony -mdh $min_dist_harmony
 
 
     cat <<-END_VERSIONS >> versions.yml
@@ -38,7 +40,7 @@ process INTEGRATION {
     """
     touch matrix.integrated.h5mu
     touch Harmony_UMAP_coordinates_GEX.csv
-    touch Harmony-corrected_UMAP_plot_GEX.png
+    touch Harmony-corrected_UMAP_plot_GEX.pdf
 
 
     cat <<-END_VERSIONS > versions.yml
