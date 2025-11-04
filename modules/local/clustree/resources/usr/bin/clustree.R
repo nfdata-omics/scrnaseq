@@ -37,11 +37,20 @@ if(version){
 df <- read.csv(csv_file, h = TRUE, row.names = 1, check.names = FALSE)
 df_filtered <- df[, startsWith(names(df), "leiden")]
 
-
 # Defining the output file path in the specified directory
 output_file <- paste(output_dir, "/clustree_plot.pdf", sep = "")
 
-#Save clustree plot
-pdf(output_file, width=10, height=12)
-clustree(df_filtered, prefix = "leiden_", suffix = "")
-dev.off()
+# Check if more than one single resolution has been computed
+if(!is.vector(df_filtered)){
+  #Save clustree plot
+  pdf(output_file, width=10, height=12)
+  print(clustree(df_filtered, prefix = "leiden_", suffix = ""))
+  dev.off()
+} else {
+  #Save warning message
+  pdf(output_file, width=10, height=12)
+  plot.new()
+  par(mar = c(0, 0, 1.1, 0))
+  text(x=0.5, y=0.5, labels="One single resolution was found in the considered object. \nClustree not computed.", cex=1.5)
+  dev.off()
+}

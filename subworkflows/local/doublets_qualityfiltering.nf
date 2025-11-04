@@ -8,6 +8,13 @@ workflow DOUBLETS_QUALITYFILTERING {
     ch_convert_concat_filtered
     ch_h5mu_concat_filtered
     mt_threshold
+    min_umi_gex
+    max_umi_gex
+    min_genes_gex
+    max_genes_gex
+    min_cells_gex
+    min_features_adt
+    min_counts_adt
 
 
     main:
@@ -36,7 +43,14 @@ workflow DOUBLETS_QUALITYFILTERING {
         QUALITY_FILTERING (
             ch_h5mu_concat_filtered,
             doublets_out,
-            mt_threshold,
+            params.mt_threshold,
+            params.min_umi_gex,
+            params.max_umi_gex,
+            params.min_genes_gex,
+            params.max_genes_gex,
+            params.min_cells_gex,
+            params.min_features_adt,
+            params.min_counts_adt
         )
         ch_versions = ch_versions.mix(QUALITY_FILTERING.out.versions.first())
 

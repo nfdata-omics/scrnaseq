@@ -77,12 +77,12 @@ def main():
                         help="minimum number of genes per cell to keep (default is 200)")
     parser.add_argument('-maxg', '--max-genes', dest='max_genes_gex', type=int, default=5000,
                         help="maximum number of genes per cell to keep (default is 5000)")
-    parser.add_argument('-minc', '--min-cells', dest='min_cells_gex', type=int, default=3,
-                        help="minimum number of cells per gene to keep (default is 3)")
+    parser.add_argument('-minc', '--min-cells', dest='min_cells_gex', type=int, default=5,
+                        help="minimum number of cells per gene to keep (default is 5)")
     parser.add_argument('-minf', '--min-features-adt', dest='min_features_adt', type=int, default=3,
                         help="minimum number of features per cell to keep (default is 3)")
-    parser.add_argument('-mincadt', '--min-counts-adt', dest='min_counts_adt', type=int, default=1000,
-                        help="minimum number of counts per cell to keep (default is 1000)")
+    parser.add_argument('-mincadt', '--min-counts-adt', dest='min_counts_adt', type=int, default=500,
+                        help="minimum number of counts per cell to keep (default is 500)")
     parser.add_argument('-csv', '--csv_out', metavar='QUALITY_CONTROL', default="summary_qualitycontrol.csv",
                         help="path and name of csv table with ranked marker genes for each cluster and resolution")
     parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered.h5mu",
@@ -291,7 +291,7 @@ def main():
 #                           VISUALIZE FILTERING RESULT
 # --------------------------------------------------------------------------------------------------------------------
 
-        fig, ax = plt.subplots(figsize=(30,15))
+        fig, ax = plt.subplots(figsize=(30,25))
         print("\nVisualized the number of cells after filtering for each sample")
         sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
         locs, labels = plt.xticks()
