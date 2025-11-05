@@ -9,6 +9,13 @@ process QUALITY_FILTERING  {
     tuple val(meta), path(input_h5mu)
     tuple val(meta), path (doublets_csv)
     val mt_threshold
+    val min_umi_gex
+    val max_umi_gex
+    val min_genes_gex
+    val max_genes_gex
+    val min_cells_gex
+    val min_features_adt
+    val min_counts_adt
 
     output:
     tuple val(meta), path("*.filtered.h5mu"),   emit: h5mu
@@ -35,7 +42,7 @@ process QUALITY_FILTERING  {
 
 
 
-    qualitymetricsfilters.py -ad $input_h5mu $d -mt $mt_threshold
+    qualitymetricsfilters.py -ad $input_h5mu $d -mt $mt_threshold -min $min_umi_gex -max $max_umi_gex -ming $min_genes_gex -maxg $max_genes_gex -minc $min_cells_gex -minf $min_features_adt -mincadt $min_counts_adt
 
 
     cat <<-END_VERSIONS >> versions.yml

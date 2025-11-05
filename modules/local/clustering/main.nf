@@ -6,6 +6,7 @@ process CLUSTERING  {
 
     input:
     tuple val(meta), path(input_h5mu)
+    val resolution
 
     output:
     tuple val(meta), path("*.clustered.h5mu")  , emit: h5mu
@@ -23,7 +24,7 @@ process CLUSTERING  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    clustering.py -ad $input_h5mu
+    clustering.py -ad $input_h5mu -res $resolution
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
