@@ -8,7 +8,6 @@ workflow ATAC_PREPROCESSING {
     take:
     fragments
     fragments_index
-    nucleosome_threshold
     tss_threshold
     min_fragments_counts
     max_fragments_counts
@@ -25,7 +24,6 @@ workflow ATAC_PREPROCESSING {
         QUALITY_FILTERING_ATAC (
             fragments,
             fragments_index,
-            nucleosome_threshold,
             tss_threshold,
             min_fragments_counts,
             max_fragments_counts,

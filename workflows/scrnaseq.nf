@@ -496,7 +496,6 @@ workflow SCRNASEQ {
         ATAC_PREPROCESSING (
             ch_transformed_fragments_channel,
             ch_transformed_fragments_index_channel,
-            params.nucleosome_threshold,
             params.tss_threshold,
             params.min_fragments_counts,
             params.max_fragments_counts,
