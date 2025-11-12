@@ -7,7 +7,6 @@
 
 import argparse                     # command line arguments parser
 import warnings
-import os                           # filesystem utilities
 import pathlib                      # library for handle filesystem paths
 import numpy as np
 import pandas as pd                 # library for data analysis and manipulation
@@ -43,6 +42,10 @@ def main():
                                     )
     parser.add_argument('-ad','--input-h5ad-combined',metavar= 'H5AD_INPUT_FILES', type=pathlib.Path, dest='input_h5ad_files',
                         required=True, help="paths of existing matrix files in h5ad format (including file names)")
+    parser.add_argument('-b', '--blacklist', metavar='BLACKLIST_FILE', type=pathlib.Path, default=None,
+                        help="path to the blacklist file in bed format (default is None, no blacklist will be applied)")
+    parser.add_argument('-f', '--atac-feature', metavar='N_FEATURES_ATAC', dest='n_features_atac', type=int, default=500000,
+                        help="number of most variable features to select for ATAC data (default: 500000)")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.dimred_atac.h5ad",
                         help="path and name of the output h5ad file")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -54,6 +57,8 @@ def main():
 
     print("\n===== INPUT H5AD FILES =====")
     input_h5ad_file = args.input_h5ad_files
+    blacklist_path = args.blacklist
+    n_features_atac = args.n_features_atac
     output =args.out
 
     # print info on the available matrices
@@ -71,12 +76,16 @@ def main():
     print(f"\nProcessing AnnData object in folder {input_h5ad_file} ... ", end ='')
 
     adata_atac= snap.read(input_h5ad_file,backed=None)
-    print(adata_atac.obs)
-    print(adata_atac.var)
     print("Done!")
     print(f"MuData matrix for combined samples has {adata_atac.shape[0]} cells and {adata_atac.shape[1]} fragments")
 
+# --------------------------------------------------------------------------------------------------------------------
+#                           FILTERS CELLS BASED ON MITO AND DUPLICATION RATES
+# --------------------------------------------------------------------------------------------------------------------
 
+    #obs_bool = (adata_atac.obs['frac_dup'] <= 0.2) & (adata_atac.obs['frac_mito'] <= 0.3)
+    #adata_atac = adata_atac[obs_bool, :].copy()
+    #print(f"After filtering, MuData matrix for combined samples has {adata_atac.shape[0]} cells and {adata_atac.shape[1]} fragments")
 # --------------------------------------------------------------------------------------------------------------------
 #                           DIMENSIONALITY REDUCTION
 # --------------------------------------------------------------------------------------------------------------------
@@ -88,9 +97,9 @@ def main():
 
     # Normalize the data using TF-IDF normalization
     print("\nNormalizing data using TF-IDF normalization ... ", end='')
-    snap.pp.select_features(adata_atac, n_features=500000)
+    snap.pp.select_features(adata_atac, n_features=n_features_atac, blacklist=blacklist_path, inplace=True)
     print(adata_atac)
-    snap.tl.spectral(adata_atac,n_comps=30,features="selected",random_state=0,inplace=True)
+    snap.tl.spectral(adata_atac,n_comps=30,features="selected",weighted_by_sd=True, random_state=0,inplace=True)
     print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -101,7 +110,7 @@ def main():
     # Importantly set groupby='variable to preserve' parameter if you want to preserve that difference in the batch correction
     print("\n===== PERFORM BATCH CORRECTION =====")
     print("Performing batch correction ... ", end='')
-    snap.pp.mnc_correct(adata_atac, batch="sample", key_added='X_spectral')
+    snap.pp.mnc_correct(adata_atac, batch="sample",n_neighbors=5, n_clusters=40, use_rep='X_spectral', key_added='X_spectral_mnn')
     print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -112,9 +121,10 @@ def main():
     print("\n===== PERFORM CLUSTERING =====")
     print("Performing clustering ... ", end='')
     snap.pp.knn(adata_atac)
-    snap.tl.leiden(adata_atac,key_added='leiden_tile',inplace=True)
+    snap.tl.leiden(adata_atac, resolution=1, key_added='leiden_tile',inplace=True)
     print("Done!")
 
+    print(adata_atac)
 # --------------------------------------------------------------------------------------------------------------------
 #                           COMPUTE AND VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------

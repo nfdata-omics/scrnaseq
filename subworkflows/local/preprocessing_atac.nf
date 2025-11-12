@@ -10,6 +10,9 @@ workflow ATAC_PREPROCESSING {
     fragments_index
     nucleosome_threshold
     tss_threshold
+    min_fragments_counts
+    max_fragments_counts
+    n_features_atac
     blacklist_path
     cell_annotation_meta_ch
 
@@ -24,6 +27,8 @@ workflow ATAC_PREPROCESSING {
             fragments_index,
             nucleosome_threshold,
             tss_threshold,
+            min_fragments_counts,
+            max_fragments_counts,
             blacklist_path
 
         )
@@ -31,7 +36,9 @@ workflow ATAC_PREPROCESSING {
 
 
         DIMENSIONALITY_REDUCTION_ATAC (
-            QUALITY_FILTERING_ATAC.out.h5ad
+            QUALITY_FILTERING_ATAC.out.h5ad,
+            params.n_features_atac,
+            blacklist_path
         )
         ch_versions = ch_versions.mix(DIMENSIONALITY_REDUCTION_ATAC.out.versions)
 

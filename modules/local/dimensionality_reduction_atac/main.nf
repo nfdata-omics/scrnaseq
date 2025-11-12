@@ -7,7 +7,8 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
 
     input:
     tuple val(meta), path (input_h5ad)
-
+    val  n_features_atac
+    path blacklist_path
 
     output:
     tuple val(meta), path("*.dimred_atac.h5ad"), emit: h5ad
@@ -25,7 +26,7 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
     export XDG_CONFIG_HOME=/tmp
     export XDG_CACHE_HOME=/tmp
 
-    dimensionalityreduction_atac.py  -ad $input_h5ad
+    dimensionalityreduction_atac.py  -ad $input_h5ad -b $blacklist_path -f $n_features_atac
 
 
     cat <<-END_VERSIONS >> versions.yml
