@@ -2,8 +2,8 @@ process MOFA_INTEGRATION {
     tag "$meta.id"
     label 'process_high'
 
-    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.2'
-
+    container = 'docker.io/nfdata/muon-sc_rnaseq:v.1.0.5'
+    
     input:
     tuple val(meta), path(input_h5mu)
     tuple val(meta), path(input_h5ad_atac)
