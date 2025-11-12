@@ -498,6 +498,9 @@ workflow SCRNASEQ {
             ch_transformed_fragments_index_channel,
             params.nucleosome_threshold,
             params.tss_threshold,
+            params.min_fragments_counts,
+            params.max_fragments_counts,
+            params.n_features_atac,
             blacklist_path,
             cell_annotation_meta_ch
         )
