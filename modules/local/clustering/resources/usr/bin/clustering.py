@@ -58,6 +58,8 @@ def main():
                         help="path and name of excel table with ranked marker genes for each cluster and resolution")
     parser.add_argument('-csv', '--csv_out', metavar='H5AD_OUTPUT_FILE', default="final_metadata.csv",
                         help="path and name of csv tabel with UMAP coordinates for each cell")
+    parser.add_argument('-res', '--resolution',  dest='set_res', type=float, default=100, 
+                        help="clustering resolution. By default, all the resolution values between 0.1 and 1 are evaluated.")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
                         help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -72,6 +74,7 @@ def main():
     output = args.out
     output_excel= args.excel_out
     output_csv= args.csv_out
+    set_res = args.set_res
 
     # print info on the available matrices
     print("Reading combined count matrix from the following file:")
@@ -106,7 +109,13 @@ def main():
     print("\nComputing Leiden clustering at different resolutions")
 
     clustering_labels = []
-    for res in np.round(np.arange(0.1, 1.1, 0.1), 2):
+    # If a specific resolution parameter is provided use that parameter, otherwise test them all
+    if set_res != 100:
+        resolutions = [set_res]
+    else:
+        resolutions = np.round(np.arange(0.1, 1.1, 0.1), 2)
+    
+    for res in resolutions:
         clustering_labels.append("leiden_{}".format(res))
         if "leiden_{}".format(res) in gex.obs:
             print("leiden_{}".format(res) + " already exists... going on with next resolution.")
@@ -118,12 +127,17 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
     with pd.ExcelWriter(output_excel) as writer:
+        # If a specific resolution parameter is provided use that parameter, otherwise test them all
+        if set_res != 100:
+            resolutions = [set_res]
+        else:
+            resolutions = np.round(np.arange(0.1, 1.1, 0.1), 2)
 
-        for res in np.round(np.arange(0.1, 1.0, 0.3),2):
+        for res in resolutions:
             print("\nComputing top 20 marker genes for each clusters at resolution {}".format(res))
             #Compute top 20 marker genes for each cluster, expects logarithmized data
-            sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res),method="wilcoxon",key_added="leiden_{}".format(res), n_genes=100,pts=True)
-            df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.25,key="leiden_{}".format(res))
+            sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res), method="wilcoxon", key_added="leiden_{}".format(res), n_genes=100,pts=True)
+            df = sc.get.rank_genes_groups_df(gex, group=None, pval_cutoff=0.05, log2fc_min=0.25, key="leiden_{}".format(res))
             #df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
 
             print("\nSaving top 20 marker genes for each cluster and resolution in excel file")
@@ -147,7 +161,7 @@ def main():
     # Visualize Leiden clustering on UMAP plot
 
     print("\nVisualized Leiden clustering on UMAP plot")
-    sc.pl.umap(gex, color=clustering_labels ,legend_loc='on data',show=False)
+    sc.pl.umap(gex, color=clustering_labels, legend_loc='on data', show=False)
     plt.savefig(os.path.join(args.results,'cluster_id.pdf'), bbox_inches='tight', dpi=300)
     plt.close()
 

@@ -457,7 +457,14 @@ workflow SCRNASEQ {
     DOUBLETS_QUALITYFILTERING (
         ch_rds_selected,
         CONVERT_MUDATA.out.h5mu,
-        params.mt_threshold
+        params.mt_threshold,
+        params.min_umi_gex,
+        params.max_umi_gex,
+        params.min_genes_gex,
+        params.max_genes_gex,
+        params.min_cells_gex,
+        params.min_features_adt,
+        params.min_counts_adt
     )
     ch_versions = ch_versions.mix(DOUBLETS_QUALITYFILTERING.out.ch_versions)
 
@@ -524,7 +531,8 @@ workflow SCRNASEQ {
     // MODULES: Run clustering for GEX
     //
     CLUSTERING (
-        INTEGRATION_MODALITIES.out.h5mu_out
+        INTEGRATION_MODALITIES.out.h5mu_out,
+        params.resolution
     )
     ch_versions = ch_versions.mix(CLUSTERING.out.versions)
 
