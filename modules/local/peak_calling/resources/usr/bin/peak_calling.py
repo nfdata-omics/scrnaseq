@@ -85,55 +85,55 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ META DATA
 # --------------------------------------------------------------------------------------------------------------------
-
-    # Read metadata from an Excel file if provided
-    if input_meta_file:
-        print("\n===== READING META DATA =====")
-        print(f"Reading metadata from {input_meta_file} ... ", end='')
-        meta_data = pd.read_csv(input_meta_file)
-        print(meta_data)
-        print("Done!")
-
-
-        def transform_id(x):
-            # remove '_filtered'
-            x = x.replace('_filtered', '')
-            # split su '_'
-            parts = x.split('_')
-            # rebuild ad  "sample:cellID"
-            # parts[-1] is the sample, the remaining is the cellID
-            sample = parts[-1]
-            cell_id = "_".join(parts[:-1])
-            return f"{sample}:{cell_id}"
+    
+    # # Read metadata from an Excel file if provided
+    # if input_meta_file:
+    #     print("\n===== READING META DATA =====")
+    #     print(f"Reading metadata from {input_meta_file} ... ", end='')
+    #     meta_data = pd.read_csv(input_meta_file)
+    #     print(meta_data)
+    #     print("Done!")
 
 
-        meta_data['cell_id'] = meta_data['Unnamed: 0'].apply(transform_id)
+    #     def transform_id(x):
+    #         # remove '_filtered'
+    #         x = x.replace('_filtered', '')
+    #         # split su '_'
+    #         parts = x.split('_')
+    #         # rebuild ad  "sample:cellID"
+    #         # parts[-1] is the sample, the remaining is the cellID
+    #         sample = parts[-1]
+    #         cell_id = "_".join(parts[:-1])
+    #         return f"{sample}:{cell_id}"
 
 
-        meta_data = meta_data.set_index('cell_id')
+    #     meta_data['cell_id'] = meta_data['Unnamed: 0'].apply(transform_id)
 
-        print(meta_data.head())
 
-        meta_data.index = meta_data.index.astype(str)
-        adata_atac.obs.index = adata_atac.obs.index.astype(str)
+    #     meta_data = meta_data.set_index('cell_id')
 
-        # Find the common cells between adata_atac and metadata
-        common_cells = adata_atac.obs.index.intersection(meta_data.index)
-        print(f"\nFound {len(common_cells)} common cells between AnnData and metadata.")
+    #     print(meta_data.head())
 
-        # Keep only the common cells in adata_atac
-        adata_atac = adata_atac[common_cells].copy()
+    #     meta_data.index = meta_data.index.astype(str)
+    #     adata_atac.obs.index = adata_atac.obs.index.astype(str)
 
-        # Filter metadata to include only those common cells
-        meta_data_filtered = meta_data.loc[meta_data.index.isin(common_cells)]
+    #     # Find the common cells between adata_atac and metadata
+    #     common_cells = adata_atac.obs.index.intersection(meta_data.index)
+    #     print(f"\nFound {len(common_cells)} common cells between AnnData and metadata.")
 
-        # Join metadata into adata_atac.obs
-        adata_atac.obs = adata_atac.obs.join(meta_data_filtered, how='left')
+    #     # Keep only the common cells in adata_atac
+    #     adata_atac = adata_atac[common_cells].copy()
 
-        print("Done!")
+    #     # Filter metadata to include only those common cells
+    #     meta_data_filtered = meta_data.loc[meta_data.index.isin(common_cells)]
 
-    else:
-        print("No metadata file provided. Continuing without metadata.")
+    #     # Join metadata into adata_atac.obs
+    #     adata_atac.obs = adata_atac.obs.join(meta_data_filtered, how='left')
+
+    #     print("Done!")
+
+    # else:
+    #     print("No metadata file provided. Continuing without metadata.")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -143,12 +143,12 @@ def main():
     # Perform peak calling with MACS3
     print("\n===== COMPUTE PEAK CALLING =====")
     print("Computing peak calling ... ", end='')
-    adata_atac.obs['gex:celltypist:Immune_All_High:majority_voting'] = (
-    adata_atac.obs['gex:celltypist:Immune_All_High:majority_voting']
-    .astype(str)
-    .str.replace('/', '_')
-    )
-    snap.tl.macs3(adata_atac,groupby='gex:celltypist:Immune_All_High:majority_voting',call_broad_peaks=False,inplace=True)
+    # adata_atac.obs['gex:celltypist:Immune_All_High:majority_voting'] = (
+    # adata_atac.obs['gex:celltypist:Immune_All_High:majority_voting']
+    # .astype(str)
+    # .str.replace('/', '_')
+    # )
+    snap.tl.macs3(adata_atac,groupby='leiden_tile',call_broad_peaks=False,inplace=True)
     print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -166,10 +166,10 @@ def main():
 #                           SAVE TILE MATRIX AS LAYER
 # --------------------------------------------------------------------------------------------------------------------
 
-    print("\n===== SAVE TILE MATRIX AS LAYER =====")
-    print("Saving tile matrix as layer ... ", end='')
-    adata_atac.layers["tile"] = adata_atac.X.copy()
-    print("Done!")
+    #print("\n===== SAVE TILE MATRIX AS LAYER =====")
+    #print("Saving tile matrix as layer ... ", end='')
+    #adata_atac.layers["tile"] = adata_atac.X.copy()
+    #print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           CREATE PEAKS COUNT MATRIX
@@ -178,16 +178,18 @@ def main():
     # Create peaks count matrix
     print("\n===== CREATE PEAKS COUNT MATRIX =====")
     print("Creating peaks count matrix ... ", end='')
-    #snap.pp.make_peak_matrix(adata_atac, use_rep="macs3",inplace=True)
     peak_matrix = snap.pp.make_peak_matrix(adata_atac,use_rep=peaks_list,inplace=False)
     print("Done!")
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING OUTPUT FILE =====")
-    print(f"Saving atac data in {output_peak}")
-    #adata_atac.write(output_tile)
+    print(f"Saving peak matrix in {output_peak}")
     peak_matrix.write(output_peak)
+    print("Done!")
+
+    print(f"Saving tile matrix in {output_tile}")
+    adata_atac.write(output_tile)
     print("Done!")
 
 #####################################################################################################
