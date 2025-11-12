@@ -97,12 +97,13 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
     print("\n===== FEATURE SELECTION =====")
-    # select highly=variable genes for each sample
-    print("\nSelecting highly-variable genes are selected within each batch separately and merged")
-    sc.pp.highly_variable_genes(gex, min_mean=0.0125, max_mean=3, min_disp=0.5, subset=False)
+    # Selecting genes that exhibit high variability consistently across different batches (i.e. samples)
+    print("\nSelecting highly-variable genes")
+    #sc.pp.highly_variable_genes(gex, min_mean=0.0125, max_mean=3, min_disp=0.5, subset=False)
+    top_10_percent_genes = int(0.1 * gex.shape[1])
+    sc.pp.highly_variable_genes(gex, n_top_genes=top_10_percent_genes, batch_key="sample")
     num_hvg = gex.var['highly_variable'].sum()
-    print("\nNumber of highly variable genes identified: ", num_hvg)
-
+    print("\nNumber of highly variable genes (top 10%) identified: ", num_hvg)
 
     print("\n===== DIMENSIONALITY REDUCTION =====")
     print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
