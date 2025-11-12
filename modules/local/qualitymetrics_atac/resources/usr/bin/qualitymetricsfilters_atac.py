@@ -43,10 +43,9 @@ def main():
                         required=True, help="paths of existing fragment file in tsv format")
     parser.add_argument('-fri','--input-fragment-files-index',metavar= 'FRAGMNET_FILES_INDEX', type=pathlib.Path,nargs='+', dest='input_fragment_files_index',
                         required=True, help="paths of existing index fragment file in tsv format")
-    parser.add_argument('-n', '--nucleosome_filter', dest='nucleosome_threshold',type=float, default=2, help="parameters used to filter cells based on nucleosome signal")
-    parser.add_argument('-t', '--tss_filter', dest='tss_threshold', type=float,default=1, help="parameters used to filter cells based on TSS score")
-    parser.add_argument('-mif', '--min-fragments-counts', dest='min_fragments_counts', type=int, default=5000,
-                        help="minimum number of fragments per cell to keep (default is 5000)")
+    parser.add_argument('-t', '--tss_filter', dest='tss_threshold', type=float,default=2, help="parameters used to filter cells based on TSS score")
+    parser.add_argument('-mif', '--min-fragments-counts', dest='min_fragments_counts', type=int, default=1000,
+                        help="minimum number of fragments per cell to keep (default is 1000)")
     parser.add_argument('-maf', '--max-fragments-counts', dest='max_fragments_counts', type=int, default=100000,
                         help="maximum number of fragments per cell to keep (default is 100000)")
     parser.add_argument('-b', '--blacklist', metavar='BLACKLIST_FILE', type=pathlib.Path, default=None,
@@ -66,7 +65,6 @@ def main():
     input_fragment_files = [str(f) for f in args.input_fragment_files]  
     input_fragment_files_index = [str(f) for f in args.input_fragment_files_index]
     output =args.out
-    nucleosome_threshold = args.nucleosome_threshold
     tss_threshold = args.tss_threshold
     min_fragments_counts = args.min_fragments_counts
     max_fragments_counts = args.max_fragments_counts

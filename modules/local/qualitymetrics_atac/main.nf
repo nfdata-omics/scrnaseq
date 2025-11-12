@@ -8,7 +8,6 @@ process QUALITY_FILTERING_ATAC  {
     input:
     tuple val(meta), path (input_fragment_file)
     tuple val(meta), path (input_fragment_index_file)
-    val nucleosome_threshold
     val tss_threshold
     val min_fragments_counts
     val max_fragments_counts
