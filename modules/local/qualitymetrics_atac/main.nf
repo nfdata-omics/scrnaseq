@@ -6,10 +6,12 @@ process QUALITY_FILTERING_ATAC  {
 
 
     input:
-    tuple val(meta), path (input_fragment_file, stageAs: "?/*")
-    tuple val(meta), path (input_fragment_index_file, stageAs: "?/*")
+    tuple val(meta), path (input_fragment_file)
+    tuple val(meta), path (input_fragment_index_file)
     val nucleosome_threshold
     val tss_threshold
+    val min_fragments_counts
+    val max_fragments_counts
     path blacklist_path
 
     output:
@@ -28,7 +30,7 @@ process QUALITY_FILTERING_ATAC  {
     export XDG_CONFIG_HOME=/tmp
     export XDG_CACHE_HOME=/tmp
 
-    qualitymetricsfilters_atac.py  -fr ${input_fragment_file.join(' ')} -fri $input_fragment_index_file  -id ${meta.collect{ it.id }.join(' ')} -n $nucleosome_threshold -t $tss_threshold -b $blacklist_path
+    qualitymetricsfilters_atac.py  -fr ${input_fragment_file.join(' ')} -fri ${input_fragment_index_file.join(' ')}  -id ${meta.collect{ it.id }.join(' ')} -n $nucleosome_threshold -t $tss_threshold -mif $min_fragments_counts -maf $max_fragments_counts -b $blacklist_path
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
