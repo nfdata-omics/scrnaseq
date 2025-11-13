@@ -7,11 +7,13 @@
 import warnings
 import argparse                     # command line arguments parser
 import os                           # filesystem utilities
+import re                           # hanlding regex
 import pathlib                      # library for handle filesystem paths
 import matplotlib.pyplot as plt     # library for visualization
 import pandas as pd                 # library for data analysis and manipulation
 import scanpy as sc                 # single-cell data processing
 import mudata as md
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 warnings.filterwarnings("ignore")
@@ -144,6 +146,18 @@ def main():
     sc.pl.umap(gex, color ='sample', show=False)
     plt.savefig(os.path.join(args.results, 'umap_plot_GEX.pdf'), bbox_inches='tight', dpi=300)
     plt.close()
+
+    # UMAP plot highlighting metadata features (if present)
+    # Metadata features have been renamed as meta_* in the convert_mudata step
+    pattern = re.compile(r"meta_.*")
+    meta_cols = [col for col in gex.obs.columns if pattern.match(col)]
+    if len(meta_cols) > 0:
+        with PdfPages(os.path.join(args.results, "umap_plot_GEX_metadata.pdf")) as pdf:
+            for col in meta_cols:
+                plt.figure(figsize=(45, 35))
+                sc.pl.umap(gex, color=col, show=False)
+                pdf.savefig(bbox_inches="tight", dpi=300)
+                plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE GEX DATA INTO MUDATA OBJECT
