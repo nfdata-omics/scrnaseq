@@ -31,6 +31,7 @@ include { CELL_ANNOTATION                                   } from '../modules/l
 include { INTEGRATION_MODALITIES                            } from '../subworkflows/local/integration_modalities'
 include { CLUSTERING                                        } from '../modules/local/clustering'
 include { CLUSTREE                                          } from '../modules/local/clustree'
+include { ENRICH_MARKERS                                    } from '../modules/local/enrich_markers'
 include { DIFFERENTIAL_ANALYSIS                             } from '../modules/local/differential_analysis'
 
 workflow SCRNASEQ {
@@ -531,7 +532,6 @@ workflow SCRNASEQ {
         ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
     }
 
-    // PARTE INTEGRATION_MODALITIES
     //
     // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
     //
@@ -560,6 +560,20 @@ workflow SCRNASEQ {
         CLUSTERING.out.metadata_final
     )
     ch_versions = ch_versions.mix(CLUSTREE.out.versions)
+
+    //
+    // MODULES: Enrichment on marker genes for a selected resolution
+    //
+    if ( params.resolution != 100 ) {
+        ch_enrich_collection = Channel.fromPath(params.enrich_collection, checkIfExists: true)
+        ENRICH_MARKERS (
+            CLUSTERING.out.ranked_genes,
+            ch_enrich_collection,
+            params.resolution
+        )
+        ch_versions = ch_versions.mix(ENRICH_MARKERS.out.versions)
+    }
+
 
     // SUBWORKFLOW: Atac preprocessing
 

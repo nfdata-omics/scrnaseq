@@ -159,7 +159,9 @@ def main():
         if 'sample' in meta_df.columns:
             adata.obs['sample'] = adata.obs['sample'].astype(str).str.replace('_filtered', '', regex=False).str.replace('_parse', '', regex=False).str.strip()
             meta_df['sample'] = meta_df['sample'].astype(str)
-            adata.obs = adata.obs.join(meta_df.set_index('sample'), on='sample', how='left').astype(str)
+            # Add prefix to the column names in meta_df (excluding 'sample' since it's used for joining)
+            prefixed_meta_df = meta_df.add_prefix('meta_').rename(columns={'meta_sample': 'sample'})
+            adata.obs = adata.obs.join(prefixed_meta_df.set_index('sample'), on='sample', how='left').astype(str)
             print("Sample metadata joined to MuData obs.")
         else:
             print("No 'sample' column found in metadata CSV; skipping join.")
