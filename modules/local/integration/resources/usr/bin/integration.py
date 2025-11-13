@@ -7,6 +7,7 @@
 import warnings
 import argparse                     # command line arguments parser
 import os                           # filesystem utilities
+import re                           # hanlding regex
 import pathlib                      # library for handle filesystem paths
 import matplotlib.pyplot as plt     # library for visualization
 import pandas as pd                 # library for data analysis and manipulation
@@ -14,6 +15,7 @@ import scanpy as sc                 # single-cell data processing
 import scanpy.external as sce       # library for harmony integration
 import mudata as md
 import muon as mu
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 warnings.filterwarnings("ignore")
@@ -119,6 +121,42 @@ def main():
     mu.pl.embedding(gex, color='sample', basis='X_umap', show=False)
     plt.savefig(os.path.join(args.results,'Harmony_corrected_UMAP_plot_GEX.pdf'), bbox_inches='tight', dpi=300)
     plt.close()
+
+    # UMAP plots highlighting n_genes and mito_percent distribution
+    plt.figure(figsize=(55, 55))
+    sc.pl.umap(gex, color=["n_genes_by_counts", "total_counts", "pct_counts_mt", "pct_counts_ribo"], wspace=0.5, ncols=2)
+    plt.savefig(os.path.join(args.results,'Harmony_corrected_UMAP_plot_GEX_QC.pdf'), bbox_inches='tight', dpi=300)
+    plt.close()
+
+    # UMAP plot highlighting cell cycle phases (if present)
+    if 'phase' in gex.obs.columns:
+        plt.figure(figsize=(45, 35))
+        mu.pl.embedding(gex, color='phase', basis='X_umap', show=False)
+        plt.savefig(os.path.join(args.results,'Harmony_corrected_UMAP_plot_GEX_phase.pdf'), bbox_inches='tight', dpi=300)
+        plt.close()
+
+    # UMAP plot highlighting celltypist annotation (if present)
+    pattern = re.compile(r"celltypist:.*:majority_voting")
+    celltypist_cols = [col for col in gex.obs.columns if pattern.match(col)]
+    if len(celltypist_cols) > 0:
+        with PdfPages(os.path.join(args.results, "Harmony_corrected_UMAP_plot_GEX_celltypist.pdf")) as pdf:
+            for col in celltypist_cols:
+                plt.figure(figsize=(45, 35))
+                mu.pl.embedding(gex, color=col, basis="X_umap", show=False)
+                pdf.savefig(bbox_inches="tight", dpi=300)
+                plt.close()
+
+    # UMAP plot highlighting metadata features (if present)
+    # Metadata features have been renamed as meta_* in the convert_mudata step
+    pattern = re.compile(r"meta_.*")
+    meta_cols = [col for col in gex.obs.columns if pattern.match(col)]
+    if len(meta_cols) > 0:
+        with PdfPages(os.path.join(args.results, "Harmony_corrected_UMAP_plot_GEX_metadata.pdf")) as pdf:
+            for col in meta_cols:
+                plt.figure(figsize=(45, 35))
+                mu.pl.embedding(gex, color=col, basis="X_umap", show=False)
+                pdf.savefig(bbox_inches="tight", dpi=300)
+                plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE GEX DATA INTO MUDATA OBJECT
