@@ -10,11 +10,14 @@ process INTEGRATION {
     val min_dist_harmony
 
     output:
-    tuple val(meta), path("*.integrated.h5mu"),     emit: h5mu
-    path "Harmony_UMAP_coordinates_GEX.csv" ,       emit: csv_harmony
-    path "Harmony_corrected_UMAP_plot_GEX.pdf",     emit: graph_UMAP_integrated
-    path "versions.yml",                            emit: versions
-
+    tuple val(meta), path("*.integrated.h5mu")           , emit: h5mu
+    path "versions.yml"                                  , emit: versions
+    path "Harmony_UMAP_coordinates_GEX.csv"              , emit: csv_harmony
+    path "Harmony_corrected_UMAP_plot_GEX.pdf"           , emit: graph_UMAP_integrated
+    path "Harmony_corrected_UMAP_plot_GEX_QC.pdf"        , emit: graph_UMAP_integrated_QC
+    path "Harmony_corrected_UMAP_plot_GEX_phase.pdf"     , emit: graph_UMAP_integrated_phase, optional: true
+    path "Harmony_corrected_UMAP_plot_GEX_celltypist.pdf", emit: graph_UMAP_integrated_celltypist, optional: true
+    path "Harmony_corrected_UMAP_plot_GEX_metadata.pdf"  , emit: graph_UMAP_integrated_metadata, optional: true
 
     when:
     task.ext.when == null || task.ext.when

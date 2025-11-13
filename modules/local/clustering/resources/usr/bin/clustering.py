@@ -134,26 +134,16 @@ def main():
             resolutions = np.round(np.arange(0.1, 1.1, 0.1), 2)
 
         for res in resolutions:
-            print("\nComputing top 20 marker genes for each clusters at resolution {}".format(res))
-            #Compute top 20 marker genes for each cluster, expects logarithmized data
-            sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res), method="wilcoxon", key_added="leiden_{}".format(res), n_genes=100,pts=True)
+            print("\nComputing marker genes for each clusters at resolution {}".format(res))
+            #Compute marker genes for each cluster, expects logarithmized data
+            sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res), method="wilcoxon", key_added="leiden_{}".format(res), pts=True)
             df = sc.get.rank_genes_groups_df(gex, group=None, pval_cutoff=0.05, log2fc_min=0.25, key="leiden_{}".format(res))
             #df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
 
-            print("\nSaving top 20 marker genes for each cluster and resolution in excel file")
+            print("\nSaving marker genes for each cluster and resolution in excel file")
             df.to_excel(writer, sheet_name=f"Leiden_{res}", index=False)
             print("Done!")
 
-
-        print("\nComputing top 20 marker genes for each sample {}".format(res))
-        #Compute top 20 marker genes for each sample, expects logarithmized data
-        sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res),method="wilcoxon",key_added="leiden_{}".format(res),pts=True)
-        #df = sc.get.rank_genes_groups_df(gex, group=None,pval_cutoff=0.05, log2fc_min=0.5,key="sample_marker")
-        
-
-        #print("\nSaving top 20 marker genes for each cluster and resolution in excel file")
-        #df.to_excel(writer, sheet_name="Sample_Markers",index=False)
-        #print("Done!")
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
@@ -161,8 +151,12 @@ def main():
     # Visualize Leiden clustering on UMAP plot
 
     print("\nVisualized Leiden clustering on UMAP plot")
+    if set_res != 100:
+        plot_name = "cluster_id_" + str(set_res) + ".pdf"
+    else:
+        plot_name = "cluster_id.pdf"
     sc.pl.umap(gex, color=clustering_labels, legend_loc='on data', show=False)
-    plt.savefig(os.path.join(args.results,'cluster_id.pdf'), bbox_inches='tight', dpi=300)
+    plt.savefig(os.path.join(args.results, plot_name), bbox_inches='tight', dpi=300)
     plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------

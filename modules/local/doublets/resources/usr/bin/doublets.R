@@ -40,4 +40,4 @@ cell_annotation <- as.data.frame(sce@colData)
 
 #Save csv file
 output_file <- paste(output_dir, "/doublets_score.csv", sep = "")
-write.csv(cell_annotation, output_file)
+write.csv(cell_annotation, output_file, quote=F)
