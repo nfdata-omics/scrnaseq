@@ -176,7 +176,6 @@ def main():
 # Visualize quality metrics: highest expressed genes, number of genes expressed, total counts per cell and fraction of mitochondrial, ribosomal and hemoglobin genes
 
         fig, ax = plt.subplots(figsize=(35,25))
-
         print("\nVisualized the number of cells for each pool before filtering")
         sns.histplot(gex.obs, x="sample", stat="count", ax=ax)
         locs, labels = plt.xticks()
