@@ -151,8 +151,8 @@ def main():
         else:
             print("No 'Barcode' column found in metadata CSV; skipping join.")
 
-        if meta_df is not None:
-            print("\n===== ADDING SAMPLE METADATA TO OBS =====")
+    if meta_df is not None:
+        print("\n===== ADDING SAMPLE METADATA TO OBS =====")
 
         if 'sample' in meta_df.columns:
             adata.obs['sample'] = adata.obs['sample'].astype(str).str.replace('_filtered', '', regex=False).str.replace('_parse', '', regex=False).str.strip()
