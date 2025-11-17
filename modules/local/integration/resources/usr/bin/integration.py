@@ -117,8 +117,8 @@ def main():
 
     # Visualize batch-corrected UMAP plot
     print("\nVisualized batch-corrected UMAP plot")
-    plt.figure(figsize=(14, 10))
-    mu.pl.embedding(gex, color ='sample', basis= 'X_umap', legend_loc='on data', show=False)
+    plt.figure(figsize=(45,35))
+    mu.pl.embedding(gex, color ='sample', basis= 'X_umap', show=False)
     plt.savefig(os.path.join(args.results,'Harmony_corrected_UMAP_plot_GEX.pdf'), bbox_inches='tight', dpi=300)
     plt.close()
 
