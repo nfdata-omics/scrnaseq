@@ -37,7 +37,8 @@ sce <- scDblFinder(sce, sample = "sample")
 
 # Defining the output file path in the specified directory
 cell_annotation <- as.data.frame(sce@colData)
+cell_annotation = cbind(rownames(cell_annotation), cell_annotation)
 
 #Save csv file
 output_file <- paste(output_dir, "/doublets_score.csv", sep = "")
-write.csv(cell_annotation, output_file, quote=F)
+write.csv(cell_annotation, output_file, quote=F, row.names=F, col.names=TRUE)
