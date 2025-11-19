@@ -934,6 +934,11 @@
                 "cellrangermulti/mkvdjref/vdj_reference/fasta",
                 "cellrangermulti/mkvdjref/vdj_reference/fasta/regions.fa",
                 "cellrangermulti/mkvdjref/vdj_reference/reference.json",
+                "cellrangermulti/mtx_conversions",
+                "cellrangermulti/mtx_conversions/PBMC_10K_CMO_PBMCs_human_1",
+                "cellrangermulti/mtx_conversions/PBMC_10K_CMO_PBMCs_human_1/PBMC_10K_CMO_PBMCs_human_1_raw_matrix.h5ad",
+                "cellrangermulti/mtx_conversions/PBMC_10K_CMO_PBMCs_human_2",
+                "cellrangermulti/mtx_conversions/PBMC_10K_CMO_PBMCs_human_2/PBMC_10K_CMO_PBMCs_human_2_raw_matrix.h5ad",
                 "fastqc",
                 "fastqc/4PLEX_HUMAN_gex_1_fastqc.html",
                 "fastqc/4PLEX_HUMAN_gex_1_fastqc.zip",
@@ -983,9 +988,6 @@
                 "fastqc/PBMC_10K_vdj_1_fastqc.zip",
                 "fastqc/PBMC_10K_vdj_2_fastqc.html",
                 "fastqc/PBMC_10K_vdj_2_fastqc.zip",
-                "parse",
-                "parse/cmo_files",
-                "parse/cmo_files/PBMC_10K_CMO_cmo.csv",
                 "parse/frna_files",
                 "parse/frna_files/4PLEX_HUMAN_frna.csv",
                 "pipeline_info",
@@ -1104,8 +1106,8 @@
                 "transcriptInfo.tab:md5,a27c997fc57e0e26beebb57cde77d986",
                 "versions.yml:md5,871d12d497419f681e7a60fd1af17dba",
                 "regions.fa:md5,b10393dbe8cc3a3a1ebb3636e7369fa2",
-                "PBMC_10K_CMO_cmo.csv:md5,91e024681f273d3581402dcc14f00483",
-                "4PLEX_HUMAN_frna.csv:md5,e45e051360b2f47d294339e9ef1e2842"
+                "PBMC_10K_CMO_PBMCs_human_1_raw_matrix.h5ad:md5,e5cc5a875dd544095b80f93c38b6ce4d",
+                "PBMC_10K_CMO_PBMCs_human_2_raw_matrix.h5ad:md5,02ca5402d2197ffd129bca78ca22a362"
             ]
         ],
         "meta": {
@@ -1626,6 +1628,9 @@
                 "multiqc/multiqc_plots/svg/fastqc_sequence_duplication_levels_plot.svg",
                 "multiqc/multiqc_plots/svg/fastqc_top_overrepresented_sequences_table.svg",
                 "multiqc/multiqc_report.html",
+                "parse",
+                "parse/ocm_files",
+                "parse/ocm_files/10k_Wistar_Rat_ocm.csv",
                 "pipeline_info",
                 "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml"
             ],
@@ -1722,7 +1727,6 @@
                 "multiqc_citations.txt:md5,4c806e63a283ec1b7e78cdae3a923d4f",
                 "multiqc_fastqc.txt:md5,026ffbdf07192dde0ece1347e249beaf",
                 "multiqc_general_stats.txt:md5,5496b8ed2f29e4210018b5a9f1b7dc18",
-                "10k_Wistar_Rat_ocm.csv:md5,718be9212d239955d92d7d619d8111e6"
             ]
         ],
         "meta": {
