@@ -71,12 +71,12 @@ def main():
     parser.add_argument('-mt', '--mt-thresold', dest='mt_threshold', type=float, default=15, help="parameters used to filter cells based on mithocondrial gene content")
     parser.add_argument('-min', '--min-umi', dest='min_umi_gex', type=int, default=1400,
                         help="minimum number of UMI per cell to keep (default is 1400)")
-    parser.add_argument('-max', '--max-umi', dest='max_umi_gex', type=int, default=15000,
-                        help="maximum number of UMI per cell to keep (default is 15000)")
+    parser.add_argument('-max', '--max-umi', dest='max_umi_gex', type=int, default=50000,
+                        help="maximum number of UMI per cell to keep (default is 50000)")
     parser.add_argument('-ming', '--min-genes', dest='min_genes_gex', type=int, default=200,
                         help="minimum number of genes per cell to keep (default is 200)")
-    parser.add_argument('-maxg', '--max-genes', dest='max_genes_gex', type=int, default=5000,
-                        help="maximum number of genes per cell to keep (default is 5000)")
+    parser.add_argument('-maxg', '--max-genes', dest='max_genes_gex', type=int, default=8000,
+                        help="maximum number of genes per cell to keep (default is 8000)")
     parser.add_argument('-minc', '--min-cells', dest='min_cells_gex', type=int, default=5,
                         help="minimum number of cells per gene to keep (default is 5)")
     parser.add_argument('-minf', '--min-features-adt', dest='min_features_adt', type=int, default=3,
@@ -237,9 +237,9 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
         #Hard filtering based on total counts, number of genes expressed and fraction of mitochondrial genes
-        gex.obs["total_counts_outlier"] = gex.obs["total_counts"] > max_umi_gex
+        gex.obs["total_counts_outlier"] = ((gex.obs["total_counts"] < min_umi_gex ) | (gex.obs["total_counts"] > max_umi_gex))
         gex.obs["n_genes_by_counts_outlier"] = ((gex.obs["n_genes_by_counts"] < min_genes_gex) | (gex.obs["n_genes_by_counts"] > max_genes_gex))
-        gex.obs["mt_outlier"] = is_outlier(gex, "pct_counts_mt", 3) | ( gex.obs["pct_counts_mt"] > mt_threshold )
+        gex.obs["mt_outlier"] = gex.obs["pct_counts_mt"] > mt_threshold
 
         gex.obs["hard_filter_gex"] = (gex.obs["total_counts_outlier"] | gex.obs["n_genes_by_counts_outlier"] | gex.obs["mt_outlier"])
 
@@ -268,10 +268,11 @@ def main():
         print('Filter low quality cells on the basis of number of counts per barcode (count depth),number of genes per barcode of mitochondrial, and fraction of counts from mitochondrial genes per barcode')
 
         #Filter based on MIN_COUNT
-        mu.pp.filter_obs(gex, 'total_counts',lambda x: x >= min_umi_gex)
+        mu.pp.filter_obs(gex, 'total_counts',lambda x: (x >= min_umi_gex) & (x <= max_umi_gex))
 
         #Filter based on MIN_GENES
-        mu.pp.filter_obs(gex, 'n_genes_by_counts',lambda x: x >= min_genes_gex)
+        mu.pp.filter_obs(gex, 'n_genes_by_counts',lambda x: (x >= min_genes_gex) & (x <= max_genes_gex))
+
 
         print(f"Count matrix for combined samples has {gex.shape[0]} cells and {gex.shape[1]} genes after filtering")
         #Filter based on MT_PERCENTAGE
