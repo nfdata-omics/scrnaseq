@@ -30,6 +30,11 @@ sce_object <- arguments$args[1]
 # Importing SingleCellExperiment object
 sce <- readRDS(sce_object)
 print(sce)
+
+# Remove columns starting with "fastq"
+fastq_cols <- grep("^fastq", colnames(colData(sce)), value = TRUE)
+colData(sce) <- colData(sce)[, !(colnames(colData(sce)) %in% fastq_cols)]
+
 names(assays(sce)) <- "counts"
 
 #Compute doublets
