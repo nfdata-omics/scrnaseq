@@ -90,6 +90,13 @@ def main():
         adata= sc.read_h5ad(input_file)
         print("Done!")
         print(f"Gex count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes")
+
+        # Find the obs columns to remove
+        cols_to_remove = [col for col in adata.obs.columns if col.startswith("fastq")]
+        # Drop them
+        adata.obs.drop(columns=cols_to_remove, inplace=True)
+        print(f"Gex count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes")
+        
     else:
         print("No valid input file provided. Skipping reading of the count matrix.")
 
