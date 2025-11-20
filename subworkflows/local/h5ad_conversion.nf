@@ -18,7 +18,6 @@ workflow H5AD_CONVERSION {
     // For aligners that don't set is_pooled, default to including them (is_pooled will be null/false)
     //
     ch_concat_h5ad_input = ch_h5ads
-        .filter{ meta, file -> !(meta.is_pooled ?: false) }  // Exclude if is_pooled == true
         .map{ meta, file -> [ [id: 'combined', input_type: meta.input_type], file ]}
         .groupTuple()
 
