@@ -70,7 +70,7 @@ def main():
                         required=True, help="paths of existing matrix files in h5mu format (including file names)")
     parser.add_argument('-d','--input-csv-doublets', metavar= 'CSV_DOUBLETS_TABLE', type=pathlib.Path, dest='input_csv_table',
                         default=pathlib.Path(''), help="paths of existing doublets table in csv format")
-    parser.add_argument('-mt', '--mt-thresold', dest='mt_threshold',type=float,default=10,help="parameters used to filter cells based on mithocondrial gene content")
+    parser.add_argument('-mt', '--mt-thresold', dest='mt_threshold',type=float,default=15,help="parameters used to filter cells based on mithocondrial gene content")
     parser.add_argument('-min', '--min-umi', dest='min_umi_gex', type=int, default=1400,
                         help="minimum number of UMI per cell to keep (default is 1400)")
     parser.add_argument('-max', '--max-umi', dest='max_umi_gex', type=int, default=50000,
