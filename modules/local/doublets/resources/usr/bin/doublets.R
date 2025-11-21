@@ -32,9 +32,13 @@ sce <- readRDS(sce_object)
 print(sce)
 
 # Remove columns starting with "fastq"
-fastq_cols <- grep("^fastq", colnames(colData(sce)), value = TRUE)
-colData(sce) <- colData(sce)[, !(colnames(colData(sce)) %in% fastq_cols)]
-
+fastq_cols <- grep("^fastq", colnames(colData(sce)))
+if (length(fastq_cols) > 0) {
+  # Ensure the result is a data frame
+  colData_subset <- colData(sce)
+  colData_subset <- colData_subset[, -fastq_cols, drop=FALSE]
+  colData(sce) <- colData_subset
+}
 names(assays(sce)) <- "counts"
 
 #Compute doublets
@@ -43,6 +47,7 @@ sce <- scDblFinder(sce, sample = "sample")
 # Defining the output file path in the specified directory
 cell_annotation <- as.data.frame(sce@colData)
 cell_annotation = cbind(rownames(cell_annotation), cell_annotation)
+colnames(cell_annotation)[1] = "cell_barcode"
 
 #Save csv file
 output_file <- paste(output_dir, "/doublets_score.csv", sep = "")
