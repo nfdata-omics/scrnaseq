@@ -234,10 +234,14 @@ def parse_demultiplexed_output_channels(in_ch, pattern) {
         meta_clone.input_type = pattern.contains('raw_') ? 'raw' : 'filtered' // add metadata for conversion workflow
         if ( mtx_files.toString().contains("per_sample_outs") ) {
             def demultiplexed_sample_id = mtx_files.toString().split('/per_sample_outs/')[1].split('/')[0]
+            if ( demultiplexed_sample_id.toString() == meta.id) {
+                return null
+            }
             meta_clone.id = demultiplexed_sample_id.toString()
         }
         [ meta_clone, mtx_files ]
     }                    // check if output is from demultiplexed sample, if yes, correct meta.id for proper conversion naming
+    .filter{ it != null } // remove nulls from previous step
     .groupTuple( by: 0 ) // group it back as one file collection per sample
 
     return out_ch
