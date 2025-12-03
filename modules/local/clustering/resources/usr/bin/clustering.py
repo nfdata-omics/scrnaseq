@@ -95,9 +95,15 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 GEX MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
+    # Extracting gex, handling genes metadata and associated rownames. 
+    # Double assignment is needed in order to keep both the annotations (symbols and ids)
     print("\n===== GEX MODALITY DATA =====")
     gex = mdata.mod['gex']
-    #gex.var_names = gex.var['gene_name'].astype(str)
+    gex.var['gene_id'] = gex.var.index.astype(str)
+    gex.var_names = gex.var['gene_symbols'].astype(str)
+    gex.var.index.name = None
+    gex.var['gene_symbols'] = gex.var.index.astype(str)
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CLUSTERING
 # --------------------------------------------------------------------------------------------------------------------
@@ -138,7 +144,7 @@ def main():
             #Compute marker genes for each cluster, expects logarithmized data
             sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res), method="wilcoxon", key_added="leiden_{}".format(res), pts=True)
             df = sc.get.rank_genes_groups_df(gex, group=None, pval_cutoff=0.05, log2fc_min=0.25, key="leiden_{}".format(res))
-            #df['gene_symbol'] = df['names'].map(gex.var['gene_symbols'].to_dict())
+            
 
             print("\nSaving marker genes for each cluster and resolution in excel file")
             df.to_excel(writer, sheet_name=f"Leiden_{res}", index=False)
