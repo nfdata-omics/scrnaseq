@@ -201,7 +201,8 @@ def main():
 #                           SAVE GEX DATA INTO MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
-    gex.var.reset_index(inplace=True)
+    gex.var['gene_symbols'] = gex.var.index.astype(str)
+    gex.var = gex.var.set_index('gene_id')
     gex.var.index.name = None
     mdata.mod['gex'] = gex
     mdata.update()
