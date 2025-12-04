@@ -282,8 +282,10 @@ If you are using cellranger-multi you have to add the column _feature_type_ to i
 
   > When running cellranger multi, without any VDJ data, users can also skip VDJ automated ref building with: `--skip_cellrangermulti_vdjref`.
 
-- When working with **FFPE data**, a prob set needs to be specified via `--gex_frna_probe_set`. This file is typically
-  [provided by 10x](https://www.10xgenomics.com/support/software/cell-ranger/downloads#probe-set-downloads). E.g. [testing ffpe probe set](../assets/frna_probeset_subset.csv).
+- When working with **FFPE data**:
+  - a probe set needs to be specified via `--gex_frna_probe_set`. This file is typically
+    [provided by 10x](https://www.10xgenomics.com/support/software/cell-ranger/downloads#probe-set-downloads). E.g. [testing ffpe probe set](../assets/frna_probeset_subset.csv).
+  - a GEX reference genome version (e.g. GRCh38, GRCm39) via `--gex_reference_version` must be specified unless a pre-built index is provided via `--cellranger_index`. This **must** match the reference in the probe set, which can be found in the header.
 
 - When working with **Cell Multiplexing Oligos (CMOs)**, a reference file can to be provided via `--gex_cmo_set`. The
   default reference file, as well as a description how to write a custom one, are [available from the 10x documentation](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-3p-multi#cmo-ref). By default, the Cell Ranger's default CMO-set.

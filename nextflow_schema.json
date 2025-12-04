@@ -330,6 +330,10 @@
                     "exists": true,
                     "description": "Provide a probe set for fixed RNA-seq profiling (used with FFPE samples). Please refer to the [10x documentation about probesets](https://www.10xgenomics.com/support/single-cell-gene-expression-flex/documentation/steps/probe-sets/chromium-frp-probe-set-files) for more details."
                 },
+                "gex_reference_version": {
+                    "type": "string",
+                    "description": "Reference version (e.g. GRCh38, GRCm39). Required if `gex_frna_probe_set` is used and `cellranger_index` is not set. Must match the genome version in the `gex_frna_probe_set` file."
+                },
                 "gex_target_panel": {
                     "type": "string",
                     "description": "Provide a panel description for targeted sequencing.",
