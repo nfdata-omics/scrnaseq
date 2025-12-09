@@ -2,13 +2,11 @@ process PEAK_CALLING  {
     tag "$meta.id"
     label 'process_medium'
 
-    container = 'quay.io/biocontainers/snapatac2:2.8.0--py311h284d45d_1'
-
+    container 'quay.io/biocontainers/snapatac2:2.8.0--py311h284d45d_1'
 
     input:
     tuple val(meta), path (input_h5ad)
     path input_meta_file
-
 
     output:
     tuple val(meta), path("matrix.tile_atac.h5ad"), emit: h5ad_tile, optional: true

@@ -2,8 +2,7 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
     tag "$meta.id"
     label 'process_medium'
 
-    container = 'quay.io/biocontainers/snapatac2:2.8.0--py311h284d45d_1'
-
+    container 'quay.io/biocontainers/snapatac2:2.8.0--py311h284d45d_1'
 
     input:
     tuple val(meta), path (input_h5ad)
