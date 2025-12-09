@@ -269,7 +269,7 @@ def main():
 
         #Filter based on MIN_COUNT
         mu.pp.filter_obs(gex, 'total_counts',lambda x: (x >= min_umi_gex) & (x <= max_umi_gex))
-        
+
         #Filter based on MIN_GENES
         mu.pp.filter_obs(gex, 'n_genes_by_counts',lambda x: (x >= min_genes_gex) & (x <= max_genes_gex))
 
@@ -326,8 +326,12 @@ def main():
         print("\n===== COMPUTE QUALITY METRICS {} =====")
         print(f"\nCompute the distribution of ADTs per cells over all samples in {input_h5mu_file}")
 
-        sc.pp.calculate_qc_metrics(pro, inplace=True,log1p=True,percent_top=[20])
-
+        try:
+            sc.pp.calculate_qc_metrics(pro, inplace=True,log1p=True,percent_top=[20])
+            top_proteins = 20
+        except IndexError:
+            sc.pp.calculate_qc_metrics(pro, inplace=True,log1p=True,percent_top=[2])
+            top_proteins = 2
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE QUALITY METRICS
@@ -372,7 +376,7 @@ def main():
         pro.obs["soft_filter_pro"] = (
         is_outlier(pro, "log1p_total_counts", 5)
         | is_outlier(pro, "log1p_n_genes_by_counts", 5)
-        | is_outlier(pro, "pct_counts_in_top_20_genes", 5)
+        | is_outlier(pro, f"pct_counts_in_top_{top_proteins}_genes", 5)
         )
 
 

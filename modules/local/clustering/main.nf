@@ -2,7 +2,7 @@ process CLUSTERING  {
     tag "$meta.id"
     label 'process_single'
 
-    container = 'docker.io/nfdata/sc_rnaseq:v1.0.1'
+    container 'docker.io/nfdata/sc_rnaseq:v1.0.1'
 
     input:
     tuple val(meta), path(input_h5mu)

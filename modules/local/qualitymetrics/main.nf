@@ -2,7 +2,7 @@ process QUALITY_FILTERING  {
     tag "$meta.id"
     label 'process_medium'
 
-    container = 'docker.io/nfdata/sc_atacseq:v1.0.0'
+    container 'docker.io/nfdata/sc_atacseq:v1.0.0'
 
 
     input:

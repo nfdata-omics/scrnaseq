@@ -473,7 +473,7 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
-    ch_cellcycle_file = params.cell_cycle_file ? file(params.cell_cycle_file, checkIfExists: true) : channel.empty()
+    ch_cellcycle_file = params.cell_cycle_file ? file(params.cell_cycle_file, checkIfExists: true) : file("$projectDir/assets/EMPTY", checkIfExists: true)
     NORMALIZATION_AND_HVG (
         DOUBLETS_QUALITYFILTERING.out.h5mu,
         H5AD_CONVERSION.out.h5ad_raw,
@@ -488,16 +488,23 @@ workflow SCRNASEQ {
     // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
     //
     ch_input_model = params.input_model ? file(params.input_model, checkIfExists: true) : channel.empty()
-    CELL_ANNOTATION (
-        NORMALIZATION_AND_HVG.out.h5mu,
-        ch_input_model
-    )
-    ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
+
+    if ( params.input_model ) {
+        CELL_ANNOTATION (
+            NORMALIZATION_AND_HVG.out.h5mu,
+            ch_input_model
+        )
+        ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
+        ch_mu5ad = CELL_ANNOTATION.out.h5mu
+        cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata
+    } else {
+        ch_mu5ad = NORMALIZATION_AND_HVG.out.h5mu
+        cell_annotation_meta_ch = channel.empty()
+    }
 
     //
     // SUBWORKFLOW: Run ATAC preprocessing
     //
-    def cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata
     atac_out_h5ad = Channel.empty()
 
     if (params.aligner == "cellrangerarc") {
@@ -522,7 +529,7 @@ workflow SCRNASEQ {
     //
 
     INTEGRATION_MODALITIES (
-        CELL_ANNOTATION.out.h5mu,
+        ch_mu5ad,
         atac_out_h5ad,
         params.n_neighbors_harmony,
         params.min_dist_harmony

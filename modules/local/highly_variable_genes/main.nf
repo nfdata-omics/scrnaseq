@@ -2,7 +2,7 @@ process HIGHLY_VARIABLE_GENES  {
     tag "$meta.id"
     label 'process_medium'
 
-    container = 'quay.io/biocontainers/scirpy:0.20.1--pyhdfd78af_0'
+    container 'quay.io/biocontainers/scirpy:0.20.1--pyhdfd78af_0'
 
     input:
     tuple val(meta), path(input_h5mu)
