@@ -1,6 +1,6 @@
 process MOFA_INTEGRATION {
     tag "$meta.id"
-    label 'process_high'
+    label 'process_gpu'
 
     container = 'docker.io/nfdata/muon-sc_rnaseq:v.1.0.5'
     
