@@ -2,7 +2,7 @@ process DOUBLETS  {
     tag "$meta.id"
     label 'process_high'
 
-    container = 'docker.io/nfdata/sc-rnaseq-r:v1.0.0'
+    container 'docker.io/nfdata/sc-rnaseq-r:v1.0.0'
 
     input:
     tuple val(meta), path(input_sce)
