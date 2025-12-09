@@ -2,12 +2,11 @@ process QUALITY_FILTERING_ATAC  {
     tag "$meta.id"
     label 'process_high'
 
-    container = 'quay.io/biocontainers/snapatac2:2.8.0--py311h284d45d_1'
-
+    container 'quay.io/biocontainers/snapatac2:2.8.0--py311h284d45d_1'
 
     input:
     tuple val(meta), path (input_fragment_file)
-    tuple val(meta), path (input_fragment_index_file)
+    tuple val(meta2), path (input_fragment_index_file)
     val tss_threshold
     val min_fragments_counts
     val max_fragments_counts
