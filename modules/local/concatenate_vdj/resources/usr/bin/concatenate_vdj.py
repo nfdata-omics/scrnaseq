@@ -109,16 +109,12 @@ def main():
 
         print(f"Concatenated vdj table for {len(input_run_id)} batched has {adata_vdj_concatenated.shape[0]} cells")
         print("Done!")
-# --------------------------------------------------------------------------------------------------------------------
-#                           SAVE OUTPUT FILE
-# --------------------------------------------------------------------------------------------------------------------
 
-    print("\n===== SAVING OUTPUT FILE =====")
+        print("\n===== SAVING OUTPUT FILE =====")
 
-    print(f"Saving vdj table data in {output}")
-    adata_vdj_concatenated.write(output)
-    print("Done!")
-
+        print(f"Saving vdj table data in {output}")
+        adata_vdj_concatenated.write(output)
+        print("Done!")
 
 #####################################################################################################
 

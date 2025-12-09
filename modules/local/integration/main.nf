@@ -2,7 +2,7 @@ process INTEGRATION {
     tag "$meta.id"
     label 'process_medium'
 
-    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.2'
+    container 'docker.io/nfdata/muon-sc_rnaseq:v1.0.2'
 
     input:
     tuple val(meta), path(input_h5mu)
@@ -28,7 +28,7 @@ process INTEGRATION {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    
+
     integration.py -ad $input_h5mu -nnh $n_neighbors_harmony -mdh $min_dist_harmony
 
 

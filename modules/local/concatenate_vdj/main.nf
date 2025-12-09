@@ -2,7 +2,7 @@ process CONCATENATE_VDJ   {
     tag "$meta.id"
     label 'process_single'
 
-    container = 'quay.io/biocontainers/scirpy:0.20.1--pyhdfd78af_0'
+    container 'quay.io/biocontainers/scirpy:0.20.1--pyhdfd78af_0'
 
     input:
     tuple val(meta), path(input_vdj, stageAs: '?/*')

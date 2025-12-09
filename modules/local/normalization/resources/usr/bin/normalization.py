@@ -138,48 +138,49 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           COMPUTE CELL CYCLE SCORE
 # --------------------------------------------------------------------------------------------------------------------
-    print(f"Reading cell cycle gene list from: {input_cellcycle}")
-
-    with open(input_cellcycle) as f:
-        cell_cycle_genes = [x.strip() for x in f]
 
     original_var_names = gex.var_names.copy()
     gex.var['gene_symbols'] = gex.var['gene_symbols'].astype(str)
     gex.var_names = gex.var['gene_symbols']
     gex.var_names_make_unique()
+
     # Define genes associated to the S phase and genes associated to the G2M phase
-    s_genes = cell_cycle_genes[:43]
-    g2m_genes = cell_cycle_genes[43:]
-    cell_cycle_genes = [x for x in cell_cycle_genes if x in gex.var_names]
-    print("\n===== COMPUTING CELL CYCLE SCORE =====")
-    print("Computing cell cycle score ... ", end='')
-    sc.tl.score_genes_cell_cycle(gex, s_genes=s_genes, g2m_genes=g2m_genes)
-    print("Done!")
+    if input_cellcycle:
 
-    #Compute pca on subset of genes
-    print("\nComputing PCA on cell cycle genes ... ", end='')
-    gex_cc_genes = gex[:, cell_cycle_genes]
-    sc.tl.pca(gex_cc_genes)
-    sc.pl.pca_scatter(gex_cc_genes, color='phase',show=False)
-    plt.savefig(os.path.join(args.results,'pca_cellcycle_GEX_phase.pdf'), bbox_inches='tight', dpi=300)
-    print("Done!")
-    plt.close()
+        print(f"Reading cell cycle gene list from: {input_cellcycle}")
 
-    # Visualize PCA plot
-    print("\nVisualized PCA plot")
-    plt.figure(figsize=(12, 10))
-    sc.pl.pca(gex_cc_genes, color='sample', show=False)
-    plt.savefig(os.path.join(args.results,'pca_cellcycle_GEX_sample.pdf'), bbox_inches='tight', dpi=300)
-    plt.close()
+        with open(input_cellcycle) as f:
+            cell_cycle_genes = [x.strip() for x in f]
+        s_genes = cell_cycle_genes[:43]
+        g2m_genes = cell_cycle_genes[43:]
+        cell_cycle_genes = [x for x in cell_cycle_genes if x in gex.var_names]
+        print("\n===== COMPUTING CELL CYCLE SCORE =====")
+        print("Computing cell cycle score ... ", end='')
+        sc.tl.score_genes_cell_cycle(gex, s_genes=s_genes, g2m_genes=g2m_genes)
+        print("Done!")
 
-    # Add cell cycle score to the gex object
-    gex.obs['S_score'] = gex.obs['S_score'].astype(float)
-    gex.obs['G2M_score'] = gex.obs['G2M_score'].astype(float)
+        # Add cell cycle score to the gex object
+        gex.obs['S_score'] = gex.obs['S_score'].astype(float)
+        gex.obs['G2M_score'] = gex.obs['G2M_score'].astype(float)
+
+        # Compute pca on subset of genes
+        print("\nComputing PCA on cell cycle genes ... ", end='')
+        gex_cc_genes = gex[:, cell_cycle_genes]
+        sc.tl.pca(gex_cc_genes)
+        sc.pl.pca_scatter(gex_cc_genes, color='phase',show=False)
+        plt.savefig(os.path.join(args.results,'pca_cellcycle_GEX_phase.pdf'), bbox_inches='tight', dpi=300)
+        print("Done!")
+        plt.close()
+
+        # Visualize PCA plot
+        print("\nVisualized PCA plot")
+        plt.figure(figsize=(12, 10))
+        sc.pl.pca(gex_cc_genes, color='sample', show=False)
+        plt.savefig(os.path.join(args.results,'pca_cellcycle_GEX_sample.pdf'), bbox_inches='tight', dpi=300)
+        plt.close()
 
     # Save gex object into mdata
     gex.var_names = original_var_names
-
-
     mdata.mod['gex'] = gex
     mdata.update()
 
