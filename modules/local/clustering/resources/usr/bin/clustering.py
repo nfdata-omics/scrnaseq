@@ -4,8 +4,6 @@
 # ====================================================================================================================
 
 # MODULE IMPORT
-
-# MODULE IMPORT
 import warnings
 import argparse                     # command line arguments parser
 import os                           # filesystem utilities
@@ -18,6 +16,7 @@ import scanpy.external as sce       # library for harmony integration
 import muon as mu
 import numpy as np
 import anndata as ad
+from matplotlib.backends.backend_pdf import PdfPages
 
 warnings.filterwarnings("ignore")
 # PARAMETERS
@@ -60,12 +59,14 @@ def main():
                         help="path and name of csv tabel with UMAP coordinates for each cell")
     parser.add_argument('-res', '--resolution',  dest='set_res', type=float, default=100, 
                         help="clustering resolution. By default, all the resolution values between 0.1 and 1 are evaluated.")
+    parser.add_argument('-n', '--top_n',  dest='top_n', type=int, default=10, 
+                        help="number of top marker genes to save for each cluster (default is 10)")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
                         help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
 
-    # --------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------
 #                                 DEFINE SAMPLES AND MTX PATHS
 # --------------------------------------------------------------------------------------------------------------------
 
@@ -75,6 +76,7 @@ def main():
     output_excel= args.excel_out
     output_csv= args.csv_out
     set_res = args.set_res
+    top_n = args.top_n
 
     # print info on the available matrices
     print("Reading combined count matrix from the following file:")
@@ -88,7 +90,7 @@ def main():
     print("\n===== READING COMBINED MATRIX =====")
     # read the count matrix for the combined samples and print some initial info
     print("\nProcessing count matrix in folder ... ", end ='')
-    mdata= mu.read_h5mu(input_h5mu_file)
+    mdata = mu.read_h5mu(input_h5mu_file)
     print("Done!")
     print(f"Count matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
 
@@ -132,7 +134,8 @@ def main():
 #                           COMPUTE MARKER GENES FOR EACH RESOLUTION AND FOR EACH CLUSTER
 # --------------------------------------------------------------------------------------------------------------------
 
-    with pd.ExcelWriter(output_excel) as writer:
+    heat_name = "top_" + str(top_n) + "_markers_heatmap.pdf"
+    with pd.ExcelWriter(output_excel) as writer, PdfPages(os.path.join(args.results, heat_name)) as pdf_heatmap: #, PdfPages(os.path.join(args.results, dot_name)) as pdf_dot:
         # If a specific resolution parameter is provided use that parameter, otherwise test them all
         if set_res != 100:
             resolutions = [set_res]
@@ -140,11 +143,25 @@ def main():
             resolutions = np.round(np.arange(0.1, 1.1, 0.1), 2)
 
         for res in resolutions:
-            print("\nComputing marker genes for each clusters at resolution {}".format(res))
+            
             #Compute marker genes for each cluster, expects logarithmized data
+            print("\nComputing marker genes for each clusters at resolution {}".format(res))
             sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res), method="wilcoxon", key_added="leiden_{}".format(res), pts=True)
             df = sc.get.rank_genes_groups_df(gex, group=None, pval_cutoff=0.05, log2fc_min=0.25, key="leiden_{}".format(res))
+            #df['gene_symbols'] = df['names'].map(gex.var['gene_symbols'].to_dict())
+
+            # Select the top 10 markers per cluster
+            top = (df.sort_values(["group", "pvals_adj", "logfoldchanges"], ascending=[True, True, False]).groupby("group").head(top_n))
+            top_genes = top["names"].tolist() # .unique().tolist()
             
+            # Heatmap
+            print("\nPlotting top marker genes heatmap for resolution {}".format(res))
+            plt.figure(figsize=(45, 55))
+            sc.pl.heatmap(gex, var_names=top_genes, groupby="leiden_{}".format(res), show=False, cmap='viridis')
+            plt.title(f"Top {top_n} marker genes – resolution {res}")
+            pdf_heatmap.savefig(bbox_inches="tight", dpi=300)
+            plt.close()
+            print("Done!")
 
             print("\nSaving marker genes for each cluster and resolution in excel file")
             df.to_excel(writer, sheet_name=f"Leiden_{res}", index=False)
