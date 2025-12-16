@@ -2,7 +2,7 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
     tag "$meta.id"
     label 'process_high'
 
-    container 'docker.io/nfdata/snapatac:v1.0.0'
+    container 'docker.io/nfdata/snapatac:v1.0.1'
 
 
     input:
@@ -12,7 +12,8 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
 
     output:
     tuple val(meta), path("*.dimred_atac.h5ad"), emit: h5ad
-    path "umap_ATAC.png", emit: umap_atac, optional: true
+    path "UMAP_ATAC_by_sample.pdf", emit: umap_atac, optional: true
+    path "Cells_after_filtering_atac.pdf", emit: qc_plots, optional: true
     path "versions.yml",  emit: versions
 
     when:
