@@ -8,10 +8,16 @@
 import argparse
 import pathlib
 import warnings
-
+import os
+import pandas as pd
+import polars as pl
 import numpy as np
 import plotly.subplots as sp
 import snapatac2 as snap
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import seaborn as sns
 
 warnings.filterwarnings("ignore")
 # PARAMETERS
@@ -65,6 +71,7 @@ def main():
     input_fragment_files = [str(f) for f in args.input_fragment_files]  
     input_fragment_files_index = [str(f) for f in args.input_fragment_files_index]
     output =args.out
+    results_dir = args.results
     tss_threshold = args.tss_threshold
     min_fragments_counts = args.min_fragments_counts
     max_fragments_counts = args.max_fragments_counts
@@ -87,6 +94,18 @@ def main():
     files = list(zip(input_run_id, fragment_files))
     print(files)
 
+    print("\n===== VERIFYING FRAGMENT FILE MATCHING =====")
+    for run_id, frag_file, frag_index in zip(input_run_id, input_fragment_files, input_fragment_files_index):
+        print(f"Sample: {run_id}")
+        print(f"  Fragment file: {frag_file}")
+        print(f"  Index file: {frag_index}")
+        # Verify files exist
+        if not pathlib.Path(frag_file).exists():
+            raise FileNotFoundError(f"Fragment file not found: {frag_file}")
+        if not pathlib.Path(frag_index).exists():
+            raise FileNotFoundError(f"Index file not found: {frag_index}")
+        print("  Files verified.")
+
     # Import fragment files into AnnData objects and compute basic QC metrics like the number of unique fragments per cell, fraction of duplicated reads and fraction of mitochondrial read
     adatas_atac = snap.pp.import_fragments(
         fragment_files,
@@ -96,7 +115,11 @@ def main():
         sorted_by_barcode=False,
         n_jobs =5
     )
-    print(adatas_atac)
+    print("Fragment file import complete.")
+
+    print("Print number of cells before filtering:")
+    for run_id, adata in zip(input_run_id, adatas_atac):
+        print(f"Sample {run_id}: {adata.n_obs} cells")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                          COMPUTE AND VISUALIZE QUALITY METRICS
@@ -107,15 +130,8 @@ def main():
     print("\n===== COMPUTE QUALITY METRICS {} =====")
     print(f"\n# Calculate the fragment size distribution for {input_fragment_files}")
     snap.metrics.frag_size_distr(adatas_atac,inplace = True,add_key='frag_size_distr',max_recorded_size=1000)
-    
-    for i, adata in enumerate(adatas_atac):
-        fig1 = snap.pl.frag_size_distr(adata, show=False)
-        fig1.show()
-        fig1.update_yaxes(type="log")
-        fig1.write_image(f"FragSizeDist_sample_{i}.png", width=1000, height=600)
-        
 
-    print(f"\n# Compute TSS enrichment score per cell for sample {input_fragment_files}")
+    print(f"\n# Calculate the tss enrichment for {input_fragment_files}")
     # Compute the TSS score for each sample
     snap.metrics.tsse(adatas_atac, snap.genome.hg38,inplace = True)
     for i, adata in enumerate(adatas_atac):
@@ -125,20 +141,177 @@ def main():
 
     print(f"\n# Compute the FRIP score for all samples")
     snap.metrics.frip(adatas_atac,regions= {"peaks_frac": snap.datasets.cre_HEA()}, normalized=True, count_as_insertion=False, inplace=True, n_jobs=5)
+    print("\n===== FRIP SCORES PER SAMPLE =====")
+    for run_id, adata in zip(input_run_id, adatas_atac):
+        frip_score = adata.obs['peaks_frac'].mean()
+        print(f"Sample {run_id}: FRIP score = {frip_score:.4f} (mean across cells)")
+        print(f"  Min: {adata.obs['peaks_frac'].min():.4f}, Max: {adata.obs['peaks_frac'].max():.4f}")
 
+    
+    print("\n===== PLOT QUALITY METRICS =====")
+    ### Fragment Size Distribution PDF ###
+    
+    print("Generating Fragment Size Distribution PDF...")
+    with PdfPages("FragSizeDist_all_samples.pdf") as pdf:
+        for run_id, adata in zip(input_run_id, adatas_atac):
+            distr = adata.uns['frag_size_distr']
+            print(f"Fragment size distribution for sample {run_id}:")
+            print(distr) 
+            if distr is None:
+                print(f"No frag_size_distr found for {run_id}, skipping")
+                continue
+
+            # Convert distr to numeric arrays
+            if isinstance(distr, dict):
+                x_vals = np.array([int(k) for k in distr.keys()])
+                y_vals = np.array([float(v) for v in distr.values()])
+            else:
+                y_vals = np.array(distr, dtype=float)
+                x_vals = np.arange(len(y_vals))
+
+            fig, ax = plt.subplots(figsize=(14, 8))
+
+            ax.bar(x_vals, y_vals, color='chocolate', width=1)
+            ax.set_xlim(left=0)
+            ax.set_xlabel("Fragment Size")
+            ax.set_ylabel("Count")
+            ax.ticklabel_format(style='plain', axis='y')
+            ax.grid(True, linestyle='--', alpha=0.5)
+            sns.despine(ax=ax)
+
+            fig.suptitle(f"QC – Fragment Size Distribution\n\nSample: {run_id}",
+                        fontsize=18, fontweight='bold', y=1.02)
+
+            plt.tight_layout()
+            pdf.savefig(fig, bbox_inches='tight')
+            plt.close(fig)
+    print("Fragment Size Distribution PDF generated.")
+            
+    from matplotlib.colors import LinearSegmentedColormap
+    colors = ["#e1edf8", "#cbdff1", "#cbdff1", "#abd0e6",
+            "#82badb", "#59a2cf", "#3787c0", "#1b6aaf",
+            "#074d97", "#07306a"]
+    blue_cmap = LinearSegmentedColormap.from_list("blue_kde", colors)
+
+    print("Generating TSS Enrichment Score PDF...")
+    with PdfPages("TSS_score_all_samples.pdf") as pdf:
+        for run_id, adata in zip(input_run_id, adatas_atac):
+            print("Anndata object info for TSS enrichment:")
+            print(adata)
+            
+            tsse = adata.obs['tsse']
+            fragments = adata.obs['n_fragment']
+
+            # Create indices instead of boolean mask (Polars-compatible)
+            valid_idx = (
+                (fragments > 0) & 
+                (~fragments.is_null()) & 
+                (~tsse.is_null())
+            ).to_numpy() 
+
+            # Use integer indexing (works with Polars)
+            fragments_filtered = fragments[valid_idx.nonzero()[0]]
+            tsse_filtered = tsse[valid_idx.nonzero()[0]]
+            log_fragments = np.log10(fragments_filtered)
+            
+            # Plot
+            fig, ax = plt.subplots(figsize=(14, 8))
+
+            kde = sns.kdeplot(
+                x=log_fragments,
+                y=tsse_filtered,
+                fill=True,
+                cmap=blue_cmap,
+                levels=15,
+                thresh=0.01,
+                ax=ax
+            )
+            # Borders
+            for c in kde.collections:
+                c.set_edgecolor("#70767b")  
+                c.set_linewidth(0.8)
+            
+            # Line for tss threshold chosen
+            ax.axhline(tss_threshold, color='blue', linestyle='--')
+            ax.axvline(np.log10(min_fragments_counts), color='red', linestyle='--')
+   
+            # Set linear scale limits matching the log-transformed data range
+            ax.set_xlim(left=0, right=np.log10(fragments.max()))
+            ax.set_ylim(bottom=-5)
+            ax.set_yticks([tick for tick in ax.get_yticks() if tick >= 0]) # do not show negative y-ticks
+
+            tick_pos    = [1, 2, 3, 4, 5, 6]
+            tick_labels = ["10", "100", "1k", "10k", "100k", "1M"]
+
+            ax.set_xticks(tick_pos)
+            ax.set_xticklabels(tick_labels)
+            ax.set_xlabel("Number of unique fragments")
+            ax.set_ylabel("TSS Enrichment Score")
+            ax.grid(True, linestyle='--', alpha=0.5)
+            sns.despine(ax=ax)
+
+            fig.suptitle(f"QC – TSS Enrichment vs Unique Fragments\n\nSample: {run_id}",
+                        fontsize=18, fontweight='bold', y=1.02)
+            
+            plt.tight_layout()
+            pdf.savefig(fig, bbox_inches='tight')
+            plt.close(fig)
+    print("TSS Enrichment Score PDF generated.")
+    
+    print("\n===== PLOT QC HISTOGRAMS (CELL NUMBERS) =====")
+    
+    with PdfPages("QC_Histograms_all_samples.pdf") as pdf:
+        for run_id, adata in zip(input_run_id, adatas_atac):
+
+            n_fragment = adata.obs['n_fragment'].drop_nans()
+            frac_dup = adata.obs['frac_dup'].drop_nans()
+            peaks_frac = adata.obs['peaks_frac'].drop_nans()
+
+            fig, axs = plt.subplots(1, 3, figsize=(21, 7))
+
+            frag_counts, frag_bins = np.unique(n_fragment, return_counts=True)
+            axs[0].bar(frag_counts, frag_bins, color='chocolate', width=1)
+            axs[0].set_xscale("log")
+            axs[0].set_xlabel("Number of Fragments")
+            axs[0].set_ylabel("Cell Count")
+            axs[0].ticklabel_format(style='plain', axis='y')
+            axs[0].grid(True, linestyle='--', alpha=0.5)
+            sns.despine(ax=axs[0])
+            axs[0].set_title("Fragments per Barcode Distribution", fontsize=14, fontweight='bold')
+
+            sns.histplot(frac_dup, bins=100, color="orange", ax=axs[1])
+            axs[1].set_xlim(left=0)
+            axs[1].set_xlabel("Fraction Duplicated")
+            axs[1].set_ylabel("Cell Count")
+            axs[1].grid(True, linestyle='--', alpha=0.5)
+            sns.despine(ax=axs[1])
+            axs[1].set_title("Fraction Duplicated per cell", fontsize=14, fontweight='bold')
+
+            sns.histplot(peaks_frac, bins=100, color="deepskyblue", ax=axs[2])
+            axs[2].set_xlabel("FRIP Score")
+            axs[2].set_ylabel("Cell Count")
+            axs[2].grid(True, linestyle='--', alpha=0.5)
+            sns.despine(ax=axs[2])
+            axs[2].set_title("FRIP Score per cell", fontsize=14, fontweight='bold')
+
+            fig.suptitle(f"QC Metrics\n\nSample: {run_id}", fontsize=18, fontweight='bold', y=1.03)
+            plt.tight_layout()
+            pdf.savefig(fig, bbox_inches='tight')
+            plt.close(fig)
     # Compute summary statistics by chromosome
     snap.metrics.summary_by_chrom(adatas_atac, mode='sum')
-    
-    print(adatas_atac)
-    
+        
 # --------------------------------------------------------------------------------------------------------------------
 #                           FILTERS CELLS BASED ON QC METRICS
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== FILTER CELLS BASED ON QC METRICS =====")
     # Filter cells based on the TSS score and nucleosome signal
     snap.pp.filter_cells(adatas_atac, min_counts=min_fragments_counts, max_counts=max_fragments_counts,min_tsse=tss_threshold)
-    #print(f"After filtering, MuData matrix for combined samples has {adatas_atac.shape[0]} cells and {adatas_atac.shape[1]} fragments")
-# --
+
+    print("Print number of cells after filtering for QC:")
+    for run_id, adata in zip(input_run_id, adatas_atac):
+        print(f"Sample {run_id}: {adata.n_obs} cells")
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           CELL BY BIN MATRIX and DOUBLETS DETECTION
 # --------------------------------------------------------------------------------------------------------------------
@@ -153,11 +326,16 @@ def main():
     
     # Compute the doublet score for each sample
     print("\n===== COMPUTE DOUBLETS SCORE =====")
-    snap.pp.scrublet(adatas_atac,inplace = True)
+    snap.pp.scrublet(adatas_atac, n_comps=10, features = 'selected', sim_doublet_ratio=1,expected_doublet_rate = 0.10, n_jobs=2, use_approx_neighbors=True, inplace = True)
 
     # Filter out doublets based on the doublet score
     print("\n===== FILTER OUT DOUBLETS =====")
-    snap.pp.filter_doublets(adatas_atac)
+    snap.pp.filter_doublets(adatas_atac,verbose=True)
+
+    print("Print number of cells after filtering doublets:")
+    for run_id, adata in zip(input_run_id, adatas_atac):
+        print(f"Sample {run_id}: {adata.n_obs} cells ") 
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           CREATE ANNDATASET OBJECT
@@ -174,6 +352,9 @@ def main():
     data.obs_names = unique_cell_ids
     assert data.n_obs == np.unique(data.obs_names).size
 
+    print("\nNumber of cells per sample after filtering:")
+    print(data.obs['sample'].value_counts())
+    
     print("\n===== SAVE OBS INTO ANNDATASET =====")
     data.obs['tsse'] = data.adatas.obs['tsse']
     data.obs['n_fragment'] = data.adatas.obs['n_fragment']
