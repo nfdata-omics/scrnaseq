@@ -11,7 +11,12 @@ import pathlib                      # library for handle filesystem paths
 import numpy as np
 import pandas as pd                 # library for data analysis and manipulation
 import snapatac2 as snap
+import os
 import anndata as ad
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import seaborn as sns
 
 
 
@@ -48,6 +53,8 @@ def main():
                         help="number of most variable features to select for ATAC data (default: 500000)")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.dimred_atac.h5ad",
                         help="path and name of the output h5ad file")
+    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
+                        help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
 
@@ -59,6 +66,7 @@ def main():
     input_h5ad_file = args.input_h5ad_files
     blacklist_path = args.blacklist
     n_features_atac = args.n_features_atac
+    results_dir = args.results
     output =args.out
 
     # print info on the available matrices
@@ -80,12 +88,39 @@ def main():
     print(f"MuData matrix for combined samples has {adata_atac.shape[0]} cells and {adata_atac.shape[1]} fragments")
 
 # --------------------------------------------------------------------------------------------------------------------
-#                           FILTERS CELLS BASED ON MITO AND DUPLICATION RATES
+#                           FILTER ANNDATASET OBJECT
 # --------------------------------------------------------------------------------------------------------------------
 
-    #obs_bool = (adata_atac.obs['frac_dup'] <= 0.2) & (adata_atac.obs['frac_mito'] <= 0.3)
-    #adata_atac = adata_atac[obs_bool, :].copy()
-    #print(f"After filtering, MuData matrix for combined samples has {adata_atac.shape[0]} cells and {adata_atac.shape[1]} fragments")
+    print("\n===== APPLY FILTERS ON ANNDATASET =====")
+    print(f"Cells before any filter: {adata_atac.n_obs}")
+
+    mask = (
+        (adata_atac.obs["frac_dup"] < 0.3) &
+        (adata_atac.obs["peaks_frac"] >= 0.2)
+    )
+
+    print("Cells failing QC filters:", (~mask).sum())
+
+    adata_atac = adata_atac[mask].copy()
+
+    print(f"Cells after all filters: {adata_atac.n_obs}")
+    print(adata_atac.obs["sample"].value_counts())
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           VISUALIZE FILTERING RESULT
+# --------------------------------------------------------------------------------------------------------------------
+ 
+    fig, ax = plt.subplots(figsize=(30,25))
+    print("\nVisualize the number of cells after filtering for each sample")
+    sns.histplot(adata_atac.obs, x="sample", stat="count", ax=ax)
+    locs, labels = plt.xticks()
+    ax.set_xlabel("Sample name", fontsize=30)
+    ax.set_ylabel("Cell number", fontsize=30)
+    plt.setp(labels, rotation=90.,fontsize=30)
+    ax.tick_params(axis='y', labelsize=30)
+    plt.savefig(os.path.join(results_dir,'Cells_after_filtering_atac.pdf'), bbox_inches='tight', dpi=300)
+    plt.close()
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           DIMENSIONALITY REDUCTION
 # --------------------------------------------------------------------------------------------------------------------
@@ -132,12 +167,12 @@ def main():
     # Compute UMAP for visualization
     print("\n===== COMPUTE UMAP =====")
     print("Computing UMAP ... ", end='')
-    #snap.tl.umap(adata_atac)
+    snap.tl.umap(adata_atac)
     print("Done!")
 
     # Visualize UMAP plot
     print("\nVisualized UMAP plot")
-    #snap.pl.umap(adata_atac, color="sample",interactive=False)
+    snap.pl.umap(adata_atac, color="sample",interactive=False,show=False,out_file=os.path.join(results_dir, "UMAP_ATAC_by_sample.pdf"))
     print("Done!")
 
 
