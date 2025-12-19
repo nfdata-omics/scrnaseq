@@ -7,7 +7,7 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
 
     input:
     tuple val(meta), path (input_h5ad)
-    val  n_features_atac
+    val  n_features_atac, frac_dup, peaks_frac, n_comps_atac, n_neighbors_atac, n_clusters_atac
     path blacklist_path
 
     output:
@@ -27,7 +27,7 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
     export XDG_CONFIG_HOME=/tmp
     export XDG_CACHE_HOME=/tmp
 
-    dimensionalityreduction_atac.py  -ad $input_h5ad -b $blacklist_path -f $n_features_atac
+    dimensionalityreduction_atac.py  -ad $input_h5ad -fd $frac_dup -pf $peaks_frac -nc $n_comps_atac -nn $n_neighbors_atac -ncl $n_clusters_atac -b $blacklist_path -f $n_features_atac
 
 
     cat <<-END_VERSIONS >> versions.yml

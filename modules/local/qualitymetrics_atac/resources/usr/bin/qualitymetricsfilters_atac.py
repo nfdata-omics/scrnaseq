@@ -16,8 +16,8 @@ import plotly.subplots as sp
 import snapatac2 as snap
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import seaborn as sns
+from PIL import Image
 
 warnings.filterwarnings("ignore")
 # PARAMETERS
@@ -194,68 +194,28 @@ def main():
     blue_cmap = LinearSegmentedColormap.from_list("blue_kde", colors)
 
     print("Generating TSS Enrichment Score PDF...")
-    with PdfPages("TSS_score_all_samples.pdf") as pdf:
+    with PdfPages("TSSE_all_samples.pdf") as pdf:
         for run_id, adata in zip(input_run_id, adatas_atac):
-            print("Anndata object info for TSS enrichment:")
-            print(adata)
+            png_file = f"tsse_{run_id}.png"
+            # Increase width and height for higher resolution
+            snap.pl.tsse(adata, out_file=png_file, show=False, width=1400, height=800)
             
-            tsse = adata.obs['tsse']
-            fragments = adata.obs['n_fragment']
-
-            # Create indices instead of boolean mask (Polars-compatible)
-            valid_idx = (
-                (fragments > 0) & 
-                (~fragments.is_null()) & 
-                (~tsse.is_null())
-            ).to_numpy() 
-
-            # Use integer indexing (works with Polars)
-            fragments_filtered = fragments[valid_idx.nonzero()[0]]
-            tsse_filtered = tsse[valid_idx.nonzero()[0]]
-            log_fragments = np.log10(fragments_filtered)
+            img = Image.open(png_file)
             
-            # Plot
             fig, ax = plt.subplots(figsize=(14, 8))
-
-            kde = sns.kdeplot(
-                x=log_fragments,
-                y=tsse_filtered,
-                fill=True,
-                cmap=blue_cmap,
-                levels=15,
-                thresh=0.01,
-                ax=ax
-            )
-            # Borders
-            for c in kde.collections:
-                c.set_edgecolor("#70767b")  
-                c.set_linewidth(0.8)
             
-            # Line for tss threshold chosen
-            ax.axhline(tss_threshold, color='blue', linestyle='--')
-            ax.axvline(np.log10(min_fragments_counts), color='red', linestyle='--')
-   
-            # Set linear scale limits matching the log-transformed data range
-            ax.set_xlim(left=0, right=np.log10(fragments.max()))
-            ax.set_ylim(bottom=-5)
-            ax.set_yticks([tick for tick in ax.get_yticks() if tick >= 0]) # do not show negative y-ticks
-
-            tick_pos    = [1, 2, 3, 4, 5, 6]
-            tick_labels = ["10", "100", "1k", "10k", "100k", "1M"]
-
-            ax.set_xticks(tick_pos)
-            ax.set_xticklabels(tick_labels)
-            ax.set_xlabel("Number of unique fragments")
-            ax.set_ylabel("TSS Enrichment Score")
-            ax.grid(True, linestyle='--', alpha=0.5)
-            sns.despine(ax=ax)
-
+            ax.imshow(img)
+            ax.axis('off')
+            
             fig.suptitle(f"QC – TSS Enrichment vs Unique Fragments\n\nSample: {run_id}",
                         fontsize=18, fontweight='bold', y=1.02)
             
             plt.tight_layout()
             pdf.savefig(fig, bbox_inches='tight')
             plt.close(fig)
+            
+            print(f"Added TSSE plot for {run_id}")
+            
     print("TSS Enrichment Score PDF generated.")
     
     print("\n===== PLOT QC HISTOGRAMS (CELL NUMBERS) =====")
