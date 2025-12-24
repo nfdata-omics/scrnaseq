@@ -24,6 +24,8 @@ warnings.filterwarnings("ignore")
 # set script version number
 VERSION = "0.0.1"
 
+import os
+os.environ['SNAPATAC2_CACHE_DIR'] = '/home/camilla.callierotti/.snapatac2'
 
 # ====================================================================================================================
 #                                          MAIN FUNCTION
@@ -152,7 +154,7 @@ def main():
     ### Fragment Size Distribution PDF ###
     
     print("Generating Fragment Size Distribution PDF...")
-    with PdfPages("FragSizeDist_all_samples.pdf") as pdf:
+    with PdfPages(results_dir / "FragSizeDist_all_samples.pdf") as pdf:
         for run_id, adata in zip(input_run_id, adatas_atac):
             distr = adata.uns['frag_size_distr']
             print(f"Fragment size distribution for sample {run_id}:")
@@ -194,7 +196,7 @@ def main():
     blue_cmap = LinearSegmentedColormap.from_list("blue_kde", colors)
 
     print("Generating TSS Enrichment Score PDF...")
-    with PdfPages("TSSE_all_samples.pdf") as pdf:
+    with PdfPages(results_dir / "TSSE_score_all_samples.pdf") as pdf:
         for run_id, adata in zip(input_run_id, adatas_atac):
             png_file = f"tsse_{run_id}.png"
             # Increase width and height for higher resolution
@@ -220,7 +222,7 @@ def main():
     
     print("\n===== PLOT QC HISTOGRAMS (CELL NUMBERS) =====")
     
-    with PdfPages("QC_Histograms_all_samples.pdf") as pdf:
+    with PdfPages(results_dir / "QC_Histograms_all_samples.pdf") as pdf:
         for run_id, adata in zip(input_run_id, adatas_atac):
 
             n_fragment = adata.obs['n_fragment'].drop_nans()
@@ -276,6 +278,11 @@ def main():
 #                           CELL BY BIN MATRIX and DOUBLETS DETECTION
 # --------------------------------------------------------------------------------------------------------------------
 
+    # Save number of cells before filtering
+    cell_counts = pd.DataFrame({"sample": input_run_id})
+    cells_before_filtering = [adata.n_obs for adata in adatas_atac]
+    cell_counts["cells_before_filtering"] = cells_before_filtering
+    
     print("\n===== CELL BY BIN MATRIX =====")
     # Compute the tile matrix for each sample with a bin size of 500 bp
     snap.pp.add_tile_matrix(adatas_atac, bin_size=500, exclude_chroms=["chrM"], min_frag_size=None, max_frag_size=None, counting_strategy='paired-insertion', inplace=True)
@@ -291,6 +298,15 @@ def main():
     # Filter out doublets based on the doublet score
     print("\n===== FILTER OUT DOUBLETS =====")
     snap.pp.filter_doublets(adatas_atac,verbose=True)
+
+    # Save number of cells after doublet filtering
+    cells_after_doublets = [adata.n_obs for adata in adatas_atac]
+    cell_counts["cells_after_doublets"] = cells_after_doublets
+    
+    # Create csv of cell counts once for safety     
+    cell_counts = cell_counts.sort_values("sample")
+    cell_counts.to_csv(results_dir / "cell_counts_filters.csv",
+                       index=False)
 
     print("Print number of cells after filtering doublets:")
     for run_id, adata in zip(input_run_id, adatas_atac):

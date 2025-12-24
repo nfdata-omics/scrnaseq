@@ -521,61 +521,61 @@ workflow SCRNASEQ {
         ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
     }
 
-    //
-    // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
-    //
+    // //
+    // // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
+    // //
 
-    INTEGRATION_MODALITIES (
-        CELL_ANNOTATION.out.h5mu,
-        atac_out_h5ad,
-        params.n_neighbors_harmony,
-        params.min_dist_harmony
-    )
-    ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
+    // INTEGRATION_MODALITIES (
+    //     CELL_ANNOTATION.out.h5mu,
+    //     atac_out_h5ad,
+    //     params.n_neighbors_harmony,
+    //     params.min_dist_harmony
+    // )
+    // ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
 
-    //
-    // MODULES: Run clustering for GEX
-    //
-    CLUSTERING (
-        INTEGRATION_MODALITIES.out.h5mu_out,
-        params.resolution,
-        params.top_n_markers
-    )
-    ch_versions = ch_versions.mix(CLUSTERING.out.versions)
+    // //
+    // // MODULES: Run clustering for GEX
+    // //
+    // CLUSTERING (
+    //     INTEGRATION_MODALITIES.out.h5mu_out,
+    //     params.resolution,
+    //     params.top_n_markers
+    // )
+    // ch_versions = ch_versions.mix(CLUSTERING.out.versions)
 
-    //
-    // MODULES: Plot clustree graph
-    //
-    CLUSTREE (
-        CLUSTERING.out.metadata_final
-    )
-    ch_versions = ch_versions.mix(CLUSTREE.out.versions)
+    // //
+    // // MODULES: Plot clustree graph
+    // //
+    // CLUSTREE (
+    //     CLUSTERING.out.metadata_final
+    // )
+    // ch_versions = ch_versions.mix(CLUSTREE.out.versions)
 
-    //
-    // MODULES: Enrichment on marker genes for a selected resolution
-    //
-    if ( params.resolution != 100 && params.enrich_collection ) {
-        ch_enrich_collection = Channel.fromPath(params.enrich_collection, checkIfExists: true)
-        ENRICH_MARKERS (
-            CLUSTERING.out.ranked_genes,
-            ch_enrich_collection,
-            params.resolution
-        )
-        ch_versions = ch_versions.mix(ENRICH_MARKERS.out.versions)
-    }
+    // //
+    // // MODULES: Enrichment on marker genes for a selected resolution
+    // //
+    // if ( params.resolution != 100 && params.enrich_collection ) {
+    //     ch_enrich_collection = Channel.fromPath(params.enrich_collection, checkIfExists: true)
+    //     ENRICH_MARKERS (
+    //         CLUSTERING.out.ranked_genes,
+    //         ch_enrich_collection,
+    //         params.resolution
+    //     )
+    //     ch_versions = ch_versions.mix(ENRICH_MARKERS.out.versions)
+    // }
 
-    //
-    // MODULES: Plot custom genelist
-    //
-    if ( params.custom_geneset ) {
-        ch_custom_geneset = Channel.fromPath(params.custom_geneset, checkIfExists: true)
-        CUSTOM_GENES (
-            CLUSTERING.out.h5mu,
-            ch_custom_geneset,
-            params.resolution
-        )
-        ch_versions = ch_versions.mix(CUSTOM_GENES.out.versions)
-    }
+    // //
+    // // MODULES: Plot custom genelist
+    // //
+    // if ( params.custom_geneset ) {
+    //     ch_custom_geneset = Channel.fromPath(params.custom_geneset, checkIfExists: true)
+    //     CUSTOM_GENES (
+    //         CLUSTERING.out.h5mu,
+    //         ch_custom_geneset,
+    //         params.resolution
+    //     )
+    //     ch_versions = ch_versions.mix(CUSTOM_GENES.out.versions)
+    // }
 
     '''
     //

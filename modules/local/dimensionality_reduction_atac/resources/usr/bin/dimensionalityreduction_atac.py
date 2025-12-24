@@ -121,6 +121,24 @@ def main():
     print(f"Cells after all filters: {adata_atac.n_obs}")
     print(adata_atac.obs["sample"].value_counts())
 
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           UPDATE CELL COUNTS
+# --------------------------------------------------------------------------------------------------------------------
+
+    # Read cell counts csv to update it 
+    cell_counts_path = results_dir / "cell_counts_filters.csv"
+    cell_counts = pd.read_csv(cell_counts_path)
+
+    # Save number of cells after second filtering
+    counts_after_filters = adata_atac.obs['sample'].value_counts().sort_index()
+    cell_counts['counts_after_filters'] = cell_counts['sample'].map(counts_after_filters).fillna(0).astype(int)
+    
+    # Save updated cell counts csv
+    cell_counts.to_csv(cell_counts_path, index=False)
+    print(f"Updated cell counts CSV saved at {cell_counts_path}")
+
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE FILTERING RESULT
 # --------------------------------------------------------------------------------------------------------------------
@@ -180,6 +198,58 @@ def main():
     print("Done!")
 
     print(adata_atac)
+    
+    # Must decide which clustering represents the dataset for downstream biological operations (peak calling script!!)
+
+    print("\n===== SELECTING LEIDEN TILE RESOLUTION =====")
+    min_cells_per_cluster = 300  # make this a parameter if needed
+    resolution_stats = {}
+
+    for res in resolutions:
+        col = f"leiden_tile_{res}"
+        counts = adata_atac.obs[col].value_counts()
+        min_cluster_size = counts.min()
+        n_clusters = counts.shape[0]
+
+        resolution_stats[res] = {
+            "min_cluster_size": int(min_cluster_size),
+            "n_clusters": int(n_clusters)
+        }
+
+        print(
+            f"Resolution {res}: "
+            f"{n_clusters} clusters, "
+            f"smallest cluster = {min_cluster_size} cells"
+        )
+
+    # keep only resolutions that satisfy the minimum cluster size constraint
+    valid_resolutions = [
+        res for res, stats in resolution_stats.items()
+        if stats["min_cluster_size"] >= min_cells_per_cluster
+    ]
+
+    if len(valid_resolutions) == 0:
+        raise RuntimeError(
+            f"No Leiden resolution produced clusters with at least "
+            f"{min_cells_per_cluster} cells"
+        )
+
+    # choose the highest valid resolution
+    chosen_resolution = max(valid_resolutions)
+    chosen_col = f"leiden_tile_{chosen_resolution}"
+
+    print(
+        f"\nSelected resolution {chosen_resolution} "
+        f"as official leiden_tile"
+    )
+
+    # promote to canonical column for downstream steps
+    adata_atac.obs["leiden_tile"] = adata_atac.obs[chosen_col].astype("category")
+
+    # record leiden info in uns
+    # adata_atac.uns["leiden_tile_resolution"] = float(chosen_resolution)
+    # adata_atac.uns["leiden_tile_min_cluster_size"] = min_cells_per_cluster
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           COMPUTE AND VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
