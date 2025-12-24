@@ -140,36 +140,7 @@ def main():
     else:
         print("No valid metadata CSV file provided. Skipping reading of the sample metadata table.")
 
-# --------------------------------------------------------------------------------------------------------------------
-#                                 ADDED METADATA TO OBS
-# --------------------------------------------------------------------------------------------------------------------
 
-    if metadata_df is not None:
-        print("\n===== ADDING METADATA TO OBS =====")
-
-        if 'Barcode' in metadata_df.columns:
-            metadata_df = metadata_df.set_index('pool_barcode')
-            obs_names_index = pd.Index(adata.obs_names)
-            intersect_barcodes = obs_names_index.intersection(metadata_df.index)
-            metadata_to_add = metadata_df.loc[intersect_barcodes]
-            adata.obs = adata.obs.join(metadata_to_add, how='left')
-            adata.obs['Souporcell_Cluster'] = adata.obs['Souporcell_Cluster'].astype(str)
-            print(f"Metadata joined to MuData obs for {len(intersect_barcodes)} barcodes.")
-        else:
-            print("No 'Barcode' column found in metadata CSV; skipping join.")
-
-    if meta_df is not None:
-        print("\n===== ADDING SAMPLE METADATA TO OBS =====")
-
-        if 'sample' in meta_df.columns:
-            adata.obs['sample'] = adata.obs['sample'].astype(str).str.replace('_filtered', '', regex=False).str.replace('_parse', '', regex=False).str.strip()
-            meta_df['sample'] = meta_df['sample'].astype(str)
-            # Add prefix to the column names in meta_df (excluding 'sample' since it's used for joining)
-            prefixed_meta_df = meta_df.add_prefix('meta_').rename(columns={'meta_sample': 'sample'})
-            adata.obs = adata.obs.join(prefixed_meta_df.set_index('sample'), on='sample', how='left').astype(str)
-            print("Sample metadata joined to MuData obs.")
-        else:
-            print("No 'sample' column found in metadata CSV; skipping join.")
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CREATE MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
@@ -198,6 +169,28 @@ def main():
         mdata.obs['airr:sample'] = mdata.obs['airr:sample'].astype(str)
     mdata.update()
 
+# --------------------------------------------------------------------------------------------------------------------
+#                                 ADD METADATA TO MUDATA
+# --------------------------------------------------------------------------------------------------------------------
+
+    if meta_df is not None:
+        print("\n===== ADDING SAMPLE METADATA TO OBS =====")
+
+        for modality_name, adata_mod in mdata.mod.items():
+            if modality_name == 'gex':
+                meta_subset = meta_df[meta_df['assay'] == 'gex'].copy()
+                adata_mod.obs = adata_mod.obs.join(
+                    meta_subset.set_index('sample'),
+                    on='sample',
+                    how='left'
+                )
+            elif modality_name == 'atac':
+                meta_subset = meta_df[meta_df['assay'] == 'atac'].copy()
+                adata_mod.obs = adata_mod.obs.join(
+                    meta_subset.set_index('sample'),
+                    on='sample',
+                    how='left'
+                )
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE

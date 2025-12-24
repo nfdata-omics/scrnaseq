@@ -46,7 +46,8 @@ workflow ATAC_PREPROCESSING {
             params.n_comps_atac,
             params.n_neighbors_atac,
             params.n_clusters_atac,
-            blacklist_path
+            blacklist_path,
+            QUALITY_FILTERING_ATAC.out.cell_counts
         )
         ch_versions = ch_versions.mix(DIMENSIONALITY_REDUCTION_ATAC.out.versions)
 
