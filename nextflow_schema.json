@@ -369,6 +369,7 @@
                     "type": "string",
                     "format": "file-path",
                     "exists": true,
+                    "schema": "assets/schema_cellranger_multi_barcodes.json",
                     "mimetype": "text/csv",
                     "description": "Additional samplesheet to provide information about multiplexed samples. See the 'Usage' section for more details."
                 }

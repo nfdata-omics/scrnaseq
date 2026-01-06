@@ -224,6 +224,58 @@ workflow PIPELINE_COMPLETION {
 //
 def validateInputParameters() {
     genomeExistsError()
+
+    // Validate cellranger_multi_barcodes if provided and aligner is cellrangermulti
+    if (params.aligner == 'cellrangermulti' && params.cellranger_multi_barcodes) {
+        validateCellrangerMultiBarcodes()
+    }
+}
+
+//
+// Validate cellranger_multi_barcodes samplesheet for uniqueness and conditional requirements
+//
+def validateCellrangerMultiBarcodes() {
+    def barcodesFile = file(params.cellranger_multi_barcodes)
+
+    cellranger_multi_barcodes = file(params.cellranger_multi_barcodes).splitCsv(header: true)
+
+    // Check that at least one barcode column is provided for each row
+    // and that each sample uses only one type of barcode
+    def rowsWithoutBarcodes = []
+    def sampleBarcodeTypes = [:]
+    cellranger_multi_barcodes.eachWithIndex { row, idx ->
+        // print the row to debug logs for debugging
+        log.debug "Row ${idx + 2}: ${row}"
+
+        def sample = row.multiplexed_sample_id
+        def rowNum = idx + 2 // +2 for 1-based indexing and header row
+
+        def barcodeTypes = []
+        if (row.probe_barcode_ids) barcodeTypes << 'probe_barcode_ids'
+        if (row.cmo_ids)           barcodeTypes << 'cmo_ids'
+        if (row.ocm_ids)           barcodeTypes << 'ocm_ids'
+
+        if (barcodeTypes.isEmpty()) {
+            rowsWithoutBarcodes << [row: rowNum, sample: sample]
+        }
+        sampleBarcodeTypes[sample] = [types: barcodeTypes.toSet(), row: rowNum]
+    }
+
+    if (rowsWithoutBarcodes) {
+        def errorDetails = rowsWithoutBarcodes.collect { "row ${it.row} (${it.sample})" }.join(', ')
+        error("Please check cellranger_multi_barcodes samplesheet -> " +
+              "The following rows have no barcode identifiers: ${errorDetails}. " +
+              "Each row must have at least one of: 'probe_barcode_ids', 'cmo_ids', or 'ocm_ids'.")
+    }
+
+    def samplesWithMixedBarcodes = sampleBarcodeTypes.findAll { sample, info -> info.types.size() > 1 }
+    if (samplesWithMixedBarcodes) {
+        def errorMsg = samplesWithMixedBarcodes.collect { sample, info ->
+            "'${sample}' (row ${info.row}) uses multiple barcode types: ${info.types.join(', ')}"
+        }.join('; ')
+        error("Please check cellranger_multi_barcodes samplesheet -> " +
+              "Each multiplexed_sample_id should use only one type of barcode identifier. ${errorMsg}")
+    }
 }
 
 //
