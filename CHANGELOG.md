@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix [#375](https://github.com/nf-core/scrnaseq/issues/375): mismatch between index and probeset when cellranger multi is used without a prebuilt index and an FFPE probeset is passed ([#502](https://github.com/nf-core/scrnaseq/pull/502))
 - Fix [#510](https://github.com/nf-core/scrnaseq/issues/510): Handle files with BOMs. ([#511](https://github.com/nf-core/scrnaseq/pull/511))
+- Address [#512], adding early validation of the cellranger multi barcode sheet ([#513](https://github.com/nf-core/scrnaseq/pull/513))
 
 ## v4.1.0 - 2025-08-01
 

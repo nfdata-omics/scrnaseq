@@ -224,6 +224,70 @@ workflow PIPELINE_COMPLETION {
 //
 def validateInputParameters() {
     genomeExistsError()
+
+    // Validate cellranger_multi_barcodes if provided and aligner is cellrangermulti
+    if (params.aligner == 'cellrangermulti' && params.cellranger_multi_barcodes) {
+        validateCellrangerMultiBarcodes()
+    }
+}
+
+//
+// Validate cellranger_multi_barcodes samplesheet for uniqueness and conditional requirements
+//
+def validateCellrangerMultiBarcodes() {
+    cellranger_multi_barcodes = file(params.cellranger_multi_barcodes).splitCsv(header: true)
+
+    // Get unique samples from input samplesheet for cross-validation
+    def inputSamples = file(params.input).splitCsv(header: true).collect { it.sample }.toSet()
+
+    // Check that at least one barcode column is provided for each row
+    // and that each sample uses only one type of barcode
+    def rowsWithoutBarcodes = []
+    def sampleBarcodeTypes = [:]
+    def barcodeSamples = [] as Set
+    cellranger_multi_barcodes.eachWithIndex { row, idx ->
+        def multiplexed_sample_id = row.multiplexed_sample_id
+        def rowNum = idx + 2 // +2 for 1-based indexing and header row
+
+        // Collect unique sample names for cross-validation
+        barcodeSamples << row.sample
+
+        def barcodeTypes = []
+        if (row.probe_barcode_ids) barcodeTypes << 'probe_barcode_ids'
+        if (row.cmo_ids)           barcodeTypes << 'cmo_ids'
+        if (row.ocm_ids)           barcodeTypes << 'ocm_ids'
+
+        if (barcodeTypes.isEmpty()) {
+            rowsWithoutBarcodes << [row: rowNum, multiplexed_sample_id: multiplexed_sample_id]
+        }
+        sampleBarcodeTypes[multiplexed_sample_id] = [types: barcodeTypes.toSet(), row: rowNum]
+    }
+
+    // Validate that at least one barcode identifier is populated in each row
+    if (rowsWithoutBarcodes) {
+        def errorDetails = rowsWithoutBarcodes.collect { "row ${it.row} (${it.multiplexed_sample_id})" }.join(', ')
+        error("Please check cellranger_multi_barcodes samplesheet -> " +
+              "The following rows have no barcode identifiers: ${errorDetails}. " +
+              "Each row must have exactly one of: 'probe_barcode_ids', 'cmo_ids', or 'ocm_ids'.")
+    }
+
+    // Validate that no more than one barcode identifier is populated in each row
+    def samplesWithMixedBarcodes = sampleBarcodeTypes.findAll { multiplexed_sample_id, info -> info.types.size() > 1 }
+    if (samplesWithMixedBarcodes) {
+        def errorMsg = samplesWithMixedBarcodes.collect { multiplexed_sample_id, info ->
+            "'${multiplexed_sample_id}' (row ${info.row}) uses multiple barcode types: ${info.types.join(', ')}"
+        }.join('; ')
+        error("Please check cellranger_multi_barcodes samplesheet -> " +
+              "Each multiplexed_sample_id should use only one type of barcode identifier. ${errorMsg}")
+    }
+
+    // Validate that samples in cellranger_multi_barcodes exist in the input samplesheet
+    def unknownSamples = barcodeSamples - inputSamples
+    if (unknownSamples) {
+        error("Please check cellranger_multi_barcodes samplesheet -> " +
+              "The following sample(s) do not exist in the input samplesheet: ${unknownSamples.join(', ')}. " +
+              "The 'sample' column in cellranger_multi_barcodes must match 'sample' values in the input samplesheet.")
+    }
 }
 
 //
