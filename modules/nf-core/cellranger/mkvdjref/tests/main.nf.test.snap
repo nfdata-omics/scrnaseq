@@ -1,0 +1,68 @@
+{
+    "homo_sapiens - vdj - reference": {
+        "content": [
+            {
+                "0": [
+                    [
+                        [
+                            "regions.fa:md5,1e22fd84ab26c89d3c285140df2daf5f"
+                        ],
+                        "reference.json:md5,b128ff77eac9ad9b11b399dbb3b3c019"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,4769691097415606679895ffb694ca95"
+                ],
+                "reference": [
+                    [
+                        [
+                            "regions.fa:md5,1e22fd84ab26c89d3c285140df2daf5f"
+                        ],
+                        "reference.json:md5,b128ff77eac9ad9b11b399dbb3b3c019"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,4769691097415606679895ffb694ca95"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.04.0"
+        },
+        "timestamp": "2025-11-17T16:02:21.968411746"
+    },
+    "homo_sapiens - vdj - reference - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        [
+                            "regions.fa:md5,f50b84b1db4b83ba62ec1deacc69c260"
+                        ],
+                        "reference.json:md5,f50b84b1db4b83ba62ec1deacc69c260"
+                    ]
+                ],
+                "1": [
+                    "versions.yml:md5,4769691097415606679895ffb694ca95"
+                ],
+                "reference": [
+                    [
+                        [
+                            "regions.fa:md5,f50b84b1db4b83ba62ec1deacc69c260"
+                        ],
+                        "reference.json:md5,f50b84b1db4b83ba62ec1deacc69c260"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,4769691097415606679895ffb694ca95"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.04.0"
+        },
+        "timestamp": "2025-11-17T16:02:26.890408192"
+    }
+}
