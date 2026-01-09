@@ -30,9 +30,9 @@ workflow SCRNASEQ {
     ch_fastq
 
     main:
-    ch_multiqc_files = Channel.empty()
-    ch_versions      = Channel.empty()
-    ch_mtx_matrices  = Channel.empty()
+    ch_multiqc_files = channel.empty()
+    ch_versions      = channel.empty()
+    ch_mtx_matrices  = channel.empty()
 
     protocol_config = Utils.getProtocol(workflow, log, params.aligner, params.protocol)
     if (protocol_config['protocol'] == 'auto' && params.aligner !in ["cellranger", "cellrangerarc", "cellrangermulti"]) {
@@ -68,7 +68,7 @@ workflow SCRNASEQ {
 
     //star params
     star_index        = params.star_index ? file(params.star_index, checkIfExists: true) : null
-    ch_star_index     = star_index ? Channel.value( [[id: star_index.baseName], star_index] ) : []
+    ch_star_index     = star_index ? channel.value( [[id: star_index.baseName], star_index] ) : []
 
     //cellranger params
     ch_cellranger_index = params.cellranger_index ? file(params.cellranger_index, checkIfExists: true) : []
@@ -96,7 +96,7 @@ workflow SCRNASEQ {
             ch_genome_fasta    = GUNZIP_FASTA ( [ [:], ch_genome_fasta ] ).gunzip.map { it[1] }
             ch_versions        = ch_versions.mix(GUNZIP_FASTA.out.versions)
         } else {
-            ch_genome_fasta = Channel.value( ch_genome_fasta )
+            ch_genome_fasta = channel.value( ch_genome_fasta )
         }
     }
 
@@ -108,7 +108,7 @@ workflow SCRNASEQ {
             ch_gtf      = GUNZIP_GTF ( [ [:], ch_gtf ] ).gunzip.map { it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
         } else {
-            ch_gtf = Channel.value( ch_gtf )
+            ch_gtf = channel.value( ch_gtf )
         }
     }
 
@@ -315,7 +315,7 @@ workflow SCRNASEQ {
     //
     // Collate and save software versions
     //
-    def topic_versions = Channel.topic("versions")
+    def topic_versions = channel.topic("versions")
         .distinct()
         .branch { entry ->
             versions_file: entry instanceof Path
@@ -383,7 +383,7 @@ workflow SCRNASEQ {
         )
         ch_multiqc_report = MULTIQC.out.report
     } else {
-        ch_multiqc_report = Channel.empty()
+        ch_multiqc_report = channel.empty()
     }
 
     emit:
