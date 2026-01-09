@@ -25,7 +25,6 @@ warnings.filterwarnings("ignore")
 VERSION = "0.0.1"
 
 import os
-os.environ['SNAPATAC2_CACHE_DIR'] = '/home/camilla.callierotti/.snapatac2'
 
 # ====================================================================================================================
 #                                          MAIN FUNCTION
@@ -73,7 +72,7 @@ def main():
     input_fragment_files = [str(f) for f in args.input_fragment_files]  
     input_fragment_files_index = [str(f) for f in args.input_fragment_files_index]
     output =args.out
-    results_dir = args.results
+    # results_dir = args.results
     tss_threshold = args.tss_threshold
     min_fragments_counts = args.min_fragments_counts
     max_fragments_counts = args.max_fragments_counts
@@ -135,7 +134,9 @@ def main():
 
     print(f"\n# Calculate the tss enrichment for {input_fragment_files}")
     # Compute the TSS score for each sample
-    snap.metrics.tsse(adatas_atac, snap.genome.hg38,inplace = True)
+    # gff3 = "/facility/nfdata-omics/reference/human/gencode/v44/gencode.v44.primary_assembly.annotation.gff3.gz"
+    # snap.metrics.tsse(adatas_atac, gff3, inplace = True)
+    snap.metrics.tsse(adatas_atac, snap.genome.hg38, inplace = True)
     for i, adata in enumerate(adatas_atac):
         fig2 = snap.pl.tsse(adata, show=False)
         fig2.show()
@@ -154,7 +155,7 @@ def main():
     ### Fragment Size Distribution PDF ###
     
     print("Generating Fragment Size Distribution PDF...")
-    with PdfPages(results_dir / "FragSizeDist_all_samples.pdf") as pdf:
+    with PdfPages("FragSizeDist_all_samples.pdf") as pdf:
         for run_id, adata in zip(input_run_id, adatas_atac):
             distr = adata.uns['frag_size_distr']
             print(f"Fragment size distribution for sample {run_id}:")
@@ -196,7 +197,7 @@ def main():
     blue_cmap = LinearSegmentedColormap.from_list("blue_kde", colors)
 
     print("Generating TSS Enrichment Score PDF...")
-    with PdfPages(results_dir / "TSSE_score_all_samples.pdf") as pdf:
+    with PdfPages("TSSE_score_all_samples.pdf") as pdf:
         for run_id, adata in zip(input_run_id, adatas_atac):
             png_file = f"tsse_{run_id}.png"
             # Increase width and height for higher resolution
@@ -222,7 +223,7 @@ def main():
     
     print("\n===== PLOT QC HISTOGRAMS (CELL NUMBERS) =====")
     
-    with PdfPages(results_dir / "QC_Histograms_all_samples.pdf") as pdf:
+    with PdfPages("QC_Histograms_all_samples.pdf") as pdf:
         for run_id, adata in zip(input_run_id, adatas_atac):
 
             n_fragment = adata.obs['n_fragment'].drop_nans()
@@ -305,7 +306,7 @@ def main():
     
     # Create csv of cell counts once for safety     
     cell_counts = cell_counts.sort_values("sample")
-    cell_counts.to_csv(results_dir / "cell_counts_filters.csv",
+    cell_counts.to_csv("cell_counts_filters.csv",
                        index=False)
 
     print("Print number of cells after filtering doublets:")
