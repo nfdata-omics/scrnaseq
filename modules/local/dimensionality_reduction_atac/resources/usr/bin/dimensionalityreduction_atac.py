@@ -187,7 +187,7 @@ def main():
 
     # Perform clustering
     print("\n===== PERFORM CLUSTERING =====")
-    print("Performing clustering ... ", end='')
+    print(f"Performing clustering ... \n", end='')
     snap.pp.knn(adata_atac)
     resolutions = np.round(np.arange(0.1, 1.1, 0.1), 2)
     clustering_labels = []
@@ -198,72 +198,30 @@ def main():
     print("Done!")
 
     print(adata_atac)
-    
-    # Must decide which clustering represents the dataset for downstream biological operations (peak calling script!!)
-
-    print("\n===== SELECTING LEIDEN TILE RESOLUTION =====")
-    min_cells_per_cluster = 300  # make this a parameter if needed
-    resolution_stats = {}
-
-    for res in resolutions:
-        col = f"leiden_tile_{res}"
-        counts = adata_atac.obs[col].value_counts()
-        min_cluster_size = counts.min()
-        n_clusters = counts.shape[0]
-
-        resolution_stats[res] = {
-            "min_cluster_size": int(min_cluster_size),
-            "n_clusters": int(n_clusters)
-        }
-
-        print(
-            f"Resolution {res}: "
-            f"{n_clusters} clusters, "
-            f"smallest cluster = {min_cluster_size} cells"
-        )
-
-    # keep only resolutions that satisfy the minimum cluster size constraint
-    valid_resolutions = [
-        res for res, stats in resolution_stats.items()
-        if stats["min_cluster_size"] >= min_cells_per_cluster
-    ]
-
-    if len(valid_resolutions) == 0:
-        raise RuntimeError(
-            f"No Leiden resolution produced clusters with at least "
-            f"{min_cells_per_cluster} cells"
-        )
-
-    # choose the highest valid resolution
-    chosen_resolution = max(valid_resolutions)
-    chosen_col = f"leiden_tile_{chosen_resolution}"
-
-    print(
-        f"\nSelected resolution {chosen_resolution} "
-        f"as official leiden_tile"
-    )
-
-    # promote to canonical column for downstream steps
-    adata_atac.obs["leiden_tile"] = adata_atac.obs[chosen_col].astype("category")
-
-    # record leiden info in uns
-    # adata_atac.uns["leiden_tile_resolution"] = float(chosen_resolution)
-    # adata_atac.uns["leiden_tile_min_cluster_size"] = min_cells_per_cluster
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           COMPUTE AND VISUALIZE UMAP PLOT
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Compute UMAP for visualization
+    # Compute UMAP (just once, not per resolution, because the UMAP is calc from the same representation (X_spectral_mnn))
     print("\n===== COMPUTE UMAP =====")
-    print("Computing UMAP ... ", end='')
-    snap.tl.umap(adata_atac)
+    snap.tl.umap(adata_atac, use_rep='X_spectral_mnn')  # Saves to default 'X_umap'
     print("Done!")
-
-    # Visualize UMAP plot
-    print("\nVisualized UMAP plot")
-    snap.pl.umap(adata_atac, color="sample",interactive=False,show=False,out_file=os.path.join(results_dir, "UMAP_ATAC_by_sample.pdf"))
-    print("Done!")
+    
+    # Visualize UMAP for all Leiden resolutions
+    print("\n===== VISUALIZE UMAP FOR ALL RESOLUTIONS =====")
+    for res in resolutions:
+        leiden_key = "leiden_tile_{}".format(res)
+        
+        print(f"\n      Visualizing UMAP colored by {leiden_key}")
+        snap.pl.umap(
+            adata_atac, 
+            color=leiden_key,
+            interactive=False,
+            show=False,
+            out_file=os.path.join(results_dir, f"UMAP_ATAC_by_{leiden_key}.pdf")
+        )
+        print("Done!")
 
 
 # --------------------------------------------------------------------------------------------------------------------

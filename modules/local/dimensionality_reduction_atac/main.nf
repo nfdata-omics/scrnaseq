@@ -23,8 +23,6 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
     path "cell_counts_filters.csv", emit: cell_counts, optional: true
     path "versions.yml",  emit: versions
 
-    publishDir params.outdir, mode: 'copy', overwrite: true
-
     when:
     task.ext.when == null || task.ext.when
 
