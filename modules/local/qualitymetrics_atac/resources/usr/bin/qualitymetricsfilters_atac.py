@@ -319,7 +319,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
     # Create an AnnDataSet object to store the processed data
-    # print("\n===== CREATE ANNDATASET OBJECT =====")
+    print("\n===== CREATE ANNDATASET OBJECT =====")
     data = snap.AnnDataSet(
     adatas=[(name, adata) for (name, _), adata in zip(files, adatas_atac)],
     filename=output
