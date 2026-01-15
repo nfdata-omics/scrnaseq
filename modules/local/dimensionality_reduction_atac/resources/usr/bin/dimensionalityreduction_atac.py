@@ -17,6 +17,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import seaborn as sns
+from pdf2image import convert_from_path
 
 
 
@@ -126,33 +127,33 @@ def main():
 #                           UPDATE CELL COUNTS
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Read cell counts csv to update it 
-    cell_counts_path = results_dir / "cell_counts_filters.csv"
-    cell_counts = pd.read_csv(cell_counts_path)
+    # # Read cell counts csv to update it 
+    # cell_counts_path = results_dir / "cell_counts_filters.csv"
+    # cell_counts = pd.read_csv(cell_counts_path)
 
-    # Save number of cells after second filtering
-    counts_after_filters = adata_atac.obs['sample'].value_counts().sort_index()
-    cell_counts['counts_after_filters'] = cell_counts['sample'].map(counts_after_filters).fillna(0).astype(int)
+    # # Save number of cells after second filtering
+    # counts_after_filters = adata_atac.obs['sample'].value_counts().sort_index()
+    # cell_counts['counts_after_filters'] = cell_counts['sample'].map(counts_after_filters).fillna(0).astype(int)
     
-    # Save updated cell counts csv
-    cell_counts.to_csv(cell_counts_path, index=False)
-    print(f"Updated cell counts CSV saved at {cell_counts_path}")
+    # # Save updated cell counts csv
+    # cell_counts.to_csv(cell_counts_path, index=False)
+    # print(f"Updated cell counts CSV saved at {cell_counts_path}")
 
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE FILTERING RESULT
 # --------------------------------------------------------------------------------------------------------------------
  
-    fig, ax = plt.subplots(figsize=(30,25))
-    print("\nVisualize the number of cells after filtering for each sample")
-    sns.histplot(adata_atac.obs, x="sample", stat="count", ax=ax)
-    locs, labels = plt.xticks()
-    ax.set_xlabel("Sample name", fontsize=30)
-    ax.set_ylabel("Cell number", fontsize=30)
-    plt.setp(labels, rotation=90.,fontsize=30)
-    ax.tick_params(axis='y', labelsize=30)
-    plt.savefig(os.path.join(results_dir,'Cells_after_filtering_atac.pdf'), bbox_inches='tight', dpi=300)
-    plt.close()
+    # fig, ax = plt.subplots(figsize=(30,25))
+    # print("\nVisualize the number of cells after filtering for each sample")
+    # sns.histplot(adata_atac.obs, x="sample", stat="count", ax=ax)
+    # locs, labels = plt.xticks()
+    # ax.set_xlabel("Sample name", fontsize=30)
+    # ax.set_ylabel("Cell number", fontsize=30)
+    # plt.setp(labels, rotation=90.,fontsize=30)
+    # ax.tick_params(axis='y', labelsize=30)
+    # plt.savefig(os.path.join(results_dir,'Cells_after_filtering_atac.pdf'), bbox_inches='tight', dpi=300)
+    # plt.close()
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           DIMENSIONALITY REDUCTION
@@ -209,19 +210,62 @@ def main():
     print("Done!")
     
     # Visualize UMAP for all Leiden resolutions
-    print("\n===== VISUALIZE UMAP FOR ALL RESOLUTIONS =====")
+    print("\n===== VISUALIZE UMAP FOR EACH RESOLUTION =====")
+    
     for res in resolutions:
-        leiden_key = "leiden_tile_{}".format(res)
-        
-        print(f"\n      Visualizing UMAP colored by {leiden_key}")
+        leiden_key = f"leiden_tile_{res}"
+        print(f"Visualizing {leiden_key}")
+
         snap.pl.umap(
-            adata_atac, 
+            adata_atac,
             color=leiden_key,
             interactive=False,
             show=False,
-            out_file=os.path.join(results_dir, f"UMAP_ATAC_by_{leiden_key}.pdf")
+            out_file=os.path.join(results_dir, f"UMAP_ATAC_res_{res}.pdf")
         )
-        print("Done!")
+
+    print("Done!")
+
+    print("\n===== PRINT ALL UMAPS TOGETHER =====")
+    
+    image_files = [
+        os.path.join(results_dir, f"UMAP_ATAC_res_{res}.pdf")
+        for res in resolutions
+    ]
+
+    n_images = len(image_files)
+    n_cols = 4
+    n_rows = int(np.ceil(n_images / n_cols))
+
+    fig, axes = plt.subplots(
+        n_rows,
+        n_cols,
+        figsize=(5 * n_cols, 5 * n_rows),
+        squeeze=False
+    )
+
+    axes = axes.flatten()
+
+    for i, pdf_path in enumerate(image_files):
+        ax = axes[i]
+        pil_image = convert_from_path(pdf_path, dpi=300)[0]
+        img = np.array(pil_image)
+        ax.imshow(img)
+        ax.axis("off")
+
+    # Remove unused axes
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    plt.tight_layout()
+    plt.savefig(
+        os.path.join(results_dir, "UMAP_ATAC_all_res.pdf"),
+        bbox_inches="tight",
+        dpi=300
+    )
+    plt.close()
+
+    print("Done!")
 
 
 # --------------------------------------------------------------------------------------------------------------------
