@@ -89,12 +89,12 @@ def main():
         print("\nProcessing count matrix in folder ... ", end ='')
         adata= sc.read_h5ad(input_file)
         print("Done!")
-        print(f"Gex count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes")
-
+        
         # Find the obs columns to remove
         cols_to_remove = [col for col in adata.obs.columns if col.startswith("fastq")]
-        # Drop them
-        adata.obs.drop(columns=cols_to_remove, inplace=True)
+        if cols_to_remove:
+            # Drop them
+            adata.obs.drop(columns=cols_to_remove, inplace=True)
         print(f"Gex count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes")
         
     else:
@@ -164,10 +164,15 @@ def main():
         if 'sample' in meta_df.columns:
             adata.obs['sample'] = adata.obs['sample'].astype(str).str.replace('_filtered', '', regex=False).str.replace('_parse', '', regex=False).str.strip()
             meta_df['sample'] = meta_df['sample'].astype(str)
-            # Add prefix to the column names in meta_df (excluding 'sample' since it's used for joining)
-            prefixed_meta_df = meta_df.add_prefix('meta_').rename(columns={'meta_sample': 'sample'})
-            adata.obs = adata.obs.join(prefixed_meta_df.set_index('sample'), on='sample', how='left').astype(str)
-            print("Sample metadata joined to MuData obs.")
+            # Check if metadata columns already exist in adata.obs
+            if any(col.startswith('meta_') for col in adata.obs.columns):
+                # Metadata already exists, skip join
+                print("Metadata columns already present in adata.obs; skipping join.")
+            else:
+                # Add prefix to the column names in meta_df (excluding 'sample' since it's used for joining)
+                prefixed_meta_df = meta_df.add_prefix('meta_').rename(columns={'meta_sample': 'sample'})
+                adata.obs = adata.obs.join(prefixed_meta_df.set_index('sample'), on='sample', how='left').astype(str)
+                print("Sample metadata joined to MuData obs.")
         else:
             print("No 'sample' column found in metadata CSV; skipping join.")
 # --------------------------------------------------------------------------------------------------------------------
@@ -176,12 +181,16 @@ def main():
     #Creates dictionary to store all modalities
     modalities = {}
     try:
-        # Add 'gex' modality if defined
-        if adata[:, adata.var["feature_types"] == "Gene Expression"].shape[1] > 0:
-            modalities["gex"] = adata[:, adata.var["feature_types"] == "Gene Expression"]
-        # Add 'pro' modality if defined
-        if adata[:, adata.var["feature_types"] == "Antibody Capture"].shape[1] > 0:
-            modalities["pro"] = adata[:, adata.var["feature_types"] == "Antibody Capture"]
+        if "feature_types" in adata.var.columns:
+            # Add 'gex' modality if defined
+            if adata[:, adata.var["feature_types"] == "Gene Expression"].shape[1] > 0:
+                modalities["gex"] = adata[:, adata.var["feature_types"] == "Gene Expression"]
+            # Add 'pro' modality if defined
+            if adata[:, adata.var["feature_types"] == "Antibody Capture"].shape[1] > 0:
+                modalities["pro"] = adata[:, adata.var["feature_types"] == "Antibody Capture"]
+        else:
+            # If feature_types not present, assume all data is GEX
+            modalities["gex"] = adata
     except NameError:
         pass
 
