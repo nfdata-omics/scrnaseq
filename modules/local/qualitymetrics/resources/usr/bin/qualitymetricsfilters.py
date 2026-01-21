@@ -34,7 +34,7 @@ VERSION = "0.0.1"
 # ====================================================================================================================
 
 def is_outlier(adata, metric: str, nmads: int):
-    M = adata.obs[metric]
+    M = pd.to_numeric(adata.obs[metric], errors='coerce')
     outlier = (M < np.median(M) - nmads * median_abs_deviation(M)) | (
         np.median(M) + nmads * median_abs_deviation(M) < M
     )
@@ -169,6 +169,7 @@ def main():
         gex.var["ribo"] = gex.var["gene_symbols_upper"].str.startswith(("RPS", "RPL"))
         gex.var["hb"] = gex.var["gene_symbols_upper"].str.startswith("HB") & ~gex.var["gene_symbols_upper"].str.startswith("HBP")
         sc.pp.calculate_qc_metrics(gex, qc_vars=["mt", "ribo", "hb"],percent_top=[20], log1p=True, inplace=True)
+        print("QC metrics computed successfully.")
         print(gex.obs[['pct_counts_mt', 'pct_counts_ribo']].head())
 
 
@@ -235,6 +236,12 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           EVALUATE CELLS BASED ON HARD FILTERS
 # --------------------------------------------------------------------------------------------------------------------
+
+        # Convert numeric columns back to numeric type (they may be strings from join operations)
+        numeric_cols = ['total_counts', 'n_genes_by_counts', 'pct_counts_mt', 'pct_counts_ribo']
+        for col in numeric_cols:
+            if col in gex.obs.columns:
+                gex.obs[col] = pd.to_numeric(gex.obs[col], errors='coerce')
 
         #Hard filtering based on total counts, number of genes expressed and fraction of mitochondrial genes
         gex.obs["total_counts_outlier"] = ((gex.obs["total_counts"] < min_umi_gex ) | (gex.obs["total_counts"] > max_umi_gex))
