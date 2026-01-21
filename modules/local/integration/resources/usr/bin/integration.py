@@ -56,6 +56,7 @@ def main():
                         help="path and name of csv tabel with UMAP coordinates for each cell")
     parser.add_argument('-nnh', '--n_neighbors_harmony', dest='n_neighbors_harmony', type=int, default=20, help="Size of local neighborhood used for manifold approximation. Larger values result in more global views of the manifold, while smaller values result in more local data being preserved. Values should be in the range 2 to 100")
     parser.add_argument('-mdh', '--min_dist_harmony', dest='min_dist_harmony', type=float, default=0.1, help="minimum distance between embedded points. Smaller values will result in a more clustered/clumped embedding where nearby points on the manifold are drawn closer together")
+    parser.add_argument('-var','--integration_var', type=str, default='sample', help="variable in .obs to use for integration (default is 'sample')")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
     args = parser.parse_args()
@@ -70,6 +71,7 @@ def main():
     output_csv= args.csv_out
     n_neighbors_harmony = args.n_neighbors_harmony
     min_dist_harmony = args.min_dist_harmony
+    integration_var = args.integration_var
 
     # print info on the available matrices
     print("Reading combined count matrix from the following file:")
@@ -100,7 +102,7 @@ def main():
     print("\n===== DATA INTEGRATION =====")
     # Integrate data using Harmony algorithm
     print("\nData integration by using Harmony algorith")
-    sce.pp.harmony_integrate(gex, 'sample')
+    sce.pp.harmony_integrate(gex, integration_var)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CALCULATING NEIGHBORS AND BATCH-CORRECTED UMAP
