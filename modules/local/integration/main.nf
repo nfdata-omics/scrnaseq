@@ -8,6 +8,7 @@ process INTEGRATION {
     tuple val(meta), path(input_h5mu)
     val n_neighbors_harmony
     val min_dist_harmony
+    val integration_var
 
     output:
     tuple val(meta), path("*.integrated.h5mu")           , emit: h5mu
@@ -29,7 +30,7 @@ process INTEGRATION {
     export XDG_CONFIG_HOME=/tmp
 
     
-    integration.py -ad $input_h5mu -nnh $n_neighbors_harmony -mdh $min_dist_harmony
+    integration.py -ad $input_h5mu -nnh $n_neighbors_harmony -mdh $min_dist_harmony -var $integration_var
 
 
     cat <<-END_VERSIONS >> versions.yml
