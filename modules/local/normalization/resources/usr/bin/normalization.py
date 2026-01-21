@@ -100,12 +100,17 @@ def main():
     # read the raw count matrix for the combined samples and print some initial info
     print("\nProcessing raw count matrix in folder ... ", end ='')
 
-    adata_raw= sc.read_h5ad(input_h5ad_files)
-    # Extract only CITE counts
-    if 'feature_types' in adata_raw.var:
-        pro_raw = adata_raw[:, adata_raw.var["feature_types"] == "Antibody Capture"].copy()
-        print("Done!")
-        print(f"Raw count matrix for combined samples has {pro_raw.shape[0]} cells and {pro_raw.shape[1]} genes/ab")
+    # Check if input file is EMPTY (for reclustering workflows)
+    pro_raw = None
+    if input_h5ad_files.name != "EMPTY" and input_h5ad_files.stat().st_size > 0:
+        adata_raw = sc.read_h5ad(input_h5ad_files)
+        # Extract only CITE counts
+        if 'feature_types' in adata_raw.var:
+            pro_raw = adata_raw[:, adata_raw.var["feature_types"] == "Antibody Capture"].copy()
+            print("Done!")
+            print(f"Raw count matrix for combined samples has {pro_raw.shape[0]} cells and {pro_raw.shape[1]} genes/ab")
+    else:
+        print("Skipping raw data (EMPTY file - reclustering mode)")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 GEX MODALITY DATA
@@ -198,14 +203,17 @@ def main():
         pro.layers["count"] = pro.X.copy()
         print("\n===== NORMALIZATION =====")
         # Denoising and normalizing protein expression with DSB (Denoised and Scaled by Background)
-        print("\nDenoising and normalize with Denoised and Scaled by Background method... ")
-        mu.prot.pp.dsb(pro, pro_raw)
+        if pro_raw is not None:
+            print("\nDenoising and normalize with Denoised and Scaled by Background method... ")
+            mu.prot.pp.dsb(pro, pro_raw)
+            print("Done!")
+        else:
+            print("\nSkipping DSB normalization (raw data not available - reclustering mode)")
 
         pro.layers["normalized_pro"] = pro.X.copy()
         mdata.mod['pro'] = pro
         mdata.update()
 
-        print("Done!")
     else:
         print("CITE modality does not exist in mdata.mod.")
 
