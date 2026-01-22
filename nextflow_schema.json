@@ -100,6 +100,10 @@
                     "type": "boolean",
                     "description": "Skip doublet detection subworkflow"
                 },
+                "skip_qcfilters": {
+                    "type": "boolean",
+                    "description": "Skip qc filtering subworkflow"
+                },
                 "skip_emptydrops": {
                     "type": "boolean",
                     "deprecated": true,
