@@ -40,24 +40,28 @@ workflow DOUBLETS_QUALITYFILTERING {
         // MODULE: Filtered cells of low quality for GEX and CITE modalities in the concatenated h5mu file
         //
 
-        QUALITY_FILTERING (
-            ch_h5mu_concat_filtered,
-            doublets_out,
-            params.mt_threshold,
-            params.min_umi_gex,
-            params.max_umi_gex,
-            params.min_genes_gex,
-            params.max_genes_gex,
-            params.min_cells_gex,
-            params.min_features_adt,
-            params.min_counts_adt
-        )
-        ch_versions = ch_versions.mix(QUALITY_FILTERING.out.versions.first())
-
+        if ( !params.skip_qcfilters ) {
+            QUALITY_FILTERING (
+                ch_h5mu_concat_filtered,
+                doublets_out,
+                params.mt_threshold,
+                params.min_umi_gex,
+                params.max_umi_gex,
+                params.min_genes_gex,
+                params.max_genes_gex,
+                params.min_cells_gex,
+                params.min_features_adt,
+                params.min_counts_adt
+            )
+            ch_versions = ch_versions.mix(QUALITY_FILTERING.out.versions.first())
+            h5mu_out = QUALITY_FILTERING.out.h5mu
+        } else {
+            h5mu_out = ch_h5mu_concat_filtered
+        }
 
     emit:
     ch_versions
-    h5mu = QUALITY_FILTERING.out.h5mu
+    h5mu = h5mu_out
 
 
 
