@@ -101,6 +101,17 @@ def main():
 
     print("\n===== DATA INTEGRATION =====")
     # Integrate data using Harmony algorithm
+    # Check if integration_var is in obs
+    if integration_var not in gex.obs.columns:
+        # Try with meta_ prefix
+        if f"meta_{integration_var}" in gex.obs.columns:
+            print(f"Variable '{integration_var}' not found in .obs. Using 'meta_{integration_var}' instead.")
+            integration_var = f"meta_{integration_var}"
+        else:
+            print(f"Error: Variable '{integration_var}' not found in .obs columns.")
+            print(f"Available columns: {list(gex.obs.columns)}")
+            raise ValueError(f"Integration variable '{integration_var}' not found in .obs")
+    
     print("\nData integration by using Harmony algorith")
     sce.pp.harmony_integrate(gex, integration_var)
 
