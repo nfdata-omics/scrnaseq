@@ -40,6 +40,7 @@ workflow SCRNASEQ {
     take:
     ch_fastq
     counts
+    h5ad_matrix
 
     main:
     ch_multiqc_files = Channel.empty()
@@ -70,7 +71,7 @@ workflow SCRNASEQ {
     // AnnData objects.
     ch_input = params.input                ? file(params.input, checkIfExists: true)    : []
     ch_counts = params.counts              ? file(params.counts, checkIfExists: true)    : []
-
+    ch_h5ad_matrix = params.h5ad_matrix    ? file(params.h5ad_matrix, checkIfExists: true): []
 
     //kallisto params
     ch_kallisto_index = params.kallisto_index ? file(params.kallisto_index, checkIfExists: true) : []
@@ -439,7 +440,24 @@ workflow SCRNASEQ {
     
 
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc" || params.aligner == "cellranger" ) {
-        def ch_h5ad_selected = params.counts ? H5AD_CONVERSION.out.h5ad_cellbender : H5AD_CONVERSION.out.h5ad_filtered
+        def ch_h5ad_selected = params.counts ? 
+            H5AD_CONVERSION.out.h5ad_cellbender : 
+            (
+                params.h5ad_matrix ?  
+                    Channel
+                        .fromPath(params.h5ad_matrix,checkIfExists: true)
+                        .splitCsv(header: true)
+                        .map { row ->
+                            def meta = [
+                                id         : row.sample,
+                                input_type : row.input_type
+                        ]
+                        def h5ad_file = file(row.h5ad)
+                        tuple(meta, h5ad_file)
+                    }
+                :
+                    H5AD_CONVERSION.out.h5ad_filtered
+            )
         CONVERT_MUDATA(
             ch_h5ad_selected,
             ch_vdj,
@@ -456,27 +474,38 @@ workflow SCRNASEQ {
     //
     // Da togliere questa cosa ch_rds_selected, se counts, canale vuoto tanto non faro' la parte dei doppietti
     def ch_rds_selected = params.counts ? H5AD_CONVERSION.out.rds_cellbender : H5AD_CONVERSION.out.rds_concat
-    DOUBLETS_QUALITYFILTERING (
-        ch_rds_selected,
-        CONVERT_MUDATA.out.h5mu,
-        params.mt_threshold,
-        params.min_umi_gex,
-        params.max_umi_gex,
-        params.min_genes_gex,
-        params.max_genes_gex,
-        params.min_cells_gex,
-        params.min_features_adt,
-        params.min_counts_adt
-    )
-    ch_versions = ch_versions.mix(DOUBLETS_QUALITYFILTERING.out.ch_versions)
+    if ( !params.skip_qcfilters ) {
+        DOUBLETS_QUALITYFILTERING (
+            ch_rds_selected,
+            CONVERT_MUDATA.out.h5mu,
+            params.mt_threshold,
+            params.min_umi_gex,
+            params.max_umi_gex,
+            params.min_genes_gex,
+            params.max_genes_gex,
+            params.min_cells_gex,
+            params.min_features_adt,
+            params.min_counts_adt
+        )
+        ch_versions = ch_versions.mix(DOUBLETS_QUALITYFILTERING.out.ch_versions)
+        ch_h5mu_filtered = DOUBLETS_QUALITYFILTERING.out.h5mu
+    } else {
+        ch_h5mu_filtered = CONVERT_MUDATA.out.h5mu
+    }
 
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
     ch_cellcycle_file = Channel.fromPath(params.cell_cycle_file, checkIfExists: true)
+
+    // Make raw h5ad optional for reclustering workflows
+    ch_h5ad_raw = params.h5ad_matrix ? 
+        Channel.fromPath("${projectDir}/assets/EMPTY").map { [[:], it] } :
+        H5AD_CONVERSION.out.h5ad_raw
+    
     NORMALIZATION_AND_HVG (
-        DOUBLETS_QUALITYFILTERING.out.h5mu,
-        H5AD_CONVERSION.out.h5ad_raw,
+        ch_h5mu_filtered,
+        ch_h5ad_raw,
         ch_cellcycle_file,
         params.n_pcs,
         params.n_neighbors,
@@ -524,7 +553,8 @@ workflow SCRNASEQ {
         CELL_ANNOTATION.out.h5mu,
         atac_out_h5ad,
         params.n_neighbors_harmony,
-        params.min_dist_harmony
+        params.min_dist_harmony,
+        params.integration_var
     )
     ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
 
