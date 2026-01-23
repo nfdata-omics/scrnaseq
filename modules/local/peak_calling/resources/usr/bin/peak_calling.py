@@ -148,7 +148,7 @@ def main():
     # .astype(str)
     # .str.replace('/', '_')
     # )
-    snap.tl.macs3(adata_atac,groupby='leiden_tile',call_broad_peaks=False,inplace=True)
+    snap.tl.macs3(adata_atac,groupby='leiden_tile_0.1',call_broad_peaks=False,inplace=True)
     print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
