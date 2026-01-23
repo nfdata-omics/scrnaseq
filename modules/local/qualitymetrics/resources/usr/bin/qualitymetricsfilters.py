@@ -249,6 +249,16 @@ def main():
         gex.obs["mt_outlier"] = gex.obs["pct_counts_mt"] > mt_threshold
 
         gex.obs["hard_filter_gex"] = (gex.obs["total_counts_outlier"] | gex.obs["n_genes_by_counts_outlier"] | gex.obs["mt_outlier"])
+        n_cells_before = gex.n_obs
+        n_cells_after = (~gex.obs["hard_filter_gex"]).sum()
+
+        print(f"Cells before filter: {n_cells_before}")
+        print(f"Cells after filter:  {n_cells_after}")
+
+        print("Cells filtered by each criterion:")
+        print(f"total_counts_outlier:        {gex.obs['total_counts_outlier'].sum()}")
+        print(f"n_genes_by_counts_outlier:   {gex.obs['n_genes_by_counts_outlier'].sum()}")
+        print(f"mt_outlier:                  {gex.obs['mt_outlier'].sum()}")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           EVALUATE CELLS BASED ON SOFT FILTERS
