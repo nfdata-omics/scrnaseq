@@ -16,8 +16,8 @@ import plotly.subplots as sp
 import snapatac2 as snap
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import seaborn as sns
+from PIL import Image
 
 warnings.filterwarnings("ignore")
 # PARAMETERS
@@ -58,6 +58,8 @@ def main():
                         help="path to the blacklist file in bed format (default is None, no blacklist will be applied)")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered_atac.h5ad",
                         help="path and name of the output h5ad file")
+    parser.add_argument('-csv_count', '--csv_out_count', metavar='CSV_Count', default="cell_counts_filters.csv",
+                        help="path and name of csv tabel with the number of cells before and after filtering")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
                         help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -71,6 +73,7 @@ def main():
     input_fragment_files = [str(f) for f in args.input_fragment_files]  
     input_fragment_files_index = [str(f) for f in args.input_fragment_files_index]
     output =args.out
+    output_csv_count= args.csv_out_count
     results_dir = args.results
     tss_threshold = args.tss_threshold
     min_fragments_counts = args.min_fragments_counts
@@ -194,61 +197,15 @@ def main():
     blue_cmap = LinearSegmentedColormap.from_list("blue_kde", colors)
 
     print("Generating TSS Enrichment Score PDF...")
-    with PdfPages("TSS_score_all_samples.pdf") as pdf:
+    with PdfPages("TSSE_score_all_samples.pdf") as pdf:
         for run_id, adata in zip(input_run_id, adatas_atac):
-            print("Anndata object info for TSS enrichment:")
-            print(adata)
-            
-            tsse = adata.obs['tsse']
-            fragments = adata.obs['n_fragment']
+            png_file = f"tsse_{run_id}.png"
+            # Increase width and height for higher resolution
+            snap.pl.tsse(adata, out_file=png_file, show=False, width=1400, height=800)
+            img = Image.open(png_file)
 
-            # Create indices instead of boolean mask (Polars-compatible)
-            valid_idx = (
-                (fragments > 0) & 
-                (~fragments.is_null()) & 
-                (~tsse.is_null())
-            ).to_numpy() 
-
-            # Use integer indexing (works with Polars)
-            fragments_filtered = fragments[valid_idx.nonzero()[0]]
-            tsse_filtered = tsse[valid_idx.nonzero()[0]]
-            log_fragments = np.log10(fragments_filtered)
-            
-            # Plot
-            fig, ax = plt.subplots(figsize=(14, 8))
-
-            kde = sns.kdeplot(
-                x=log_fragments,
-                y=tsse_filtered,
-                fill=True,
-                cmap=blue_cmap,
-                levels=15,
-                thresh=0.01,
-                ax=ax
-            )
-            # Borders
-            for c in kde.collections:
-                c.set_edgecolor("#70767b")  
-                c.set_linewidth(0.8)
-            
-            # Line for tss threshold chosen
-            ax.axhline(tss_threshold, color='blue', linestyle='--')
-            ax.axvline(np.log10(min_fragments_counts), color='red', linestyle='--')
-   
-            # Set linear scale limits matching the log-transformed data range
-            ax.set_xlim(left=0, right=np.log10(fragments.max()))
-            ax.set_ylim(bottom=-5)
-            ax.set_yticks([tick for tick in ax.get_yticks() if tick >= 0]) # do not show negative y-ticks
-
-            tick_pos    = [1, 2, 3, 4, 5, 6]
-            tick_labels = ["10", "100", "1k", "10k", "100k", "1M"]
-
-            ax.set_xticks(tick_pos)
-            ax.set_xticklabels(tick_labels)
-            ax.set_xlabel("Number of unique fragments")
-            ax.set_ylabel("TSS Enrichment Score")
-            ax.grid(True, linestyle='--', alpha=0.5)
-            sns.despine(ax=ax)
+            ax.imshow(img)
+            ax.axis('off')
 
             fig.suptitle(f"QC – TSS Enrichment vs Unique Fragments\n\nSample: {run_id}",
                         fontsize=18, fontweight='bold', y=1.02)
@@ -256,7 +213,7 @@ def main():
             plt.tight_layout()
             pdf.savefig(fig, bbox_inches='tight')
             plt.close(fig)
-    print("TSS Enrichment Score PDF generated.")
+    print(f"Added TSSE plot for {run_id}")
     
     print("\n===== PLOT QC HISTOGRAMS (CELL NUMBERS) =====")
     
@@ -315,6 +272,10 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           CELL BY BIN MATRIX and DOUBLETS DETECTION
 # --------------------------------------------------------------------------------------------------------------------
+    # Save number of cells before filtering
+    cell_counts = pd.DataFrame({"sample": input_run_id})
+    cells_before_filtering = [adata.n_obs for adata in adatas_atac]
+    cell_counts["cells_before_filtering"] = cells_before_filtering
 
     print("\n===== CELL BY BIN MATRIX =====")
     # Compute the tile matrix for each sample with a bin size of 500 bp
@@ -331,6 +292,14 @@ def main():
     # Filter out doublets based on the doublet score
     print("\n===== FILTER OUT DOUBLETS =====")
     snap.pp.filter_doublets(adatas_atac,verbose=True)
+
+    # Save number of cells after doublet filtering
+    cells_after_doublets = [adata.n_obs for adata in adatas_atac]
+    cell_counts["cells_after_doublets"] = cells_after_doublets
+    
+    # Create csv of cell counts once for safety     
+    cell_counts = cell_counts.sort_values("sample")
+    cell_counts.to_csv(output_csv_count,index=False)
 
     print("Print number of cells after filtering doublets:")
     for run_id, adata in zip(input_run_id, adatas_atac):
