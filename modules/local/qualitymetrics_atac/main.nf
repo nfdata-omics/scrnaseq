@@ -19,7 +19,7 @@ process QUALITY_FILTERING_ATAC  {
     path "QC_Histograms_all_samples.pdf", emit: qc_histograms, optional: true
     path "TSSE_score_sample_*", emit: TSS_score, optional: true
     path "TSSE_score_all_samples.pdf", emit: tss_signal, optional: true
-    path "cell_counts_filters.csv", emit: cell_counts, optional: true
+    path "cell_counts.csv", emit: cell_counts, optional: true
     path "versions.yml",  emit: versions
 
     when:
