@@ -61,6 +61,8 @@ def main():
                         help="path to the blacklist file in bed format (default is None, no blacklist will be applied)")
     parser.add_argument('-f', '--atac-feature', metavar='N_FEATURES_ATAC', dest='n_features_atac', type=int, default=500000,
                         help="number of most variable features to select for ATAC data (default: 500000)")
+    parser.add_argument('-cc', '--cell-counts', metavar='CELL_COUNTS', dest='cell_counts', type=pathlib.Path, default="./cell_counts.csv",
+                        help="name of the cell counts csv (default: ./cell_counts.csv)")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.dimred_atac.h5ad",
                         help="path and name of the output h5ad file")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
@@ -81,6 +83,7 @@ def main():
     n_clusters_atac = args.n_clusters_atac
     blacklist_path = args.blacklist
     n_features_atac = args.n_features_atac
+    cell_counts_path = args.cell_counts
     results_dir = args.results
     output =args.out
 
@@ -121,6 +124,20 @@ def main():
     print(f"Cells after all filters: {adata_atac.n_obs}")
     print(adata_atac.obs["sample"].value_counts())
 
+# --------------------------------------------------------------------------------------------------------------------
+#                           UPDATE CELL COUNTS
+# -------------------------------------------------------------------------------------------------------------------
+    
+    # Read cell counts csv to update it 
+    cell_counts_df = pd.read_csv(cell_counts_path)
+    # Save number of cells after second filtering
+    counts_after_filters = adata_atac.obs['sample'].value_counts().sort_index()
+    cell_counts_df['counts_after_filters'] = cell_counts_df['sample'].map(counts_after_filters).fillna(0).astype(int)
+
+    # Save updated cell counts csv
+    cell_counts_df.to_csv(cell_counts_path, index=False)
+    print(f"Updated cell counts CSV saved at {cell_counts_path}")
+ 
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE FILTERING RESULT
 # --------------------------------------------------------------------------------------------------------------------
@@ -202,11 +219,50 @@ def main():
             color=leiden_key,
             interactive=False,
             show=False,
-            out_file=os.path.join(results_dir, f"UMAP_ATAC_res_{res}.pdf")
+            out_file=os.path.join(results_dir, f"UMAP_ATAC_res_{res}.png")
         )
     print("Done!")
 
+    print("\n===== PRINT ALL UMAPS TOGETHER =====")
 
+    image_files = [
+        os.path.join(results_dir, f"UMAP_ATAC_res_{res}.png")
+        for res in resolutions
+    ]
+
+    n_images = len(image_files)
+    n_cols = 4
+    n_rows = int(np.ceil(n_images / n_cols))
+
+    fig, axes = plt.subplots(
+        n_rows,
+        n_cols,
+        figsize=(5 * n_cols, 5 * n_rows),
+        squeeze=False
+    )
+
+    axes = axes.flatten()
+
+    for i, img_path in enumerate(image_files):
+        ax = axes[i]
+        
+        img = plt.imread(img_path)
+        ax.imshow(img)
+        ax.axis("off")
+
+    # Remove unused axes
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    plt.tight_layout()
+    plt.savefig(
+        os.path.join(results_dir, "UMAP_ATAC_all_res.pdf"),
+        bbox_inches="tight",
+        dpi=300
+    )
+    plt.close()
+
+    print("Done!")
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
