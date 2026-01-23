@@ -306,7 +306,7 @@ def main():
     
     # Create csv of cell counts once for safety     
     cell_counts = cell_counts.sort_values("sample")
-    cell_counts.to_csv("cell_counts_filters.csv",
+    cell_counts.to_csv("cell_counts.csv",
                        index=False)
 
     print("Print number of cells after filtering doublets:")

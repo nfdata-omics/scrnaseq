@@ -15,12 +15,13 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
     val n_clusters_atac
     path blacklist_path
     path cell_counts
-
+    
     output:
     tuple val(meta), path("*.dimred_atac.h5ad"), emit: h5ad
-    path "UMAP_ATAC_by_sample.pdf", emit: umap_atac, optional: true
+    path "UMAP_ATAC_all_res.pdf", emit: umap_all_res, optional: true
+    path "UMAP_ATAC_res_*.png", emit: umap_individual, optional: true
     path "Cells_after_filtering_atac.pdf", emit: qc_plots, optional: true
-    path "cell_counts_filters.csv", emit: cell_counts, optional: true
+    path "cell_counts.csv", emit: cell_counts, optional: true
     path "versions.yml",  emit: versions
 
     when:
@@ -35,7 +36,7 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
     export XDG_CACHE_HOME=/tmp
 
     dimensionalityreduction_atac.py \
-      -ad $input_h5ad -fd $frac_dup -pf $peaks_frac -nc $n_comps_atac -nn $n_neighbors_atac -ncl $n_clusters_atac -b $blacklist_path -f $n_features_atac
+      -ad $input_h5ad -fd $frac_dup -pf $peaks_frac -nc $n_comps_atac -nn $n_neighbors_atac -ncl $n_clusters_atac -b $blacklist_path -f $n_features_atac -cc $cell_counts
 
 
     cat <<-END_VERSIONS >> versions.yml

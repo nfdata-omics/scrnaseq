@@ -21,7 +21,6 @@ workflow ATAC_PREPROCESSING {
     cell_annotation_meta_ch
 
 
-
     main:
         ch_versions = Channel.empty()
 
