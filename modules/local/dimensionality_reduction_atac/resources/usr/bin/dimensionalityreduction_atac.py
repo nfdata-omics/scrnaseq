@@ -47,6 +47,16 @@ def main():
                                     )
     parser.add_argument('-ad','--input-h5ad-combined',metavar= 'H5AD_INPUT_FILES', type=pathlib.Path, dest='input_h5ad_files',
                         required=True, help="paths of existing matrix files in h5ad format (including file names)")
+    parser.add_argument('-fd','--fraction-duplicates', type=float, dest='frac_dup',
+                        help="fraction of reads associated with the cell barcode that are duplicates (default: 0.4)", default=0.4)
+    parser.add_argument('-pf','--peaks-fraction', type=float, dest='peaks_frac',
+                        help="fraction of reads in peaks (default: 0.2)", default=0.2)
+    parser.add_argument('-nc','--num-components', type=int, dest='n_comps_atac',
+                        help="number of dimensions to keep in dimensionality reduction (default: 30)", default=30)
+    parser.add_argument('-nn','--num-neighbours', type=int, dest='n_neighbors_atac',
+                        help="number of mutual nearest neighbors used for MNC correction (default: 5)", default=5)
+    parser.add_argument('-ncl','--num-clusters', type=int, dest='n_clusters_atac',
+                        help="number of clusters used for MNC correction (default: 40)", default=40)
     parser.add_argument('-b', '--blacklist', metavar='BLACKLIST_FILE', type=pathlib.Path, default=None,
                         help="path to the blacklist file in bed format (default is None, no blacklist will be applied)")
     parser.add_argument('-f', '--atac-feature', metavar='N_FEATURES_ATAC', dest='n_features_atac', type=int, default=500000,
@@ -64,6 +74,11 @@ def main():
 
     print("\n===== INPUT H5AD FILES =====")
     input_h5ad_file = args.input_h5ad_files
+    frac_dup = args.frac_dup
+    peaks_frac = args.peaks_frac
+    n_comps_atac = args.n_comps_atac
+    n_neighbors_atac = args.n_neighbors_atac
+    n_clusters_atac = args.n_clusters_atac
     blacklist_path = args.blacklist
     n_features_atac = args.n_features_atac
     results_dir = args.results
@@ -95,8 +110,8 @@ def main():
     print(f"Cells before any filter: {adata_atac.n_obs}")
 
     mask = (
-        (adata_atac.obs["frac_dup"] < 0.3) &
-        (adata_atac.obs["peaks_frac"] >= 0.2)
+        (adata_atac.obs["frac_dup"] < frac_dup) &
+        (adata_atac.obs["peaks_frac"] >= peaks_frac)
     )
 
     print("Cells failing QC filters:", (~mask).sum())
@@ -145,7 +160,7 @@ def main():
     # Importantly set groupby='variable to preserve' parameter if you want to preserve that difference in the batch correction
     print("\n===== PERFORM BATCH CORRECTION =====")
     print("Performing batch correction ... ", end='')
-    snap.pp.mnc_correct(adata_atac, batch="sample",n_neighbors=5, n_clusters=40, use_rep='X_spectral', key_added='X_spectral_mnn')
+    snap.tl.spectral(adata_atac,n_comps=n_comps_atac,features="selected",weighted_by_sd=True, random_state=0,inplace=True)
     print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -154,9 +169,14 @@ def main():
 
     # Perform clustering
     print("\n===== PERFORM CLUSTERING =====")
-    print("Performing clustering ... ", end='')
+    print(f"Performing clustering ... \n", end='')
     snap.pp.knn(adata_atac)
-    snap.tl.leiden(adata_atac, resolution=1, key_added='leiden_tile',inplace=True)
+    resolutions = np.round(np.arange(0.1, 1.1, 0.1), 2)
+    clustering_labels = []
+    for res in resolutions:
+        clustering_labels.append("leiden_{}".format(res))
+        print("calculating leiden_{}".format(res))
+        snap.tl.leiden(adata_atac, resolution=res, key_added="leiden_tile_{}".format(res))
     print("Done!")
 
     print(adata_atac)
@@ -167,12 +187,23 @@ def main():
     # Compute UMAP for visualization
     print("\n===== COMPUTE UMAP =====")
     print("Computing UMAP ... ", end='')
-    snap.tl.umap(adata_atac)
+    snap.tl.umap(adata_atac, use_rep='X_spectral_mnn')  # Saves to default 'X_umap'
     print("Done!")
 
-    # Visualize UMAP plot
-    print("\nVisualized UMAP plot")
-    snap.pl.umap(adata_atac, color="sample",interactive=False,show=False,out_file=os.path.join(results_dir, "UMAP_ATAC_by_sample.pdf"))
+    # Visualize UMAP for all Leiden resolutions
+    print("\n===== VISUALIZE UMAP FOR ALL RESOLUTIONS =====")
+    for res in resolutions:
+        leiden_key = f"leiden_tile_{res}"
+        print(f"Visualizing {leiden_key}")
+        
+        print(f"\n      Visualizing UMAP colored by {leiden_key}")
+        snap.pl.umap(
+            adata_atac, 
+            color=leiden_key,
+            interactive=False,
+            show=False,
+            out_file=os.path.join(results_dir, f"UMAP_ATAC_res_{res}.pdf")
+        )
     print("Done!")
 
 
