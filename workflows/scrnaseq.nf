@@ -538,6 +538,11 @@ workflow SCRNASEQ {
             params.min_fragments_counts,
             params.max_fragments_counts,
             params.n_features_atac,
+            params.frac_dup,
+            params.peaks_frac,
+            params.n_comps_atac,
+            params.n_neighbors_atac,
+            params.n_clusters_atac,
             blacklist_path,
             cell_annotation_meta_ch
         )
