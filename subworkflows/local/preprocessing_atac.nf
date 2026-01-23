@@ -12,6 +12,11 @@ workflow ATAC_PREPROCESSING {
     min_fragments_counts
     max_fragments_counts
     n_features_atac
+    frac_dup
+    peaks_frac
+    n_comps_atac
+    n_neighbors_atac
+    n_clusters_atac
     blacklist_path
     cell_annotation_meta_ch
 
@@ -36,6 +41,11 @@ workflow ATAC_PREPROCESSING {
         DIMENSIONALITY_REDUCTION_ATAC (
             QUALITY_FILTERING_ATAC.out.h5ad,
             params.n_features_atac,
+            params.frac_dup,
+            params.peaks_frac,
+            params.n_comps_atac,
+            params.n_neighbors_atac,
+            params.n_clusters_atac,
             blacklist_path
         )
         ch_versions = ch_versions.mix(DIMENSIONALITY_REDUCTION_ATAC.out.versions)
