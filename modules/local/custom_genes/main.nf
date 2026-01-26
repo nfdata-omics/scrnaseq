@@ -1,13 +1,12 @@
 process CUSTOM_GENES {
-    tag "$meta.id"
+    tag "${meta_geneset.res}_${meta_geneset.genes}"
     label 'process_medium'
 
     container = 'docker.io/nfdata/sc_rnaseq:v1.0.1'
 
     input:
     tuple val(meta), path(input_h5mu)
-    path custom_geneset
-    val resolution
+    tuple val(meta_geneset), val(resolution), path(custom_geneset)
 
     output:
     path "*_features_plots.pdf"         , emit: feat_plot

@@ -1,7 +1,7 @@
 /*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { MULTIQC                                           } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                                  } from 'plugin/nf-schema'
@@ -533,7 +533,8 @@ workflow SCRNASEQ {
     //
     CLUSTERING (
         INTEGRATION_MODALITIES.out.h5mu_out,
-        params.resolution,
+        params.resolution_min,
+        params.resolution_max,
         params.top_n_markers
     )
     ch_versions = ch_versions.mix(CLUSTERING.out.versions)
@@ -546,28 +547,49 @@ workflow SCRNASEQ {
     )
     ch_versions = ch_versions.mix(CLUSTREE.out.versions)
 
-    //
-    // MODULES: Enrichment on marker genes for a selected resolution
-    //
-    if ( params.resolution != 100 && params.enrich_collection ) {
-        ch_enrich_collection = Channel.fromPath(params.enrich_collection, checkIfExists: true)
-        ENRICH_MARKERS (
-            CLUSTERING.out.ranked_genes,
-            ch_enrich_collection,
-            params.resolution
-        )
-        ch_versions = ch_versions.mix(ENRICH_MARKERS.out.versions)
+    // Handling multiple resolutions
+    if ( params.resolution ) {
+        resolution_ch = Channel.fromList(params.resolution.toString().split(',').flatten())
+
+        //
+        // MODULES: Enrichment on marker genes for a selected resolution
+        //
+        if ( params.enrich_collection ){
+            ch_enrich_collection = Channel.fromList(params.enrich_collection.split(',').flatten())
+            resolution_ch
+                .combine( ch_enrich_collection )
+                .map{ res, coll -> [["res": res, "coll": coll], res, coll] }
+                .set { ch_res_enrich }
+
+            ENRICH_MARKERS (
+                CLUSTERING.out.ranked_genes.collect(),
+                ch_res_enrich
+            )
+            ch_versions = ch_versions.mix(ENRICH_MARKERS.out.versions)
+        }
     }
 
     //
     // MODULES: Plot custom genelist
     //
     if ( params.custom_geneset ) {
-        ch_custom_geneset = Channel.fromPath(params.custom_geneset, checkIfExists: true)
+        ch_custom_geneset = Channel.fromList(params.custom_geneset.split(',').flatten())
+
+        if ( params.resolution ) {
+            resolution_ch
+                .combine( ch_custom_geneset )
+                .map{ res, genes -> [["res": res, "genes": genes], res, genes] }
+                .set { ch_res_geneset }
+        } else {
+            // if no resolution is provided, use 100 as fake resolution
+            fake_res = 100
+            ch_res_geneset = ch_custom_geneset.map { genes ->
+                [["res": fake_res, "genes": genes], fake_res, genes]
+            }
+        }
         CUSTOM_GENES (
-            CLUSTERING.out.h5mu,
-            ch_custom_geneset,
-            params.resolution
+            CLUSTERING.out.h5mu.collect(),
+            ch_res_geneset
         )
         ch_versions = ch_versions.mix(CUSTOM_GENES.out.versions)
     }
@@ -642,3 +664,4 @@ workflow SCRNASEQ {
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
 }
+
