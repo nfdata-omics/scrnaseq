@@ -14,6 +14,7 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
     val n_neighbors_atac
     val n_clusters_atac
     path blacklist_path
+    path cell_counts
 
     output:
     tuple val(meta), path("*.dimred_atac.h5ad"), emit: h5ad
