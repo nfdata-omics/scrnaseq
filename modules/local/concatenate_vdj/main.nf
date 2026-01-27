@@ -25,7 +25,7 @@ process CONCATENATE_VDJ   {
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        concatenate_vdj.py --version >> versions.yml
+        concatenate_vdj.py: \$(concatenate_vdj.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 
@@ -35,7 +35,7 @@ process CONCATENATE_VDJ   {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        concatenate_vdj.py --version >> versions.yml
+        concatenate_vdj.py: \$(concatenate_vdj.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 }
