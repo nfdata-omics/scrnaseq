@@ -29,7 +29,7 @@ process NORMALIZATION   {
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        normalization.py --version >> versions.yml
+        normalization.py: \$(normalization.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 
@@ -39,7 +39,7 @@ process NORMALIZATION   {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        normalization.py --version >> versions.yml
+        normalization.py: \$(normalization.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 

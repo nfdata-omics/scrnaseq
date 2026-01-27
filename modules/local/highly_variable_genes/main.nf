@@ -31,7 +31,7 @@ process HIGHLY_VARIABLE_GENES  {
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        feature_selection_dimensionality_red.py --version >> versions.yml
+        feature_selection_dimensionality_red.py: \$(feature_selection_dimensionality_red.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 
@@ -41,9 +41,9 @@ process HIGHLY_VARIABLE_GENES  {
     touch umap_coordinates.csv
     touch umap_plot.pdf
 
-    cat <<-END_VERSIONS > versions.yml
+    cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        feature_selection_dimensionality_red.py --version >> versions.yml
+        feature_selection_dimensionality_red.py: \$(feature_selection_dimensionality_red.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 }

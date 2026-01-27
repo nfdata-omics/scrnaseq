@@ -23,10 +23,10 @@ process CLUSTREE  {
 
     clustree.R $cluster_id
 
-    cat <<-END_VERSIONS >> versions.yml
+    cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        clustree.R --version >> versions.yml
     END_VERSIONS
+    clustree.R --version >> versions.yml
     """
 
     stub:
@@ -35,8 +35,8 @@ process CLUSTREE  {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        clustree.R --version >> versions.yml
     END_VERSIONS
+    clustree.R --version >> versions.yml
     """
 
 }
