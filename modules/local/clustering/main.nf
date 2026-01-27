@@ -28,7 +28,7 @@ process CLUSTERING  {
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        clustering.py --version >> versions.yml
+        clustering.py: \$(clustering.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 
@@ -38,9 +38,9 @@ process CLUSTERING  {
     touch final_metadata.csv
     touch cluster_id.png
 
-    cat <<-END_VERSIONS > versions.yml
+    cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        clustering.py --version >> versions.yml
+        clustering.py: \$(clustering.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 

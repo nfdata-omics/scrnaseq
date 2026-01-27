@@ -30,7 +30,7 @@ process CONVERT_MUDATA  {
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        convert.py --version >> versions.yml
+        convert.py: \$(convert.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 
@@ -38,10 +38,9 @@ process CONVERT_MUDATA  {
     """
     touch matrix.mudata.h5mu
 
-
-    cat <<-END_VERSIONS > versions.yml
+    cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        convert.py --version >> versions.yml
+        convert.py: \$(convert.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 }

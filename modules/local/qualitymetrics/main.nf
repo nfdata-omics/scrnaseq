@@ -37,9 +37,9 @@ process QUALITY_FILTERING  {
 
     qualitymetricsfilters.py -ad $input_h5mu $d -mt $mt_threshold -min $min_umi_gex -max $max_umi_gex -ming $min_genes_gex -maxg $max_genes_gex -minc $min_cells_gex -minf $min_features_adt -mincadt $min_counts_adt
 
-    cat <<-END_VERSIONS >> versions.yml
+    cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        qualitymetricsfilters.py --version >> versions.yml
+        qualitymetricsfilters.py: \$(qualitymetricsfilters.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 
@@ -51,7 +51,7 @@ process QUALITY_FILTERING  {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        qualitymetricsfilters.py --version >> versions.yml
+        qualitymetricsfilters.py: \$(qualitymetricsfilters.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 }
