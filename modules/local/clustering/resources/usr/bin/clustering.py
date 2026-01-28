@@ -49,7 +49,7 @@ def main():
     parser = argparse.ArgumentParser(description = "Clustering",
         epilog = "This function clusters cells at different resolutions and identifies marker genes for each cluster and resolution",
         )
-    parser.add_argument('-ad','--input-h5mu-file',metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
+    parser.add_argument('-ad','--input-h5mu-file', metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
                         required=True, help="paths of existing count matrix files in h5 format (including file names)")
     parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.clustered.h5mu",
                         help="name of the output h5ad file after clustering")
@@ -57,8 +57,10 @@ def main():
                         help="path and name of excel table with ranked marker genes for each cluster and resolution")
     parser.add_argument('-csv', '--csv_out', metavar='H5AD_OUTPUT_FILE', default="final_metadata.csv",
                         help="path and name of csv tabel with UMAP coordinates for each cell")
-    parser.add_argument('-res', '--resolution',  dest='set_res', type=float, default=100, 
-                        help="clustering resolution. By default, all the resolution values between 0.1 and 1 are evaluated.")
+    parser.add_argument('-min_res', '--resolution_min',  dest='min_res', type=float, default=0.1, 
+                        help="Minimum clustering resolution to be evaluated (default: 0.1). All resolution values between min_res and max_res will be evaluated.")
+    parser.add_argument('-max_res', '--resolution_max',  dest='max_res', type=float, default=1.1, 
+                        help="Maximum clustering resolution to be evaluated (default: 1.1). All resolution values between min_res and max_res will be evaluated.")
     parser.add_argument('-n', '--top_n',  dest='top_n', type=int, default=10, 
                         help="number of top marker genes to save for each cluster (default is 10)")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
@@ -75,7 +77,8 @@ def main():
     output = args.out
     output_excel= args.excel_out
     output_csv= args.csv_out
-    set_res = args.set_res
+    min_res = args.min_res
+    max_res = args.max_res
     top_n = args.top_n
 
     # print info on the available matrices
@@ -117,11 +120,8 @@ def main():
     print("\nComputing Leiden clustering at different resolutions")
 
     clustering_labels = []
-    # If a specific resolution parameter is provided use that parameter, otherwise test them all
-    if set_res != 100:
-        resolutions = [set_res]
-    else:
-        resolutions = np.round(np.arange(0.1, 1.1, 0.1), 2)
+    # Test all the resolution parameters between min_res and max_res
+    resolutions = np.round(np.arange(min_res, max_res, 0.1), 2)
     
     for res in resolutions:
         clustering_labels.append("leiden_{}".format(res))
@@ -135,13 +135,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
     heat_name = "top_" + str(top_n) + "_markers_heatmap.pdf"
-    with pd.ExcelWriter(output_excel) as writer, PdfPages(os.path.join(args.results, heat_name)) as pdf_heatmap: #, PdfPages(os.path.join(args.results, dot_name)) as pdf_dot:
-        # If a specific resolution parameter is provided use that parameter, otherwise test them all
-        if set_res != 100:
-            resolutions = [set_res]
-        else:
-            resolutions = np.round(np.arange(0.1, 1.1, 0.1), 2)
-
+    with pd.ExcelWriter(output_excel) as writer, PdfPages(os.path.join(args.results, heat_name)) as pdf_heatmap:
         for res in resolutions:
             
             #Compute marker genes for each cluster, expects logarithmized data
@@ -172,15 +166,21 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
     # Visualize Leiden clustering on UMAP plot
-
     print("\nVisualized Leiden clustering on UMAP plot")
-    if set_res != 100:
-        plot_name = "cluster_id_" + str(set_res) + ".pdf"
-    else:
-        plot_name = "cluster_id.pdf"
+    plot_name = "cluster_id_all.pdf"
     sc.pl.umap(gex, color=clustering_labels, legend_loc='on data', show=False)
     plt.savefig(os.path.join(args.results, plot_name), bbox_inches='tight', dpi=300)
     plt.close()
+
+    plot_name_each = os.path.join(args.results, "cluster_id_each.pdf")
+    with PdfPages(plot_name_each) as pdf:
+        for res, cl in zip(resolutions, clustering_labels):
+            print(f"\nVisualized Leiden clustering on UMAP plot at resolution {res}")
+            plt.figure(figsize=(10, 8))
+            sc.pl.umap(gex, color=cl, legend_loc='on data', show=False)
+            pdf.savefig(bbox_inches='tight', dpi=300)
+            plt.close()
+        
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE GEX DATA INTO MUDATA OBJECT
@@ -198,7 +198,6 @@ def main():
     print("Saving csv table with Harmony corrected UMAP coordinates for each cell and Leiden ID {}".format(output_csv))
     df.to_csv(output_csv)
     print("Done!")
-
 
     print("Saving h5ad data to file {}".format(output))
     mdata.write(output)

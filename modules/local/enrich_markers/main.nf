@@ -1,13 +1,12 @@
 process ENRICH_MARKERS  {
-    //tag "$meta.id"
+    tag "${meta.res}_${meta.coll}"
     label 'process_single'
 
     container = 'docker.io/nfdata/clusterprofiler:v4.14.4'
 
     input:
     path ranked_genes
-    path enrich_collection
-    val resolution
+    tuple val(meta), val(resolution), path(collection)
 
     output:
     path "enrich_Leiden_*.xlsx", emit: enriched_markers
@@ -23,7 +22,7 @@ process ENRICH_MARKERS  {
     export XDG_CONFIG_HOME=/tmp
 
 
-    enrich_markergenes.R -b $ranked_genes $resolution $enrich_collection
+    enrich_markergenes.R -b $ranked_genes $resolution $collection
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
