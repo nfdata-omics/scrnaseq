@@ -1,8 +1,14 @@
 {
     "test-dataset_cellranger_aligner": {
         "content": [
-            20,
+            28,
             {
+                "ANNDATAR_CONVERT": {
+                    "SeuratObject": "5.0.2",
+                    "SingleCellExperiment": "1.28.1",
+                    "anndataR": "0.99.0",
+                    "r-base": "R version 4.4.2 (2024-10-31)"
+                },
                 "CELLRANGER_COUNT": {
                     "cellranger": "cellranger 10.0.0 "
                 },
@@ -12,14 +18,58 @@
                 "CELLRANGER_MKREF": {
                     "cellranger": "10.0.0"
                 },
+                "CLUSTERING": {
+                    "clustering.py": "0.0.1"
+                },
+                "CLUSTREE": {
+                    "R": "4.4.2",
+                    "clustree": "0.5.1",
+                    "ggplot2": "3.5.1",
+                    "ggraph": "2.2.1",
+                    "optparse": "1.7.5"
+                },
+                "CONCAT_H5AD": {
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
+                },
+                "CONVERT_MUDATA": {
+                    "convert.py": "0.0.1"
+                },
+                "DOUBLETS": {
+                    "Biobase": "2.66.0",
+                    "BiocGenerics": "0.52.0",
+                    "GenomeInfoDb": "1.42.1",
+                    "GenomicRanges": "1.58.0",
+                    "IRanges": "2.40.1",
+                    "MatrixGenerics": "1.18.1",
+                    "R": "4.4.2",
+                    "S4Vectors": "0.44.0",
+                    "SingleCellExperiment": "1.28.1",
+                    "SummarizedExperiment": "1.36.0",
+                    "matrixStats": "1.5.0",
+                    "optparse": "1.7.5",
+                    "scDblFinder": "1.20.0"
+                },
                 "FASTQC": {
                     "fastqc": "0.12.1"
+                },
+                "HIGHLY_VARIABLE_GENES": {
+                    "feature_selection_dimensionality_red.py": "0.0.1"
+                },
+                "INTEGRATION": {
+                    "integration.py": "0.0.1"
                 },
                 "MTX_TO_H5AD": {
                     "anndata": "0.10.8",
                     "pandas": "2.2.2",
                     "python": "3.12.5",
                     "scanpy": "1.10.2"
+                },
+                "NORMALIZATION": {
+                    "normalization.py": "0.0.1"
+                },
+                "QUALITY_FILTERING": {
+                    "qualitymetricsfilters.py": "0.0.1"
                 }
             },
             [
@@ -220,6 +270,19 @@
                 "cellranger/mtx_conversions/combined_raw_matrix.h5ad",
                 "cellranger/mtx_conversions/combined_raw_matrix.sce.rds",
                 "cellranger/mtx_conversions/combined_raw_matrix.seurat.rds",
+                "clustering",
+                "clustering/cluster_id.pdf",
+                "clustering/clustree_plot.pdf",
+                "clustering/final_metadata.csv",
+                "clustering/matrix.clustered.h5mu",
+                "clustering/ranked_genes.xlsx",
+                "dimensionalityreduction",
+                "dimensionalityreduction/matrix.hvg.h5mu",
+                "dimensionalityreduction/matrix.norm.h5mu",
+                "dimensionalityreduction/pca_GEX.pdf",
+                "dimensionalityreduction/pca_elbow.pdf",
+                "dimensionalityreduction/umap_coordinates.csv",
+                "dimensionalityreduction/umap_plot_GEX.pdf",
                 "fastqc",
                 "fastqc/Sample_X_1_fastqc.html",
                 "fastqc/Sample_X_1_fastqc.zip",
@@ -233,6 +296,13 @@
                 "fastqc/Sample_Y_3_fastqc.zip",
                 "fastqc/Sample_Y_4_fastqc.html",
                 "fastqc/Sample_Y_4_fastqc.zip",
+                "harmony_integration",
+                "harmony_integration/Harmony_UMAP_coordinates_GEX.csv",
+                "harmony_integration/Harmony_corrected_UMAP_plot_GEX.pdf",
+                "harmony_integration/Harmony_corrected_UMAP_plot_GEX_QC.pdf",
+                "harmony_integration/matrix.integrated.h5mu",
+                "mudata",
+                "mudata/matrix.mudata.h5mu",
                 "multiqc",
                 "multiqc/multiqc_data",
                 "multiqc/multiqc_data/cellranger-count-stats-table.txt",
@@ -314,7 +384,15 @@
                 "multiqc/multiqc_plots/svg/mqc_cellranger_count_saturation.svg",
                 "multiqc/multiqc_report.html",
                 "pipeline_info",
-                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml"
+                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml",
+                "qualitycontrol",
+                "qualitycontrol/Cells_after_filtering.pdf",
+                "qualitycontrol/Cells_before_filtering.pdf",
+                "qualitycontrol/QC_Density_MT-Ribo_all_samples.pdf",
+                "qualitycontrol/QC_Density_all_samples.pdf",
+                "qualitycontrol/doublets_score.csv",
+                "qualitycontrol/matrix.filtered.h5mu",
+                "qualitycontrol/summary_qualitycontrol_by_pool.csv"
             ],
             [
                 "barcodes.tsv.gz:md5,fe6e51564b4405b37ca8604a844b1f2e",
@@ -359,6 +437,22 @@
                 "Sample_Y_raw_matrix.h5ad:md5,d5c3a30bcd4d8011eb5aa39ad0f1c286",
                 "Sample_Y_raw_matrix.sce.rds:md5,061ab8ba3ed28e6312c0367a2a9dfeb3",
                 "Sample_Y_raw_matrix.seurat.rds:md5,3f4a3e6529b10c646fd08173d5baa339",
+                "cluster_id.pdf:md5,9dcde93db514c6a7393e7ce10d87571d",
+                "clustree_plot.pdf:md5,8c79b0085d528dc4379983118e880ef5",
+                "final_metadata.csv:md5,1b0d6adcf4d6c3225ce887f365cd70d1",
+                "matrix.clustered.h5mu:md5,739e5911bdfec8369bd5961064250ba2",
+                "ranked_genes.xlsx:md5,24592bdb6b29a1a20c9e36df20371cf1",
+                "matrix.hvg.h5mu:md5,66e1f5c76b2d0fbc658aeb2d656f4ac8",
+                "matrix.norm.h5mu:md5,f95862407e57c40af5f4a82520abcf83",
+                "pca_GEX.pdf:md5,78e0db2ee1c0a0acacf60cc7064ed392",
+                "pca_elbow.pdf:md5,0085c25ddd3f08f7e32e29f290d5e3d3",
+                "umap_coordinates.csv:md5,81f78daca113857fcd34e083dcc751ba",
+                "umap_plot_GEX.pdf:md5,590e5ba1e12e3f105d868a2abd066712",
+                "Harmony_UMAP_coordinates_GEX.csv:md5,e3f6527de0f1d9d21eceafdf0475d9f2",
+                "Harmony_corrected_UMAP_plot_GEX.pdf:md5,bf0511c6e35652477716f1c4ffe1b773",
+                "Harmony_corrected_UMAP_plot_GEX_QC.pdf:md5,3b118a80ecb82d9d399130a7b04a75ec",
+                "matrix.integrated.h5mu:md5,8bb190358ca007f2dae3609cf1ea6eb6",
+                "matrix.mudata.h5mu:md5,e970bfc85bac035b7d5fa01dc5ea02e5",
                 "cellranger-count-stats-table.txt:md5,b596a1ed25c8dba1ff3026db56dc5f5d",
                 "cellranger-count-warnings-table.txt:md5,f257d0a84efc395072a517db643b7935",
                 "fastqc-status-check-heatmap.txt:md5,d122badcaa647409c35a809e8a127f99",
@@ -376,13 +470,20 @@
                 "multiqc_cellranger_count.txt:md5,997745b8a1015fc74ffbe8ec35056f8d",
                 "multiqc_citations.txt:md5,db9f58c039af2923e06a61e46e82c015",
                 "multiqc_fastqc.txt:md5,12027880857508ce5cedc3904a351730",
-                "multiqc_general_stats.txt:md5,92a7a66e313e6ce2d13da53b501b5c0c"
+                "multiqc_general_stats.txt:md5,92a7a66e313e6ce2d13da53b501b5c0c",
+                "Cells_after_filtering.pdf:md5,118821cb5047481130b116459ab3bce7",
+                "Cells_before_filtering.pdf:md5,5d225273e7ad3d9aff03fba14c99d7b1",
+                "QC_Density_MT-Ribo_all_samples.pdf:md5,0da9a943ac343e76b954c3ebec71c4cf",
+                "QC_Density_all_samples.pdf:md5,232337ec685ccfad8d45f81522e77200",
+                "doublets_score.csv:md5,d6e51e2be679de020aa9fe473840ffe8",
+                "matrix.filtered.h5mu:md5,4e912fb0e5b75cf50c90b0ed31e8789f",
+                "summary_qualitycontrol_by_pool.csv:md5,b7c69f93e634495e8c5db09544f9f5fb"
             ]
         ],
         "meta": {
             "nf-test": "0.9.3",
-            "nextflow": "25.10.0"
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2025-11-20T17:40:14.32703797"
+        "timestamp": "2026-01-28T11:16:30.236779753"
     }
 }
