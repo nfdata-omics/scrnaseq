@@ -77,7 +77,10 @@ workflow {
         args,
         params.outdir,
         params.input,
-        params.counts
+        params.counts,
+        params.help,
+        params.help_full,
+        params.show_hidden
     )
 
     //
