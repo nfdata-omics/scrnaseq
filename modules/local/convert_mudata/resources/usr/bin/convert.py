@@ -130,16 +130,7 @@ def main():
         print(f"Metadata table has {metadata_df.shape[0]} rows and {metadata_df.shape[1]} columns")
     else:
         print("No valid CSV file provided. Skipping reading of the metadata table.")
-
-    meta_df = None
-    if input_metadata_file and input_metadata_file.exists() and input_metadata_file.stat().st_size > 0:
-        print("\n===== READING SAMPLE METADATA CSV =====")
-        meta_df = pd.read_csv(input_metadata_file, sep=',', header=0)
-        print(meta_df)
-        print(f"Sample metadata table has {meta_df.shape[0]} rows and {meta_df.shape[1]} columns")
-    else:
-        print("No valid metadata CSV file provided. Skipping reading of the sample metadata table.")
-
+        
 # --------------------------------------------------------------------------------------------------------------------
 #                                 ADDED METADATA TO OBS
 # --------------------------------------------------------------------------------------------------------------------
@@ -207,6 +198,41 @@ def main():
         mdata.obs['airr:sample'] = mdata.obs['airr:sample'].astype(str)
     mdata.update()
 
+# --------------------------------------------------------------------------------------------------------------------
+#                                 ADD METADATA TO MUDATA
+# --------------------------------------------------------------------------------------------------------------------
+
+    if meta_df is not None:
+        print("\n===== ADDING SAMPLE METADATA TO OBS =====")
+        if 'sample' in meta_df.columns:
+            # Clean the 'sample' column in all modality AnnData objects
+            for modality_name, adata_mod in mdata.mod.items():
+                adata_mod.obs['sample'] = adata_mod.obs['sample'].astype(str)\
+                                        .str.replace('_filtered', '', regex=False)\
+                                        .str.replace('_parse', '', regex=False)\
+                                        .str.strip()
+
+            # Convert the 'sample' column in metadata to string
+            meta_df['sample'] = meta_df['sample'].astype(str)
+
+            # Add a prefix to all metadata columns (except 'sample') to avoid naming conflicts
+            prefixed_meta_df = meta_df.add_prefix('meta_').rename(columns={'meta_sample': 'sample'})
+
+            # Join metadata to each modality, filtering by assay type
+            for modality_name, adata_mod in mdata.mod.items():
+                # Select metadata corresponding to the current modality
+                meta_subset = prefixed_meta_df[prefixed_meta_df['meta_assay'].str.lower() == modality_name].copy()
+
+                # Perform a left join on the 'sample' column
+                adata_mod.obs = adata_mod.obs.join(
+                    meta_subset.set_index('sample'),
+                    on='sample',
+                    how='left'
+                ).astype(str)
+
+            print("Sample metadata joined to each modality in MuData.")
+        else:
+            print("No 'sample' column found in metadata CSV; skipping join.")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
