@@ -22,6 +22,15 @@ nextflow_pipeline {
                 aligner                   = 'cellrangermulti'
                 protocol                  = 'auto'
                 skip_cellbender           = true
+
+                // Disable quality filters to keep cells in downstream processing
+                mt_threshold = 100
+                min_umi_gex = 0
+                max_umi_gex = 300000
+                min_genes_gex = 0
+                max_genes_gex = 30000
+                min_cells_gex = 0
+                n_pcs = 10
             }
         }
 
@@ -60,6 +69,15 @@ nextflow_pipeline {
                 gtf                       = 'https://ftp.ensembl.org/pub/release-114/gtf/rattus_norvegicus/Rattus_norvegicus.GRCr8.114.chr.gtf.gz'
                 protocol                  = 'auto'
                 skip_cellbender           = true
+
+                // Disable quality filters to keep cells in downstream processing
+                mt_threshold = 100
+                min_umi_gex = 0
+                max_umi_gex = 300000
+                min_genes_gex = 0
+                max_genes_gex = 30000
+                min_cells_gex = 0
+                n_pcs = 10
             }
         }
 
