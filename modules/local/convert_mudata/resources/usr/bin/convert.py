@@ -130,7 +130,16 @@ def main():
         print(f"Metadata table has {metadata_df.shape[0]} rows and {metadata_df.shape[1]} columns")
     else:
         print("No valid CSV file provided. Skipping reading of the metadata table.")
-        
+
+    meta_df = None
+    if input_metadata_file and input_metadata_file.exists() and input_metadata_file.stat().st_size > 0:
+        print("\n===== READING SAMPLE METADATA CSV =====")
+        meta_df = pd.read_csv(input_metadata_file, sep=',', header=0)
+        print(meta_df)
+        print(f"Sample metadata table has {meta_df.shape[0]} rows and {meta_df.shape[1]} columns")
+    else:
+        print("No valid metadata CSV file provided. Skipping reading of the sample metadata table.")
+  
 # --------------------------------------------------------------------------------------------------------------------
 #                                 ADDED METADATA TO OBS
 # --------------------------------------------------------------------------------------------------------------------
@@ -149,23 +158,6 @@ def main():
         else:
             print("No 'Barcode' column found in metadata CSV; skipping join.")
 
-    if meta_df is not None:
-        print("\n===== ADDING SAMPLE METADATA TO OBS =====")
-
-        if 'sample' in meta_df.columns:
-            adata.obs['sample'] = adata.obs['sample'].astype(str).str.replace('_filtered', '', regex=False).str.replace('_parse', '', regex=False).str.strip()
-            meta_df['sample'] = meta_df['sample'].astype(str)
-            # Check if metadata columns already exist in adata.obs
-            if any(col.startswith('meta_') for col in adata.obs.columns):
-                # Metadata already exists, skip join
-                print("Metadata columns already present in adata.obs; skipping join.")
-            else:
-                # Add prefix to the column names in meta_df (excluding 'sample' since it's used for joining)
-                prefixed_meta_df = meta_df.add_prefix('meta_').rename(columns={'meta_sample': 'sample'})
-                adata.obs = adata.obs.join(prefixed_meta_df.set_index('sample'), on='sample', how='left').astype(str)
-                print("Sample metadata joined to MuData obs.")
-        else:
-            print("No 'sample' column found in metadata CSV; skipping join.")
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CREATE MUDATA OBJECT
 # --------------------------------------------------------------------------------------------------------------------
@@ -204,35 +196,56 @@ def main():
 
     if meta_df is not None:
         print("\n===== ADDING SAMPLE METADATA TO OBS =====")
-        if 'sample' in meta_df.columns:
-            # Clean the 'sample' column in all modality AnnData objects
-            for modality_name, adata_mod in mdata.mod.items():
-                adata_mod.obs['sample'] = adata_mod.obs['sample'].astype(str)\
-                                        .str.replace('_filtered', '', regex=False)\
-                                        .str.replace('_parse', '', regex=False)\
-                                        .str.strip()
 
-            # Convert the 'sample' column in metadata to string
+        if 'sample' not in meta_df.columns:
+            print("No 'sample' column found in metadata CSV; skipping join.")
+        else:
+            # Clean 'sample' in all modalities
+            for modality_name, adata_mod in mdata.mod.items():
+                adata_mod.obs['sample'] = (
+                    adata_mod.obs['sample']
+                    .astype(str)
+                    .str.replace('_filtered', '', regex=False)
+                    .str.replace('_parse', '', regex=False)
+                    .str.strip()
+                )
+
             meta_df['sample'] = meta_df['sample'].astype(str)
 
-            # Add a prefix to all metadata columns (except 'sample') to avoid naming conflicts
-            prefixed_meta_df = meta_df.add_prefix('meta_').rename(columns={'meta_sample': 'sample'})
+            # Prefix metadata columns (except sample)
+            prefixed_meta_df = (
+                meta_df
+                .add_prefix('meta_')
+                .rename(columns={'meta_sample': 'sample'})
+            )
 
-            # Join metadata to each modality, filtering by assay type
+            has_meta_assay = 'meta_assay' in prefixed_meta_df.columns
+
             for modality_name, adata_mod in mdata.mod.items():
-                # Select metadata corresponding to the current modality
-                meta_subset = prefixed_meta_df[prefixed_meta_df['meta_assay'].str.lower() == modality_name].copy()
 
-                # Perform a left join on the 'sample' column
-                adata_mod.obs = adata_mod.obs.join(
-                    meta_subset.set_index('sample'),
-                    on='sample',
-                    how='left'
-                ).astype(str)
+                if has_meta_assay:
+                    # Multi-modality case → filter by assay
+                    meta_subset = prefixed_meta_df[
+                        prefixed_meta_df['meta_assay'].str.lower() == modality_name
+                    ].copy()
+                else:
+                    # Single-modality case (e.g. only GEX)
+                    meta_subset = prefixed_meta_df.copy()
 
-            print("Sample metadata joined to each modality in MuData.")
-        else:
-            print("No 'sample' column found in metadata CSV; skipping join.")
+                adata_mod.obs = (
+                    adata_mod.obs
+                    .join(
+                        meta_subset.set_index('sample'),
+                        on='sample',
+                        how='left'
+                    )
+                    .astype(str)
+                )
+
+            print(
+                "Sample metadata joined to each modality in MuData "
+                f"({'with' if has_meta_assay else 'without'} assay filtering)."
+            )
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
