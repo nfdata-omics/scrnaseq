@@ -204,7 +204,7 @@ def main():
     # Compute UMAP for visualization
     print("\n===== COMPUTE UMAP =====")
     print("Computing UMAP ... ", end='')
-    snap.tl.umap(adata_atac, use_rep='X_spectral_mnn')  # Saves to default 'X_umap'
+    snap.tl.umap(adata_atac)  # Saves to default 'X_umap'
     print("Done!")
 
     # Visualize UMAP for all Leiden resolutions
