@@ -6,7 +6,7 @@ process ANNDATAR_CONVERT {
 
     tag "${meta.id}"
 
-    label 'process_medium'
+    label 'process_high'
 
     container "docker.io/nfcore/anndatar:20241129"
 

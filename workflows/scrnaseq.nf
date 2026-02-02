@@ -32,6 +32,7 @@ include { INTEGRATION_MODALITIES                            } from '../subworkfl
 include { CLUSTERING                                        } from '../modules/local/clustering'
 include { CLUSTREE                                          } from '../modules/local/clustree'
 include { ENRICH_MARKERS                                    } from '../modules/local/enrich_markers'
+include { CUSTOM_GENES                                      } from '../modules/local/custom_genes'
 include { DIFFERENTIAL_ANALYSIS                             } from '../modules/local/differential_analysis'
 
 workflow SCRNASEQ {
@@ -541,7 +542,8 @@ workflow SCRNASEQ {
     //
     CLUSTERING (
         INTEGRATION_MODALITIES.out.h5mu_out,
-        params.resolution
+        params.resolution,
+        params.top_n_markers
     )
     ch_versions = ch_versions.mix(CLUSTERING.out.versions)
 
@@ -556,7 +558,7 @@ workflow SCRNASEQ {
     //
     // MODULES: Enrichment on marker genes for a selected resolution
     //
-    if ( params.resolution != 100 ) {
+    if ( params.resolution != 100 && params.enrich_collection ) {
         ch_enrich_collection = Channel.fromPath(params.enrich_collection, checkIfExists: true)
         ENRICH_MARKERS (
             CLUSTERING.out.ranked_genes,
@@ -564,6 +566,19 @@ workflow SCRNASEQ {
             params.resolution
         )
         ch_versions = ch_versions.mix(ENRICH_MARKERS.out.versions)
+    }
+
+    //
+    // MODULES: Plot custom genelist
+    //
+    if ( params.custom_geneset ) {
+        ch_custom_geneset = Channel.fromPath(params.custom_geneset, checkIfExists: true)
+        CUSTOM_GENES (
+            CLUSTERING.out.h5mu,
+            ch_custom_geneset,
+            params.resolution
+        )
+        ch_versions = ch_versions.mix(CUSTOM_GENES.out.versions)
     }
 
     '''
