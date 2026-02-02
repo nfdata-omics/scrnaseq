@@ -1,12 +1,12 @@
 process QUALITY_FILTERING_ATAC  {
     tag "$meta.id"
-    label 'process_high'
+    label 'process_high_memory'
 
-    container 'quay.io/biocontainers/snapatac2:2.8.0--py311h284d45d_1'
+    container 'docker.io/nfdata/snapatac:v1.0.0'
 
     input:
-    tuple val(meta), path (input_fragment_file)
-    tuple val(meta2), path (input_fragment_index_file)
+    tuple val(meta), path (input_fragment_file,stageAs: "?/*")
+    tuple val(meta), path (input_fragment_index_file,stageAs: "?/*")
     val tss_threshold
     val min_fragments_counts
     val max_fragments_counts
@@ -14,8 +14,9 @@ process QUALITY_FILTERING_ATAC  {
 
     output:
     tuple val(meta), path("*.filtered_atac.h5ad"), emit: h5ad
-    path "FragSizeDist_sample_*.png", emit: fragment_size_distribution, optional: true
-    path "TSS_score_sample_*.png", emit: tss_signal, optional: true
+    path "FragSizeDist_all_samples.pdf", emit: fragment_size_distribution, optional: true
+    path "QC_Histograms_all_samples.pdf", emit: qc_histograms, optional: true
+    path "TSS_score_all_samples.pdf", emit: tss_signal, optional: true
     path "versions.yml",  emit: versions
 
     when:
@@ -28,7 +29,7 @@ process QUALITY_FILTERING_ATAC  {
     export XDG_CONFIG_HOME=/tmp
     export XDG_CACHE_HOME=/tmp
 
-    qualitymetricsfilters_atac.py  -fr ${input_fragment_file.join(' ')} -fri ${input_fragment_index_file.join(' ')}  -id ${meta.collect{ it.id }.join(' ')} -n $nucleosome_threshold -t $tss_threshold -mif $min_fragments_counts -maf $max_fragments_counts -b $blacklist_path
+    qualitymetricsfilters_atac.py  -fr ${input_fragment_file.join(' ')} -fri ${input_fragment_index_file.join(' ')}  -id ${meta.collect{ it.id }.join(' ')} -t $tss_threshold -mif $min_fragments_counts -maf $max_fragments_counts -b $blacklist_path
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
