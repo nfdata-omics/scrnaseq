@@ -497,7 +497,9 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
-    ch_cellcycle_file = Channel.fromPath(params.cell_cycle_file, checkIfExists: true)
+    ch_cellcycle_file = params.cell_cycle_file ? 
+        file(params.cell_cycle_file, checkIfExists: true) : 
+        channel.empty()
 
     // Make raw h5ad optional for reclustering workflows
     ch_h5ad_raw = params.h5ad_matrix ?
