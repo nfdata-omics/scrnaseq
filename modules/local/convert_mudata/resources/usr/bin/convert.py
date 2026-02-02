@@ -212,36 +212,36 @@ def main():
 
             meta_df['sample'] = meta_df['sample'].astype(str)
 
-            # Prefix metadata columns (except sample)
-            prefixed_meta_df = (
-                meta_df
-                .add_prefix('meta_')
-                .rename(columns={'meta_sample': 'sample'})
+            meta_df = meta_df.rename(
+                columns={
+                    c: f"meta_{c}"
+                    for c in meta_df.columns
+                    if c != 'sample' and not c.startswith('meta_')
+                }
             )
 
-            has_meta_assay = 'meta_assay' in prefixed_meta_df.columns
+            has_meta_assay = 'meta_assay' in meta_df.columns
 
             for modality_name, adata_mod in mdata.mod.items():
 
                 if has_meta_assay:
                     # Multi-modality case → filter by assay
-                    meta_subset = prefixed_meta_df[
-                        prefixed_meta_df['meta_assay'].str.lower() == modality_name
+                    meta_subset = meta_df[
+                        meta_df['meta_assay'].str.lower() == modality_name
                     ].copy()
                 else:
                     # Single-modality case (e.g. only GEX)
-                    meta_subset = prefixed_meta_df.copy()
+                    meta_subset = meta_df.copy()
 
-                adata_mod.obs = (
-                    adata_mod.obs
-                    .join(
-                        meta_subset.set_index('sample'),
-                        on='sample',
-                        how='left'
-                    )
-                    .astype(str)
-                )
+                # Determine which columns to add
+                cols_to_add = [c for c in meta_subset.columns if c not in adata_mod.obs.columns or c == 'sample']
 
+                adata_mod.obs = adata_mod.obs.join(
+                    meta_subset[cols_to_add].set_index('sample'),
+                    on='sample',
+                    how='left'
+                    ).astype(str)
+                
             print(
                 "Sample metadata joined to each modality in MuData "
                 f"({'with' if has_meta_assay else 'without'} assay filtering)."
