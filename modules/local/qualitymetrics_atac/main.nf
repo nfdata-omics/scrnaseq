@@ -16,7 +16,9 @@ process QUALITY_FILTERING_ATAC  {
     tuple val(meta), path("*.filtered_atac.h5ad"), emit: h5ad
     path "FragSizeDist_all_samples.pdf", emit: fragment_size_distribution, optional: true
     path "QC_Histograms_all_samples.pdf", emit: qc_histograms, optional: true
-    path "TSS_score_all_samples.pdf", emit: tss_signal, optional: true
+    path "TSSE_score_sample_*", emit: TSS_score, optional: true
+    path "TSSE_score_all_samples.pdf", emit: tss_signal, optional: true
+    path "cell_counts.csv", emit: cell_counts, optional: true
     path "versions.yml",  emit: versions
 
     when:

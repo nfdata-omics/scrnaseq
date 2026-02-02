@@ -9,6 +9,7 @@ workflow INTEGRATION_MODALITIES {
     h5ad
     n_neighbors_harmony
     min_dist_harmony
+    integration_var
 
 
     main:
@@ -20,7 +21,8 @@ workflow INTEGRATION_MODALITIES {
         INTEGRATION (
             h5mu,
             params.n_neighbors_harmony,
-            params.min_dist_harmony
+            params.min_dist_harmony,
+			params.integration_var
         )
         ch_versions = ch_versions.mix(INTEGRATION.out.versions.first())
 	    integration_out = INTEGRATION.out.h5mu

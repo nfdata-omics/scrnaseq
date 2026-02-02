@@ -6,16 +6,17 @@ process CLUSTERING  {
 
     input:
     tuple val(meta), path(input_h5mu)
-    val resolution
+    val resolution_min
+    val resolution_max
     val top_n_markers
 
     output:
-    tuple val(meta), path("*.clustered.h5mu")   , emit: h5mu
-    tuple val(meta), path("final_metadata.csv") , emit: metadata_final
-    path "cluster_id*.pdf"                      , emit: clusters
-    path "ranked_genes.xlsx"                    , emit: ranked_genes
-    path "top_*_markers_heatmap.pdf"            , emit: heatmaps
-    path "versions.yml"                         , emit: versions
+    tuple val(meta), path("matrix.clustered*.h5mu")   , emit: h5mu
+    tuple val(meta), path("final_metadata.csv")       , emit: metadata_final
+    path "cluster_id*.pdf"                            , emit: clusters
+    path "ranked_genes.xlsx"                          , emit: ranked_genes
+    path "top_*_markers_heatmap.pdf"                  , emit: heatmaps
+    path "versions.yml"                               , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -26,7 +27,7 @@ process CLUSTERING  {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    clustering.py -ad $input_h5mu -res $resolution -n $top_n_markers
+    clustering.py -ad $input_h5mu -min_res $resolution_min -max_res $resolution_max -n $top_n_markers
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
@@ -36,9 +37,9 @@ process CLUSTERING  {
 
     stub:
     """
-    touch matrix_clustered.h5ad
+    touch matrix_clustered.h5mu
     touch final_metadata.csv
-    touch cluster_id.png
+    touch cluster_id_all.pdf
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":

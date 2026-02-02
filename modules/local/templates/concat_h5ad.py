@@ -4,6 +4,7 @@
 import os
 
 os.environ["NUMBA_CACHE_DIR"] = "."
+os.environ["MPLCONFIGDIR"] = "/tmp"
 
 import platform
 from pathlib import Path
@@ -69,7 +70,16 @@ if __name__ == "__main__":
     df_samplesheet = read_samplesheet("${samplesheet}")
 
     # find all h5ad and append to dict
-    dict_of_h5ad = {str(path).replace("_matrix.h5ad", ""): sc.read_h5ad(path) for path in Path(".").rglob("*.h5ad")}
+    dict_of_h5ad = {}
+
+    for path in Path(".").rglob("*.h5ad"):
+        adata_tmp = sc.read_h5ad(path)
+
+        if "feature_types" in adata_tmp.var.columns:
+            adata_tmp = adata_tmp[:, adata_tmp.var["feature_types"] != "Peaks"].copy()
+
+        key = str(path).replace("_matrix.h5ad", "")
+        dict_of_h5ad[key] = adata_tmp
 
     # concat h5ad files
     adata = ad.concat(dict_of_h5ad, label="sample",join="outer", index_unique="_")
