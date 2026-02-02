@@ -106,7 +106,7 @@ def main():
         top_10_percent_genes = max(int(0.1 * gex.shape[1]), 10)
         sc.pp.highly_variable_genes(gex, n_top_genes=top_10_percent_genes, batch_key="sample")
     except IndexError:
-        sc.pp.highly_variable_genes(gex, n_top_genes=gex.n_vars, batch_key="sample")
+        gex.var['highly_variable'] = True
 
     num_hvg = gex.var['highly_variable'].sum()
     print("\nNumber of highly variable genes (top 10%) identified: ", num_hvg)
