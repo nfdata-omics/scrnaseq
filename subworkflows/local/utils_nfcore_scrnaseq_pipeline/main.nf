@@ -34,6 +34,7 @@ workflow PIPELINE_INITIALISATION {
     outdir            //  string: The output directory where the results will be saved
     input             //  string: Path to input samplesheet
     counts            //  string: Path to input counts matrix file
+    h5ad_matrix       //  string: Path to input h5ad matrix file
     help              // boolean: Display help message and exit
     help_full         // boolean: Show the full help message
     show_hidden       // boolean: Show hidden parameters in the help message
@@ -98,10 +99,17 @@ workflow PIPELINE_INITIALISATION {
     //
     validateInputParameters()
 
-    if ( counts) {
+    if (counts) {
         ch_counts = counts ? Channel.fromPath( counts, checkIfExists: true ) : Channel.empty()
         ch_samplesheet = Channel.empty()
-    } else {
+        ch_h5ad_matrix = Channel.empty()
+    }
+    else if (h5ad_matrix) {
+        ch_h5ad_matrix = h5ad_matrix ? Channel.fromPath( h5ad_matrix, checkIfExists: true ) : Channel.empty()
+        ch_counts = Channel.empty()
+        ch_samplesheet = Channel.empty()
+    }
+    else {
         //
         // Create channel from input file provided through params.input
         //
@@ -166,12 +174,14 @@ workflow PIPELINE_INITIALISATION {
                 .set { ch_samplesheet }
         }
         ch_counts = Channel.empty()
+        ch_h5ad_matrix = Channel.empty()
     }
 
     emit:
     samplesheet = ch_samplesheet
     versions    = ch_versions
     counts      = ch_counts
+    h5ad_matrix = ch_h5ad_matrix
 }
 
 /*
