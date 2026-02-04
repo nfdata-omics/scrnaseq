@@ -2,7 +2,7 @@ process CLUSTERING  {
     tag "$meta.id"
     label 'process_medium'
 
-    container = 'docker.io/nfdata/sc_rnaseq:v1.0.1'
+    container 'docker.io/nfdata/sc_rnaseq:v1.0.1'
 
     input:
     tuple val(meta), path(input_h5mu)
@@ -31,7 +31,7 @@ process CLUSTERING  {
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        clustering.py --version >> versions.yml
+        clustering.py: \$(clustering.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 
@@ -41,9 +41,9 @@ process CLUSTERING  {
     touch final_metadata.csv
     touch cluster_id_all.pdf
 
-    cat <<-END_VERSIONS > versions.yml
+    cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        clustering.py --version >> versions.yml
+        clustering.py: \$(clustering.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 

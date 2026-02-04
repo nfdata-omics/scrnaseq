@@ -15,12 +15,22 @@ nextflow_pipeline {
                 input                     = "${baseDir}/assets/cellrangermulti_samplesheet.csv"
                 cellranger_multi_barcodes = "${baseDir}/assets/cellranger_barcodes_samplesheet.csv"
                 gex_frna_probe_set        = "${baseDir}/assets/frna_probeset_subset.csv"
+                gex_reference_version     = "GRCh38"
                 fb_reference              = "${baseDir}/assets/fb_reference.csv"
                 fasta                     = 'https://ftp.ensembl.org/pub/release-110/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.14.fa.gz'
                 gtf                       = 'https://ftp.ensembl.org/pub/release-110/gtf/homo_sapiens/Homo_sapiens.GRCh38.110.gtf.gz'
                 aligner                   = 'cellrangermulti'
                 protocol                  = 'auto'
                 skip_cellbender           = true
+
+                // Disable quality filters to keep cells in downstream processing
+                mt_threshold = 100
+                min_umi_gex = 0
+                max_umi_gex = 300000
+                min_genes_gex = 0
+                max_genes_gex = 30000
+                min_cells_gex = 0
+                n_pcs = 10
             }
         }
 
@@ -59,6 +69,15 @@ nextflow_pipeline {
                 gtf                       = 'https://ftp.ensembl.org/pub/release-114/gtf/rattus_norvegicus/Rattus_norvegicus.GRCr8.114.chr.gtf.gz'
                 protocol                  = 'auto'
                 skip_cellbender           = true
+
+                // Disable quality filters to keep cells in downstream processing
+                mt_threshold = 100
+                min_umi_gex = 0
+                max_umi_gex = 300000
+                min_genes_gex = 0
+                max_genes_gex = 30000
+                min_cells_gex = 0
+                n_pcs = 10
             }
         }
 
@@ -79,6 +98,62 @@ nextflow_pipeline {
                     // All files with stable contents
                     stable_path
                 ).match() }
+            )
+        }
+    }
+
+    test("test-dataset_cellrangermulti_missing_gex_reference") {
+
+        when {
+            params {
+                aligner                   = 'cellrangermulti'
+                outdir                    = "${outputDir}/results_cellrangermulti_missing_ref"
+                input                     = "${baseDir}/assets/cellrangermulti_samplesheet.csv"
+                cellranger_multi_barcodes = "${baseDir}/assets/cellranger_barcodes_samplesheet.csv"
+                gex_frna_probe_set        = "${baseDir}/assets/frna_probeset_subset.csv"
+                fb_reference              = "${baseDir}/assets/fb_reference.csv"
+                fasta                     = 'https://ftp.ensembl.org/pub/release-110/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.14.fa.gz'
+                gtf                       = 'https://ftp.ensembl.org/pub/release-110/gtf/homo_sapiens/Homo_sapiens.GRCh38.110.gtf.gz'
+                protocol                  = 'auto'
+                skip_cellbender           = true
+                // Note: gex_reference_version is intentionally NOT provided to test validation
+            }
+        }
+
+        then {
+            // Should fail with validation error
+            assertAll(
+                {assert !workflow.success},
+                {assert workflow.failed},
+                {assert workflow.stdout.any { it.contains("Parameter 'gex_reference_version' is required when 'gex_frna_probe_set' is provided and 'cellranger_index' is not provided") } }
+            )
+        }
+    }
+
+    test("test-dataset_cellrangermulti_mismatched_gex_reference") {
+
+        when {
+            params {
+                aligner                   = 'cellrangermulti'
+                outdir                    = "${outputDir}/results_cellrangermulti_mismatch"
+                input                     = "${baseDir}/assets/cellrangermulti_samplesheet.csv"
+                cellranger_multi_barcodes = "${baseDir}/assets/cellranger_barcodes_samplesheet.csv"
+                gex_frna_probe_set        = "${baseDir}/assets/frna_probeset_subset.csv"
+                gex_reference_version     = "GRCm39" // Intentionally wrong - probeset is GRCh38
+                fb_reference              = "${baseDir}/assets/fb_reference.csv"
+                fasta                     = 'https://ftp.ensembl.org/pub/release-110/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.14.fa.gz'
+                gtf                       = 'https://ftp.ensembl.org/pub/release-110/gtf/homo_sapiens/Homo_sapiens.GRCh38.110.gtf.gz'
+                protocol                  = 'auto'
+                skip_cellbender           = true
+            }
+        }
+
+        then {
+            // Should fail with validation error
+            assertAll(
+                {assert !workflow.success},
+                {assert workflow.failed},
+                {assert workflow.stdout.any { it.contains("Parameter 'gex_reference_version' (GRCm39) does not match the probeset reference genome (GRCh38)") } }
             )
         }
     }

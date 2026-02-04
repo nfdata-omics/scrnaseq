@@ -52,7 +52,7 @@ def main():
                         required=True, help="paths of existing count matrix files in h5 format (including file names)")
     parser.add_argument('-g', '--input-genelist', metavar='INPUT_CUSTOM_GENES', default="",
                         help="path of a .txt file containing a list of custom genes to plot (one gene per line, no header)")
-    parser.add_argument('-res', '--resolution',  dest='set_res', type=float, default=100, 
+    parser.add_argument('-res', '--resolution',  dest='set_res', type=float, default=100,
                         help="clustering resolution. By default, no resolution is considered.")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
                         help="directory to save the results files (default is the current directory)")
@@ -113,7 +113,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
     # Scoring gene set
     sc.tl.score_genes(gex, gene_list=geneset, score_name="geneset_score")
-    
+
     # Feature plotting for custom gene set, both single genes and overall geneset score
     print("\n===== FEATURE PLOTS =====")
     feat_pdf = f"{geneset_name}_features_plots.pdf"
@@ -127,9 +127,9 @@ def main():
         sc.pl.umap(gex, color="geneset_score", title=f"{geneset_name} overall score", show=False)
         pdf_feature.savefig()
         plt.close()
-        
+
     print("\Features plots completed successfully.")
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                              VIOLIN, DOTPLOT AND HEATMAP WITH SPECIFIED RESOLUTION
 # --------------------------------------------------------------------------------------------------------------------
@@ -183,6 +183,3 @@ def main():
 # Actual execution
 if __name__ == '__main__':
     main()
-
-
-

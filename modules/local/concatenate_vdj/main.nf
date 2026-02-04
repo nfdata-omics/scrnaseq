@@ -2,7 +2,7 @@ process CONCATENATE_VDJ   {
     tag "$meta.id"
     label 'process_single'
 
-    container = 'quay.io/biocontainers/scirpy:0.20.1--pyhdfd78af_0'
+    container 'quay.io/biocontainers/scirpy:0.20.1--pyhdfd78af_0'
 
     input:
     tuple val(meta), path(input_vdj, stageAs: '?/*')
@@ -25,7 +25,7 @@ process CONCATENATE_VDJ   {
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        concatenate_vdj.py --version >> versions.yml
+        concatenate_vdj.py: \$(concatenate_vdj.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 
@@ -35,7 +35,7 @@ process CONCATENATE_VDJ   {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        concatenate_vdj.py --version >> versions.yml
+        concatenate_vdj.py: \$(concatenate_vdj.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 }

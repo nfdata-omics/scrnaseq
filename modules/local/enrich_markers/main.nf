@@ -2,7 +2,7 @@ process ENRICH_MARKERS  {
     tag "${meta.res}_${meta.coll}"
     label 'process_single'
 
-    container = 'docker.io/nfdata/clusterprofiler:v4.14.4'
+    container 'docker.io/nfdata/clusterprofiler:v4.14.4'
 
     input:
     path ranked_genes

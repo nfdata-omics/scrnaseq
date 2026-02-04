@@ -70,7 +70,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
     input_run_id = args.input_run_id
-    input_fragment_files = [str(f) for f in args.input_fragment_files]  
+    input_fragment_files = [str(f) for f in args.input_fragment_files]
     input_fragment_files_index = [str(f) for f in args.input_fragment_files_index]
     output =args.out
     output_csv_count= args.csv_out_count
@@ -150,16 +150,16 @@ def main():
         print(f"Sample {run_id}: FRIP score = {frip_score:.4f} (mean across cells)")
         print(f"  Min: {adata.obs['peaks_frac'].min():.4f}, Max: {adata.obs['peaks_frac'].max():.4f}")
 
-    
+
     print("\n===== PLOT QUALITY METRICS =====")
     ### Fragment Size Distribution PDF ###
-    
+
     print("Generating Fragment Size Distribution PDF...")
     with PdfPages("FragSizeDist_all_samples.pdf") as pdf:
         for run_id, adata in zip(input_run_id, adatas_atac):
             distr = adata.uns['frag_size_distr']
             print(f"Fragment size distribution for sample {run_id}:")
-            print(distr) 
+            print(distr)
             if distr is None:
                 print(f"No frag_size_distr found for {run_id}, skipping")
                 continue
@@ -189,7 +189,7 @@ def main():
             pdf.savefig(fig, bbox_inches='tight')
             plt.close(fig)
     print("Fragment Size Distribution PDF generated.")
-            
+
     from matplotlib.colors import LinearSegmentedColormap
     colors = ["#e1edf8", "#cbdff1", "#cbdff1", "#abd0e6",
             "#82badb", "#59a2cf", "#3787c0", "#1b6aaf",
@@ -209,14 +209,14 @@ def main():
 
             fig.suptitle(f"QC – TSS Enrichment vs Unique Fragments\n\nSample: {run_id}",
                         fontsize=18, fontweight='bold', y=1.02)
-            
+
             plt.tight_layout()
             pdf.savefig(fig, bbox_inches='tight')
             plt.close(fig)
     print(f"Added TSSE plot for {run_id}")
-    
+
     print("\n===== PLOT QC HISTOGRAMS (CELL NUMBERS) =====")
-    
+
     with PdfPages("QC_Histograms_all_samples.pdf") as pdf:
         for run_id, adata in zip(input_run_id, adatas_atac):
 
@@ -257,7 +257,7 @@ def main():
             plt.close(fig)
     # Compute summary statistics by chromosome
     snap.metrics.summary_by_chrom(adatas_atac, mode='sum')
-        
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           FILTERS CELLS BASED ON QC METRICS
 # --------------------------------------------------------------------------------------------------------------------
@@ -284,7 +284,7 @@ def main():
     # Identify the most variable features in each sample based on the tile matrix
     print("\n===== IDENTIFY MOST VARIABLE FEATURES =====")
     snap.pp.select_features(adatas_atac, blacklist=blacklist_path, inplace=True)
-    
+
     # Compute the doublet score for each sample
     print("\n===== COMPUTE DOUBLETS SCORE =====")
     snap.pp.scrublet(adatas_atac, n_comps=10, features = 'selected', sim_doublet_ratio=1,expected_doublet_rate = 0.10, n_jobs=2, use_approx_neighbors=True, inplace = True)
@@ -296,14 +296,14 @@ def main():
     # Save number of cells after doublet filtering
     cells_after_doublets = [adata.n_obs for adata in adatas_atac]
     cell_counts["cells_after_doublets"] = cells_after_doublets
-    
-    # Create csv of cell counts once for safety     
+
+    # Create csv of cell counts once for safety
     cell_counts = cell_counts.sort_values("sample")
     cell_counts.to_csv(output_csv_count,index=False)
 
     print("Print number of cells after filtering doublets:")
     for run_id, adata in zip(input_run_id, adatas_atac):
-        print(f"Sample {run_id}: {adata.n_obs} cells ") 
+        print(f"Sample {run_id}: {adata.n_obs} cells ")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -323,7 +323,7 @@ def main():
 
     print("\nNumber of cells per sample after filtering:")
     print(data.obs['sample'].value_counts())
-    
+
     print("\n===== SAVE OBS INTO ANNDATASET =====")
     data.obs['tsse'] = data.adatas.obs['tsse']
     data.obs['n_fragment'] = data.adatas.obs['n_fragment']
@@ -333,7 +333,7 @@ def main():
     data.obs['doublet_score'] = data.adatas.obs['doublet_score']
     data.obs['doublet_probability'] = data.adatas.obs['doublet_probability']
     data.obsm['fragment_paired'] = data.adatas.obsm['fragment_paired']
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------

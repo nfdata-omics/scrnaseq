@@ -57,11 +57,11 @@ def main():
                         help="path and name of excel table with ranked marker genes for each cluster and resolution")
     parser.add_argument('-csv', '--csv_out', metavar='H5AD_OUTPUT_FILE', default="final_metadata.csv",
                         help="path and name of csv tabel with UMAP coordinates for each cell")
-    parser.add_argument('-min_res', '--resolution_min',  dest='min_res', type=float, default=0.1, 
+    parser.add_argument('-min_res', '--resolution_min',  dest='min_res', type=float, default=0.1,
                         help="Minimum clustering resolution to be evaluated (default: 0.1). All resolution values between min_res and max_res will be evaluated.")
-    parser.add_argument('-max_res', '--resolution_max',  dest='max_res', type=float, default=1.1, 
+    parser.add_argument('-max_res', '--resolution_max',  dest='max_res', type=float, default=1.1,
                         help="Maximum clustering resolution to be evaluated (default: 1.1). All resolution values between min_res and max_res will be evaluated.")
-    parser.add_argument('-n', '--top_n',  dest='top_n', type=int, default=10, 
+    parser.add_argument('-n', '--top_n',  dest='top_n', type=int, default=10,
                         help="number of top marker genes to save for each cluster (default is 10)")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
                         help="directory to save the results files (default is the current directory)")
@@ -100,7 +100,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 GEX MODALITY DATA
 # --------------------------------------------------------------------------------------------------------------------
-    # Extracting gex, handling genes metadata and associated rownames. 
+    # Extracting gex, handling genes metadata and associated rownames.
     # Double assignment is needed in order to keep both the annotations (symbols and ids)
     print("\n===== GEX MODALITY DATA =====")
     gex = mdata.mod['gex']
@@ -122,7 +122,7 @@ def main():
     clustering_labels = []
     # Test all the resolution parameters between min_res and max_res
     resolutions = np.round(np.arange(min_res, max_res, 0.1), 2)
-    
+
     for res in resolutions:
         clustering_labels.append("leiden_{}".format(res))
         if "leiden_{}".format(res) in gex.obs:
@@ -137,7 +137,7 @@ def main():
     heat_name = "top_" + str(top_n) + "_markers_heatmap.pdf"
     with pd.ExcelWriter(output_excel) as writer, PdfPages(os.path.join(args.results, heat_name)) as pdf_heatmap:
         for res in resolutions:
-            
+
             #Compute marker genes for each cluster, expects logarithmized data
             print("\nComputing marker genes for each clusters at resolution {}".format(res))
             sc.tl.rank_genes_groups(gex, groupby="leiden_{}".format(res), method="wilcoxon", key_added="leiden_{}".format(res), pts=True)
@@ -147,7 +147,7 @@ def main():
             # Select the top 10 markers per cluster
             top = (df.sort_values(["group", "pvals_adj", "logfoldchanges"], ascending=[True, True, False]).groupby("group").head(top_n))
             top_genes = top["names"].tolist() # .unique().tolist()
-            
+
             # Heatmap
             print("\nPlotting top marker genes heatmap for resolution {}".format(res))
             plt.figure(figsize=(45, 55))
@@ -180,7 +180,7 @@ def main():
             sc.pl.umap(gex, color=cl, legend_loc='on data', show=False)
             pdf.savefig(bbox_inches='tight', dpi=300)
             plt.close()
-        
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE GEX DATA INTO MUDATA OBJECT

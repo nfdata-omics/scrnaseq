@@ -2,12 +2,11 @@ process QUALITY_FILTERING  {
     tag "$meta.id"
     label 'process_medium'
 
-    container = 'docker.io/nfdata/sc_atacseq:v1.0.0'
-
+    container 'docker.io/nfdata/sc_atacseq:v1.0.0'
 
     input:
     tuple val(meta), path(input_h5mu)
-    tuple val(meta), path (doublets_csv)
+    tuple val(meta2), path (doublets_csv)
     val mt_threshold
     val min_umi_gex
     val max_umi_gex
@@ -29,25 +28,18 @@ process QUALITY_FILTERING  {
     when:
     task.ext.when == null || task.ext.when
 
-
     script:
-
-
     def d = doublets_csv ? "-d $doublets_csv" : ''
-
     """
     export NUMBA_CACHE_DIR=/tmp
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-
-
     qualitymetricsfilters.py -ad $input_h5mu $d -mt $mt_threshold -min $min_umi_gex -max $max_umi_gex -ming $min_genes_gex -maxg $max_genes_gex -minc $min_cells_gex -minf $min_features_adt -mincadt $min_counts_adt
 
-
-    cat <<-END_VERSIONS >> versions.yml
+    cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        qualitymetricsfilters.py --version >> versions.yml
+        qualitymetricsfilters.py: \$(qualitymetricsfilters.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 
@@ -59,7 +51,7 @@ process QUALITY_FILTERING  {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        qualitymetricsfilters.py --version >> versions.yml
+        qualitymetricsfilters.py: \$(qualitymetricsfilters.py --version 2> /dev/null | grep -v scanpy)
     END_VERSIONS
     """
 }

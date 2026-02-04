@@ -2,7 +2,7 @@ process CLUSTREE  {
     tag "$meta.id"
     label 'process_single'
 
-    container = 'docker.io/nfdata/sc-rnaseq-r:v1.0.0'
+    container 'docker.io/nfdata/sc-rnaseq-r:v1.0.0'
 
     input:
     tuple val(meta), path(cluster_id)
@@ -23,10 +23,10 @@ process CLUSTREE  {
 
     clustree.R $cluster_id
 
-    cat <<-END_VERSIONS >> versions.yml
+    cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        clustree.R --version >> versions.yml
     END_VERSIONS
+    clustree.R --version >> versions.yml
     """
 
     stub:
@@ -35,8 +35,8 @@ process CLUSTREE  {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        clustree.R --version >> versions.yml
     END_VERSIONS
+    clustree.R --version >> versions.yml
     """
 
 }

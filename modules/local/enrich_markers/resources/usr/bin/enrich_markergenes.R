@@ -16,7 +16,7 @@ option_list <- list(
 parser<-OptionParser(usage = "%prog [options] marker_genes resolution gmt_file",
                      option_list = option_list, prog = "markers_clusterProfiler",
                      description = "
-                     Perform over-representation analysis using the clusterProfiler R package. 
+                     Perform over-representation analysis using the clusterProfiler R package.
                      'marker_genes' is the path of the .xlsx table from which marker genes are extracted. It must be produced by the clustering step of the scrnaseq pipeline.
                      'resolution' refers to the selected Leiden resolution. The corresponding clustering must have been already calculated.
                      'gmt_file' is the path of a .gmt file containing pathways to evaluate. Each pathway must be reported in a different row, with genes separated by tabs.")

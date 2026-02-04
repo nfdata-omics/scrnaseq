@@ -127,8 +127,8 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           UPDATE CELL COUNTS
 # -------------------------------------------------------------------------------------------------------------------
-    
-    # Read cell counts csv to update it 
+
+    # Read cell counts csv to update it
     cell_counts_df = pd.read_csv(cell_counts_path)
     # Save number of cells after second filtering
     counts_after_filters = adata_atac.obs['sample'].value_counts().sort_index()
@@ -137,11 +137,11 @@ def main():
     # Save updated cell counts csv
     cell_counts_df.to_csv(cell_counts_path, index=False)
     print(f"Updated cell counts CSV saved at {cell_counts_path}")
- 
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           VISUALIZE FILTERING RESULT
 # --------------------------------------------------------------------------------------------------------------------
- 
+
     fig, ax = plt.subplots(figsize=(30,25))
     print("\nVisualize the number of cells after filtering for each sample")
     sns.histplot(adata_atac.obs, x="sample", stat="count", ax=ax)
@@ -212,10 +212,10 @@ def main():
     for res in resolutions:
         leiden_key = f"leiden_tile_{res}"
         print(f"Visualizing {leiden_key}")
-        
+
         print(f"\n      Visualizing UMAP colored by {leiden_key}")
         snap.pl.umap(
-            adata_atac, 
+            adata_atac,
             color=leiden_key,
             interactive=False,
             show=False,
@@ -245,7 +245,7 @@ def main():
 
     for i, img_path in enumerate(image_files):
         ax = axes[i]
-        
+
         img = plt.imread(img_path)
         ax.imshow(img)
         ax.axis("off")

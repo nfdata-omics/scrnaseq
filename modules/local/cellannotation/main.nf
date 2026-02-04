@@ -2,9 +2,7 @@ process CELL_ANNOTATION  {
     tag "$meta.id"
     label 'process_high'
 
-
-    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.3'
-
+    container 'docker.io/nfdata/muon-sc_rnaseq:v1.0.3'
 
     input:
     tuple val(meta), path(input_h5mu)
