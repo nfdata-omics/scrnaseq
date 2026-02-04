@@ -80,7 +80,10 @@ workflow {
         params.outdir,
         params.input,
         params.counts,
-        params.h5ad_matrix
+        params.h5ad_matrix,
+        params.help,
+        params.help_full,
+        params.show_hidden
     )
 
     //

@@ -437,13 +437,13 @@ workflow SCRNASEQ {
     }
 
     ch_metadata = params.metadata ? Channel.value(params.metadata) : Channel.value(file('dummy_metadata.csv'))
-    
+
 
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc" || params.aligner == "cellranger" ) {
-        def ch_h5ad_selected = params.counts ? 
-            H5AD_CONVERSION.out.h5ad_cellbender : 
+        def ch_h5ad_selected = params.counts ?
+            H5AD_CONVERSION.out.h5ad_cellbender :
             (
-                params.h5ad_matrix ?  
+                params.h5ad_matrix ?
                     Channel
                         .fromPath(params.h5ad_matrix,checkIfExists: true)
                         .splitCsv(header: true)
@@ -465,8 +465,9 @@ workflow SCRNASEQ {
             ch_metadata
         )
         ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
+        ch_mudata = CONVERT_MUDATA.out.h5mu
     } else {
-        println 'Nothing to convert to MuData'
+        ch_mudata = channel.empty()
     }
 
     //
@@ -496,13 +497,15 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
-    ch_cellcycle_file = Channel.fromPath(params.cell_cycle_file, checkIfExists: true)
+    ch_cellcycle_file = params.cell_cycle_file ?
+        file(params.cell_cycle_file, checkIfExists: true) :
+        channel.empty()
 
     // Make raw h5ad optional for reclustering workflows
-    ch_h5ad_raw = params.h5ad_matrix ? 
+    ch_h5ad_raw = params.h5ad_matrix ?
         Channel.fromPath("${projectDir}/assets/EMPTY").map { [[:], it] } :
         H5AD_CONVERSION.out.h5ad_raw
-    
+
     NORMALIZATION_AND_HVG (
         ch_h5mu_filtered,
         ch_h5ad_raw,
@@ -516,20 +519,30 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
     //
-    CELL_ANNOTATION (
-        NORMALIZATION_AND_HVG.out.h5mu,
-        params.input_model
-    )
-    ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
+    ch_input_model = params.input_model ? file(params.input_model, checkIfExists: true) : channel.empty()
+
+    if ( params.input_model ) {
+        CELL_ANNOTATION (
+            NORMALIZATION_AND_HVG.out.h5mu,
+            ch_input_model
+        )
+        ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
+        ch_mu5ad = CELL_ANNOTATION.out.h5mu
+        cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata
+    } else {
+        ch_mu5ad = NORMALIZATION_AND_HVG.out.h5mu
+        cell_annotation_meta_ch = channel.empty()
+    }
 
     //
     // SUBWORKFLOW: Run ATAC preprocessing
     //
-    def cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata
     atac_out_h5ad = Channel.empty()
 
     if (params.aligner == "cellrangerarc") {
-        def blacklist_path = file(params.blacklist_path, checkIfExists: true)
+        blacklist_path = params.blacklist_path ? \
+                         channel.value(file(params.blacklist_path, checkIfExists: true)) : \
+                         channel.empty()
 
         ATAC_PREPROCESSING (
             ch_transformed_fragments_channel,
@@ -555,7 +568,7 @@ workflow SCRNASEQ {
     //
 
     INTEGRATION_MODALITIES (
-        CELL_ANNOTATION.out.h5mu,
+        ch_mu5ad,
         atac_out_h5ad,
         params.n_neighbors_harmony,
         params.min_dist_harmony,
@@ -699,4 +712,3 @@ workflow SCRNASEQ {
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
 }
-

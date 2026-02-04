@@ -4,11 +4,9 @@ process PEAK_CALLING  {
 
     container 'docker.io/nfdata/snapatac:v1.0.0'
 
-
     input:
     tuple val(meta), path (input_h5ad)
     path input_meta_file
-
 
     output:
     tuple val(meta), path("matrix.tile_atac.h5ad"), emit: h5ad_tile, optional: true

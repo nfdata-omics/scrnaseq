@@ -4,7 +4,6 @@ process DIMENSIONALITY_REDUCTION_ATAC  {
 
     container 'docker.io/nfdata/snapatac:v1.0.1'
 
-
     input:
     tuple val(meta), path (input_h5ad)
     val  n_features_atac

@@ -102,14 +102,19 @@ def main():
     # Selecting genes that exhibit high variability consistently across different batches (i.e. samples)
     print("\nSelecting highly-variable genes")
     #sc.pp.highly_variable_genes(gex, min_mean=0.0125, max_mean=3, min_disp=0.5, subset=False)
-    top_10_percent_genes = int(0.1 * gex.shape[1])
-    sc.pp.highly_variable_genes(gex, n_top_genes=top_10_percent_genes, batch_key="sample")
+    try:
+        top_10_percent_genes = max(int(0.1 * gex.shape[1]), 10)
+        sc.pp.highly_variable_genes(gex, n_top_genes=top_10_percent_genes, batch_key="sample")
+    except IndexError:
+        gex.var['highly_variable'] = True
+
     num_hvg = gex.var['highly_variable'].sum()
     print("\nNumber of highly variable genes (top 10%) identified: ", num_hvg)
 
     print("\n===== DIMENSIONALITY REDUCTION =====")
     print("\nPerforming dimensionality reduction by running principal component analysis (PCA)")
-    sc.tl.pca(gex, use_highly_variable = True, n_comps=50)
+    n_comps_to_compute = min(50, num_hvg - 1)
+    sc.tl.pca(gex, use_highly_variable = True, n_comps=n_comps_to_compute)
 
     # Visualize PCA plot
     print("\nVisualized PCA plot")
@@ -121,7 +126,7 @@ def main():
     # Visualize Elbow plot
     print("\nVisualized Elbow plot for PCA components")
     plt.figure(figsize=(35, 25))
-    sc.pl.pca_variance_ratio(gex, n_pcs=50, show=False)
+    sc.pl.pca_variance_ratio(gex, n_pcs=n_comps_to_compute, show=False)
     plt.savefig(os.path.join(args.results,'pca_elbow.pdf'), bbox_inches='tight', dpi=300)
     plt.close()
 # --------------------------------------------------------------------------------------------------------------------
@@ -203,7 +208,7 @@ def main():
         # Visualize UMAP plot
         print("\nVisualized UMAP plot")
         plt.figure(figsize=(14, 13))
-        sc.pl.umap(pro, color ='sample', show=False, legend_loc='bottom', legend_fontsize=12)
+        sc.pl.umap(pro, color ='sample', show=False, legend_loc='lower right', legend_fontsize=12)
         plt.savefig(os.path.join(args.results,'umap_plot_CITE.pdf'), bbox_inches='tight', dpi=300)
         plt.close()
 

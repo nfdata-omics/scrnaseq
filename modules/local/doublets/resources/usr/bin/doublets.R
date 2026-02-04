@@ -49,6 +49,10 @@ cell_annotation <- as.data.frame(sce@colData)
 cell_annotation = cbind(rownames(cell_annotation), cell_annotation)
 colnames(cell_annotation)[1] = "cell_barcode"
 
+# Rremove unneeded columns
+cols_to_remove <- c("feature_type", "expected_cells")
+cell_annotation <- cell_annotation[, !colnames(cell_annotation) %in% cols_to_remove]
+
 #Save csv file
 output_file <- paste(output_dir, "/doublets_score.csv", sep = "")
 write.csv(cell_annotation, output_file, quote=F, row.names=F, col.names=TRUE)
