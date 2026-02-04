@@ -500,7 +500,6 @@
                 },
                 "resolution": {
                     "type": "integer",
-                    "default": 100,
                     "description": "Resolution parameter for clustering (Leiden)."
                 },
                 "enrich_collection": {
@@ -712,5 +711,49 @@
         {
             "$ref": "#/$defs/generic_options"
         }
-    ]
+    ],
+    "properties": {
+        "h5ad_matrix": {
+            "type": "string"
+        },
+        "frac_dup": {
+            "type": "number",
+            "default": 0.4
+        },
+        "peaks_frac": {
+            "type": "number",
+            "default": 0.2
+        },
+        "n_comps_atac": {
+            "type": "integer",
+            "default": 30
+        },
+        "n_neighbors_atac": {
+            "type": "integer",
+            "default": 15
+        },
+        "n_clusters_atac": {
+            "type": "integer",
+            "default": 20
+        },
+        "resolution_min": {
+            "type": "number",
+            "default": 0.1
+        },
+        "resolution_max": {
+            "type": "number",
+            "default": 1.1
+        },
+        "top_n_markers": {
+            "type": "integer",
+            "default": 10
+        },
+        "custom_geneset": {
+            "type": "string"
+        },
+        "integration_var": {
+            "type": "string",
+            "default": "sample"
+        }
+    }
 }
