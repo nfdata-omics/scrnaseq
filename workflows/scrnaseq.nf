@@ -497,8 +497,8 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run normalization on the concatenated h5ad files
     //
-    ch_cellcycle_file = params.cell_cycle_file ? 
-        file(params.cell_cycle_file, checkIfExists: true) : 
+    ch_cellcycle_file = params.cell_cycle_file ?
+        file(params.cell_cycle_file, checkIfExists: true) :
         channel.empty()
 
     // Make raw h5ad optional for reclustering workflows
@@ -540,7 +540,9 @@ workflow SCRNASEQ {
     atac_out_h5ad = Channel.empty()
 
     if (params.aligner == "cellrangerarc") {
-        def blacklist_path = file(params.blacklist_path, checkIfExists: true)
+        blacklist_path = params.blacklist_path ? \
+                         channel.value(file(params.blacklist_path, checkIfExists: true)) : \
+                         channel.empty()
 
         ATAC_PREPROCESSING (
             ch_transformed_fragments_channel,
