@@ -15,7 +15,8 @@ nextflow_pipeline {
                 gtf                       = 'https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/homo_sapiens/genome/chr21/sequence/chr21_gencode.gtf'
                 protocol                  = 'auto'
                 skip_cellbender           = true
-                blacklist_path            = 'https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/homo_sapiens/genome/chr21/sequence/multi_intervals.bed'
+                skip_doublets             = true
+                skip_qcfilters            = true
             }
         }
 
