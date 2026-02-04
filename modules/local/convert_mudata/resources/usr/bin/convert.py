@@ -89,14 +89,14 @@ def main():
         print("\nProcessing count matrix in folder ... ", end ='')
         adata= sc.read_h5ad(input_file)
         print("Done!")
-        
+
         # Find the obs columns to remove
         cols_to_remove = [col for col in adata.obs.columns if col.startswith("fastq")]
         if cols_to_remove:
             # Drop them
             adata.obs.drop(columns=cols_to_remove, inplace=True)
         print(f"Gex count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes")
-        
+
     else:
         print("No valid input file provided. Skipping reading of the count matrix.")
 
@@ -139,7 +139,7 @@ def main():
         print(f"Sample metadata table has {meta_df.shape[0]} rows and {meta_df.shape[1]} columns")
     else:
         print("No valid metadata CSV file provided. Skipping reading of the sample metadata table.")
-  
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 ADDED METADATA TO OBS
 # --------------------------------------------------------------------------------------------------------------------
@@ -241,7 +241,7 @@ def main():
                     on='sample',
                     how='left'
                     ).astype(str)
-                
+
             print(
                 "Sample metadata joined to each modality in MuData "
                 f"({'with' if has_meta_assay else 'without'} assay filtering)."

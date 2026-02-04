@@ -111,7 +111,7 @@ def main():
             print(f"Error: Variable '{integration_var}' not found in .obs columns.")
             print(f"Available columns: {list(gex.obs.columns)}")
             raise ValueError(f"Integration variable '{integration_var}' not found in .obs")
-    
+
     print("\nData integration by using Harmony algorith")
     sce.pp.harmony_integrate(gex, integration_var)
 
