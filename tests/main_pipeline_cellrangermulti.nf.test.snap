@@ -1,8 +1,14 @@
 {
     "test-dataset_cellrangermulti_aligner_human": {
         "content": [
-            65,
+            68,
             {
+                "ANNDATAR_CONVERT": {
+                    "SeuratObject": "5.0.2",
+                    "SingleCellExperiment": "1.28.1",
+                    "anndataR": "0.99.0",
+                    "r-base": "R version 4.4.2 (2024-10-31)"
+                },
                 "CELLRANGER_MKGTF": {
                     "cellranger": "10.0.0"
                 },
@@ -14,6 +20,31 @@
                 },
                 "CELLRANGER_MULTI": {
                     "cellranger": "cellranger 10.0.0 "
+                },
+                "CONCATENATE_VDJ": {
+                    "concatenate_vdj.py": "0.0.1"
+                },
+                "CONCAT_H5AD": {
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
+                },
+                "CONVERT_MUDATA": {
+                    "convert.py": "0.0.1"
+                },
+                "DOUBLETS": {
+                    "Biobase": "2.66.0",
+                    "BiocGenerics": "0.52.0",
+                    "GenomeInfoDb": "1.42.1",
+                    "GenomicRanges": "1.58.0",
+                    "IRanges": "2.40.1",
+                    "MatrixGenerics": "1.18.1",
+                    "R": "4.4.2",
+                    "S4Vectors": "0.44.0",
+                    "SingleCellExperiment": "1.28.1",
+                    "SummarizedExperiment": "1.36.0",
+                    "matrixStats": "1.5.0",
+                    "optparse": "1.7.5",
+                    "scDblFinder": "1.20.0"
                 },
                 "FASTQC": {
                     "fastqc": "0.12.1"
@@ -29,6 +60,9 @@
                     "pandas": "2.2.2",
                     "python": "3.12.5",
                     "scanpy": "1.10.2"
+                },
+                "QUALITY_FILTERING": {
+                    "qualitymetricsfilters.py": "0.0.1"
                 }
             },
             [
@@ -1015,8 +1049,6 @@
                 "cellrangermulti/mtx_conversions/combined_filtered_matrix.sce.rds",
                 "cellrangermulti/mtx_conversions/combined_filtered_matrix.seurat.rds",
                 "cellrangermulti/mtx_conversions/combined_raw_matrix.h5ad",
-                "cellrangermulti/mtx_conversions/combined_raw_matrix.sce.rds",
-                "cellrangermulti/mtx_conversions/combined_raw_matrix.seurat.rds",
                 "fastqc",
                 "fastqc/4PLEX_HUMAN_gex_1_fastqc.html",
                 "fastqc/4PLEX_HUMAN_gex_1_fastqc.zip",
@@ -1066,6 +1098,8 @@
                 "fastqc/PBMC_10K_vdj_1_fastqc.zip",
                 "fastqc/PBMC_10K_vdj_2_fastqc.html",
                 "fastqc/PBMC_10K_vdj_2_fastqc.zip",
+                "mudata",
+                "mudata/matrix.mudata.h5mu",
                 "multiqc",
                 "multiqc/multiqc_data",
                 "multiqc/multiqc_data/fastqc-status-check-heatmap.txt",
@@ -1129,8 +1163,22 @@
                 "multiqc/multiqc_plots/svg/fastqc_sequence_duplication_levels_plot.svg",
                 "multiqc/multiqc_plots/svg/fastqc_top_overrepresented_sequences_table.svg",
                 "multiqc/multiqc_report.html",
+                "parse",
+                "parse/cmo_files",
+                "parse/cmo_files/PBMC_10K_CMO_cmo.csv",
+                "parse/frna_files",
+                "parse/frna_files/4PLEX_HUMAN_frna.csv",
                 "pipeline_info",
-                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml"
+                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml",
+                "qualitycontrol",
+                "qualitycontrol/Cells_after_filtering.pdf",
+                "qualitycontrol/Cells_before_filtering.pdf",
+                "qualitycontrol/QC_Density_MT-Ribo_all_samples.pdf",
+                "qualitycontrol/QC_Density_all_samples.pdf",
+                "qualitycontrol/doublets_score.csv",
+                "qualitycontrol/matrix.filtered.h5mu",
+                "qualitycontrol/summary_qualitycontrol_by_pool.csv",
+                "vdj"
             ],
             [
                 "barcodes.tsv.gz:md5,6456466be84057f394f1dd25b5a26bfe",
@@ -1269,42 +1317,43 @@
                 "Ovarian_BC2_raw_matrix.h5ad:md5,6e27c9c5a68dc907b61ce1eae267b932",
                 "Ovarian_BC2_raw_matrix.sce.rds:md5,78125a38a7974a2823386341be33de56",
                 "Ovarian_BC2_raw_matrix.seurat.rds:md5,bb527b97fd7d24e5357284bfb61d9e96",
-                "PBMC_10K_filtered_matrix.h5ad:md5,8276afec9886898d24df77e0eb3836ec",
-                "PBMC_10K_filtered_matrix.sce.rds:md5,b0ac588b9c4f12285a287b0d44ecf247",
-                "PBMC_10K_filtered_matrix.seurat.rds:md5,7c8ab3039d8aba9573ff80e68664ee76",
-                "PBMC_10K_raw_matrix.h5ad:md5,037e55dd085c1bb27681a7357a14f229",
-                "PBMC_10K_raw_matrix.sce.rds:md5,e8f0e03cc061a6e4e960295297da6607",
-                "PBMC_10K_raw_matrix.seurat.rds:md5,dc5e624ad49ea9b75dc57cdf1bbb2fd2",
-                "PBMC_10K_CMO_filtered_matrix.h5ad:md5,048a291c72cb02b73418086bbbfe1e0d",
-                "PBMC_10K_CMO_filtered_matrix.sce.rds:md5,36d5b8cf8fa384514a9cd004d33568ef",
-                "PBMC_10K_CMO_filtered_matrix.seurat.rds:md5,a25aaf282472f111f625638a717df953",
-                "PBMC_10K_CMO_raw_matrix.h5ad:md5,b50f62f66668d822b3765be631d29d1a",
-                "PBMC_10K_CMO_raw_matrix.sce.rds:md5,6124ebe15dd4b975b4186dea844f865d",
-                "PBMC_10K_CMO_raw_matrix.seurat.rds:md5,5dfe0a5da270af2d08601e574b426dc4",
-                "PBMC_10K_CMO_PBMCs_human_1_filtered_matrix.h5ad:md5,f696f68bdab63de70671013b7a23d8e6",
-                "PBMC_10K_CMO_PBMCs_human_1_filtered_matrix.sce.rds:md5,eb623c6b462690ccb9ece785f0cbd781",
-                "PBMC_10K_CMO_PBMCs_human_1_filtered_matrix.seurat.rds:md5,87549352e83a54f9ea894c33e70c39c5",
-                "PBMC_10K_CMO_PBMCs_human_1_raw_matrix.h5ad:md5,f696f68bdab63de70671013b7a23d8e6",
-                "PBMC_10K_CMO_PBMCs_human_1_raw_matrix.sce.rds:md5,eb623c6b462690ccb9ece785f0cbd781",
-                "PBMC_10K_CMO_PBMCs_human_1_raw_matrix.seurat.rds:md5,87549352e83a54f9ea894c33e70c39c5",
-                "PBMC_10K_CMO_PBMCs_human_2_filtered_matrix.h5ad:md5,679aeb89604f3f6d98e66326be302320",
-                "PBMC_10K_CMO_PBMCs_human_2_filtered_matrix.sce.rds:md5,0a2d99fcadc0fd73b5fedbb42e61c6d3",
-                "PBMC_10K_CMO_PBMCs_human_2_filtered_matrix.seurat.rds:md5,77c83357a846f32aa3b51d1523d4ce14",
-                "PBMC_10K_CMO_PBMCs_human_2_raw_matrix.h5ad:md5,679aeb89604f3f6d98e66326be302320",
-                "PBMC_10K_CMO_PBMCs_human_2_raw_matrix.sce.rds:md5,0a2d99fcadc0fd73b5fedbb42e61c6d3",
-                "PBMC_10K_CMO_PBMCs_human_2_raw_matrix.seurat.rds:md5,77c83357a846f32aa3b51d1523d4ce14",
-                "PBMC_10K_CMV_filtered_matrix.h5ad:md5,15e785837e2eda0aa7bb6aea3a6c9f05",
-                "PBMC_10K_CMV_filtered_matrix.sce.rds:md5,6fa01cf7d93bc5f86ec945700b9734a8",
-                "PBMC_10K_CMV_filtered_matrix.seurat.rds:md5,fb90082ae1af8e86feac5726930927f4",
-                "PBMC_10K_CMV_raw_matrix.h5ad:md5,41f07c811f3751a5a773ccdcfba2323a",
-                "PBMC_10K_CMV_raw_matrix.sce.rds:md5,2b53553609413dc95760c49577f87bca",
-                "PBMC_10K_CMV_raw_matrix.seurat.rds:md5,10e8fb1066e31d9d68e263f8b7fd13c4",
+                "PBMC_10K_filtered_matrix.h5ad:md5,1d8620ad736799c24e71fc7cc2577865",
+                "PBMC_10K_filtered_matrix.sce.rds:md5,0569da4cc10546bd4510e1779e070b01",
+                "PBMC_10K_filtered_matrix.seurat.rds:md5,50ddac0b1fcbd296a3de0730a08a0831",
+                "PBMC_10K_raw_matrix.h5ad:md5,2c8c8799b7fd6f9de697f1df327759c6",
+                "PBMC_10K_raw_matrix.sce.rds:md5,52a0ce97167dda568227b7b765a5c214",
+                "PBMC_10K_raw_matrix.seurat.rds:md5,028008a6a0a82d761520137a7fd891bc",
+                "PBMC_10K_CMO_filtered_matrix.h5ad:md5,5eed0a4c95804f1ae5563e3abdde2a5e",
+                "PBMC_10K_CMO_filtered_matrix.sce.rds:md5,f0bccd06a687c6e98608ce6b6becf9c6",
+                "PBMC_10K_CMO_filtered_matrix.seurat.rds:md5,0b5dc1b213883df3babc8d0c22a25851",
+                "PBMC_10K_CMO_raw_matrix.h5ad:md5,cf35eca25e921ae1ea5f0075ae4fee69",
+                "PBMC_10K_CMO_raw_matrix.sce.rds:md5,ca8ba5960c2f7d94ddf964efcdede0a6",
+                "PBMC_10K_CMO_raw_matrix.seurat.rds:md5,621ee9d6c9189a05cffb4d99888a4eb9",
+                "PBMC_10K_CMO_PBMCs_human_1_filtered_matrix.h5ad:md5,dd5c438e130555520b2afe89c29f921c",
+                "PBMC_10K_CMO_PBMCs_human_1_filtered_matrix.sce.rds:md5,3da1fa6fc21e78f5416c14b720bca096",
+                "PBMC_10K_CMO_PBMCs_human_1_filtered_matrix.seurat.rds:md5,c7ff67325b37ca69ce89317cc2606031",
+                "PBMC_10K_CMO_PBMCs_human_1_raw_matrix.h5ad:md5,dd5c438e130555520b2afe89c29f921c",
+                "PBMC_10K_CMO_PBMCs_human_1_raw_matrix.sce.rds:md5,3da1fa6fc21e78f5416c14b720bca096",
+                "PBMC_10K_CMO_PBMCs_human_1_raw_matrix.seurat.rds:md5,c7ff67325b37ca69ce89317cc2606031",
+                "PBMC_10K_CMO_PBMCs_human_2_filtered_matrix.h5ad:md5,75fa1ef13e0ba6831291612f62693dcc",
+                "PBMC_10K_CMO_PBMCs_human_2_filtered_matrix.sce.rds:md5,c44b18c4ae032c7c6b6d6789d2ac172a",
+                "PBMC_10K_CMO_PBMCs_human_2_filtered_matrix.seurat.rds:md5,9f33afaa2580ed57466f64cc41d851b8",
+                "PBMC_10K_CMO_PBMCs_human_2_raw_matrix.h5ad:md5,75fa1ef13e0ba6831291612f62693dcc",
+                "PBMC_10K_CMO_PBMCs_human_2_raw_matrix.sce.rds:md5,c44b18c4ae032c7c6b6d6789d2ac172a",
+                "PBMC_10K_CMO_PBMCs_human_2_raw_matrix.seurat.rds:md5,9f33afaa2580ed57466f64cc41d851b8",
+                "PBMC_10K_CMV_filtered_matrix.h5ad:md5,8e346c3cd0e6bf7995c1a328a6ef9ec7",
+                "PBMC_10K_CMV_filtered_matrix.sce.rds:md5,1ed7820c9fa7860409c31c7aba0af185",
+                "PBMC_10K_CMV_filtered_matrix.seurat.rds:md5,1e4f0cb46b5d934ccccaf72ef6eb5a3b",
+                "PBMC_10K_CMV_raw_matrix.h5ad:md5,481742b217d429b636a1633ae8d35881",
+                "PBMC_10K_CMV_raw_matrix.sce.rds:md5,45f90f52812890d45ae6224a2f6a3d56",
+                "PBMC_10K_CMV_raw_matrix.seurat.rds:md5,c7bc6bcbeb05b722d9aa31a6b77754c6",
                 "Pancreas_BC4_filtered_matrix.h5ad:md5,33e6e6d2b5e19e818f3b9172933de744",
                 "Pancreas_BC4_filtered_matrix.sce.rds:md5,d091f45a8220a9e532c1f2ac1ee4de34",
                 "Pancreas_BC4_filtered_matrix.seurat.rds:md5,b7e2f43f1a5c3d6cf475a1666e1e7612",
                 "Pancreas_BC4_raw_matrix.h5ad:md5,0dff6bd60fb837d0e0021caa4c21b23f",
                 "Pancreas_BC4_raw_matrix.sce.rds:md5,31cd8bd0f877c349f5eea5b268a9a1b2",
                 "Pancreas_BC4_raw_matrix.seurat.rds:md5,451eba9f44642abbb7521af305018160",
+                "matrix.mudata.h5mu:md5,a9b49dc7f5042d4677948eac325e882e",
                 "fastqc-status-check-heatmap.txt:md5,f57bda9b8fd9290f05ad8ddb6dd72027",
                 "fastqc_adapter_content_plot.txt:md5,886d5c1d7fcfd20e7d422124e16a3a12",
                 "fastqc_overrepresented_sequences_plot.txt:md5,3bd26371c065bd07cac66aaae9bad132",
@@ -1317,19 +1366,34 @@
                 "fastqc_sequence_duplication_levels_plot.txt:md5,ad83bca86da8a428a4d7f6d8e534fd4b",
                 "multiqc_citations.txt:md5,4c806e63a283ec1b7e78cdae3a923d4f",
                 "multiqc_fastqc.txt:md5,ba37c98746e55d95bc1a0daefc030519",
-                "multiqc_general_stats.txt:md5,322c16b924c49f393b100debd15d9e16"
+                "multiqc_general_stats.txt:md5,322c16b924c49f393b100debd15d9e16",
+                "PBMC_10K_CMO_cmo.csv:md5,91e024681f273d3581402dcc14f00483",
+                "4PLEX_HUMAN_frna.csv:md5,e45e051360b2f47d294339e9ef1e2842",
+                "Cells_after_filtering.pdf:md5,81788a74cd427da15cd41166ab333d15",
+                "Cells_before_filtering.pdf:md5,44f43c204c1da952e8042de15b1dbf99",
+                "QC_Density_MT-Ribo_all_samples.pdf:md5,e30de5ae21540effee16e531a6c67f75",
+                "QC_Density_all_samples.pdf:md5,9aa9f75f5d5536c8077d658448c33d18",
+                "doublets_score.csv:md5,8d3775b5f5a595d370afd7a0d06fd1ae",
+                "matrix.filtered.h5mu:md5,4b348267c2468de9b9fc58f38d560f5f",
+                "summary_qualitycontrol_by_pool.csv:md5,d4abb071c3827e02ce9fedf9636b2143"
             ]
         ],
         "meta": {
             "nf-test": "0.9.3",
-            "nextflow": "25.04.8"
+            "nextflow": "25.10.3"
         },
-        "timestamp": "2025-12-03T15:19:56.343525249"
+        "timestamp": "2026-02-04T11:53:26.094226681"
     },
     "test-dataset_cellrangermulti_aligner_rat": {
         "content": [
-            34,
+            36,
             {
+                "ANNDATAR_CONVERT": {
+                    "SeuratObject": "5.0.2",
+                    "SingleCellExperiment": "1.28.1",
+                    "anndataR": "0.99.0",
+                    "r-base": "R version 4.4.2 (2024-10-31)"
+                },
                 "CELLRANGER_MKGTF": {
                     "cellranger": "10.0.0"
                 },
@@ -1341,6 +1405,28 @@
                 },
                 "CELLRANGER_MULTI": {
                     "cellranger": "cellranger 10.0.0 "
+                },
+                "CONCAT_H5AD": {
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
+                },
+                "CONVERT_MUDATA": {
+                    "convert.py": "0.0.1"
+                },
+                "DOUBLETS": {
+                    "Biobase": "2.66.0",
+                    "BiocGenerics": "0.52.0",
+                    "GenomeInfoDb": "1.42.1",
+                    "GenomicRanges": "1.58.0",
+                    "IRanges": "2.40.1",
+                    "MatrixGenerics": "1.18.1",
+                    "R": "4.4.2",
+                    "S4Vectors": "0.44.0",
+                    "SingleCellExperiment": "1.28.1",
+                    "SummarizedExperiment": "1.36.0",
+                    "matrixStats": "1.5.0",
+                    "optparse": "1.7.5",
+                    "scDblFinder": "1.20.0"
                 },
                 "FASTQC": {
                     "fastqc": "0.12.1"
@@ -1356,6 +1442,9 @@
                     "pandas": "2.2.2",
                     "python": "3.12.5",
                     "scanpy": "1.10.2"
+                },
+                "QUALITY_FILTERING": {
+                    "qualitymetricsfilters.py": "0.0.1"
                 }
             },
             [
@@ -1752,8 +1841,6 @@
                 "cellrangermulti/mtx_conversions/combined_filtered_matrix.sce.rds",
                 "cellrangermulti/mtx_conversions/combined_filtered_matrix.seurat.rds",
                 "cellrangermulti/mtx_conversions/combined_raw_matrix.h5ad",
-                "cellrangermulti/mtx_conversions/combined_raw_matrix.sce.rds",
-                "cellrangermulti/mtx_conversions/combined_raw_matrix.seurat.rds",
                 "fastqc",
                 "fastqc/10k_Wistar_Rat_gex_10_fastqc.html",
                 "fastqc/10k_Wistar_Rat_gex_10_fastqc.zip",
@@ -1779,6 +1866,8 @@
                 "fastqc/10k_Wistar_Rat_gex_8_fastqc.zip",
                 "fastqc/10k_Wistar_Rat_gex_9_fastqc.html",
                 "fastqc/10k_Wistar_Rat_gex_9_fastqc.zip",
+                "mudata",
+                "mudata/matrix.mudata.h5mu",
                 "multiqc",
                 "multiqc/multiqc_data",
                 "multiqc/multiqc_data/fastqc-status-check-heatmap.txt",
@@ -1838,8 +1927,19 @@
                 "multiqc/multiqc_plots/svg/fastqc_sequence_duplication_levels_plot.svg",
                 "multiqc/multiqc_plots/svg/fastqc_top_overrepresented_sequences_table.svg",
                 "multiqc/multiqc_report.html",
+                "parse",
+                "parse/ocm_files",
+                "parse/ocm_files/10k_Wistar_Rat_ocm.csv",
                 "pipeline_info",
-                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml"
+                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml",
+                "qualitycontrol",
+                "qualitycontrol/Cells_after_filtering.pdf",
+                "qualitycontrol/Cells_before_filtering.pdf",
+                "qualitycontrol/QC_Density_MT-Ribo_all_samples.pdf",
+                "qualitycontrol/QC_Density_all_samples.pdf",
+                "qualitycontrol/doublets_score.csv",
+                "qualitycontrol/matrix.filtered.h5mu",
+                "qualitycontrol/summary_qualitycontrol_by_pool.csv"
             ],
             [
                 "barcodes.tsv.gz:md5,2134778c7211b79c1a9e12db033b76d6",
@@ -1922,6 +2022,7 @@
                 "2500_Wistar_Rat_PBMCs_gem-x_OB4_raw_matrix.h5ad:md5,495ea7af0a484fd559a7fac733bceea2",
                 "2500_Wistar_Rat_PBMCs_gem-x_OB4_raw_matrix.sce.rds:md5,9b6b1abbf02d8999479c513861d6bc56",
                 "2500_Wistar_Rat_PBMCs_gem-x_OB4_raw_matrix.seurat.rds:md5,36662f7474f1a416ba7531108f87037e",
+                "matrix.mudata.h5mu:md5,23ff1e7b948e6e2d560adf08f280d3f9",
                 "fastqc-status-check-heatmap.txt:md5,89acc155c18f65434b41b4dc8645fe2f",
                 "fastqc_adapter_content_plot.txt:md5,fa8ef0df2f740304fab23bfd39787bc3",
                 "fastqc_per_base_n_content_plot.txt:md5,04fc06c6af2f783ab3188a5838285849",
@@ -1933,13 +2034,21 @@
                 "fastqc_sequence_duplication_levels_plot.txt:md5,1e58df8383b865f8e10623140290b79e",
                 "multiqc_citations.txt:md5,4c806e63a283ec1b7e78cdae3a923d4f",
                 "multiqc_fastqc.txt:md5,026ffbdf07192dde0ece1347e249beaf",
-                "multiqc_general_stats.txt:md5,5496b8ed2f29e4210018b5a9f1b7dc18"
+                "multiqc_general_stats.txt:md5,5496b8ed2f29e4210018b5a9f1b7dc18",
+                "10k_Wistar_Rat_ocm.csv:md5,718be9212d239955d92d7d619d8111e6",
+                "Cells_after_filtering.pdf:md5,83ecbb137c652ec00dff55e4c2562080",
+                "Cells_before_filtering.pdf:md5,4bb65371c54a21c53b69bbc92e6f1e95",
+                "QC_Density_MT-Ribo_all_samples.pdf:md5,8532786f7554bc5ee5f6915c3d8e6b94",
+                "QC_Density_all_samples.pdf:md5,b8a761448df16e0ab7de99ac5a80b98c",
+                "doublets_score.csv:md5,56ccb289603aec70b0df2c3fbce64a23",
+                "matrix.filtered.h5mu:md5,9914264badf5b4dd452d2a18be51ae0c",
+                "summary_qualitycontrol_by_pool.csv:md5,8d0a4d0934fbeb7fb47ed1863f0cc7d2"
             ]
         ],
         "meta": {
             "nf-test": "0.9.3",
-            "nextflow": "25.04.8"
+            "nextflow": "25.10.3"
         },
-        "timestamp": "2025-12-03T15:34:21.732309452"
+        "timestamp": "2026-02-04T12:06:09.106335394"
     }
 }
