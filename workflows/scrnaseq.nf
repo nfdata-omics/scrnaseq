@@ -34,6 +34,7 @@ include { CLUSTREE                                          } from '../modules/l
 include { ENRICH_MARKERS                                    } from '../modules/local/enrich_markers'
 include { CUSTOM_GENES                                      } from '../modules/local/custom_genes'
 include { DIFFERENTIAL_ANALYSIS                             } from '../modules/local/differential_analysis'
+include { DIFFERENTIAL_ABUNDANCE                            } from '../modules/local/differential_abundance'
 
 workflow SCRNASEQ {
 
@@ -651,6 +652,16 @@ workflow SCRNASEQ {
     )
     ch_versions = ch_versions.mix(DIFFERENTIAL_ANALYSIS.out.versions)
     '''
+
+    if ( !params.skip_diff_abundance ) {
+        DIFFERENTIAL_ABUNDANCE(
+            CLUSTERING.out.h5mu,
+            Channel.value("NoSRS"),
+            Channel.value("sham"),
+            Channel.value("group")
+        )
+    }
+
     //
     // Collate and save software versions
     //
