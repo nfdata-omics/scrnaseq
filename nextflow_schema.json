@@ -117,6 +117,10 @@
                     "type": "boolean",
                     "deprecated": true,
                     "errorMessage": "Parameter has been deprecated in favour of --skip_cellbender to properly match name of workflow."
+                },
+                "skip_diff_abundance": {
+                    "type": "boolean",
+                    "description": "Skip differential abundance calculation"
                 }
             }
         },
