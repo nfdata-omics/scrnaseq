@@ -190,12 +190,6 @@ def main():
             plt.close(fig)
     print("Fragment Size Distribution PDF generated.")
 
-    from matplotlib.colors import LinearSegmentedColormap
-    colors = ["#e1edf8", "#cbdff1", "#cbdff1", "#abd0e6",
-            "#82badb", "#59a2cf", "#3787c0", "#1b6aaf",
-            "#074d97", "#07306a"]
-    blue_cmap = LinearSegmentedColormap.from_list("blue_kde", colors)
-
     print("Generating TSS Enrichment Score PDF...")
     with PdfPages("TSSE_score_all_samples.pdf") as pdf:
         for run_id, adata in zip(input_run_id, adatas_atac):
@@ -204,6 +198,7 @@ def main():
             snap.pl.tsse(adata, out_file=png_file, show=False, width=1400, height=800)
             img = Image.open(png_file)
 
+            fig, ax = plt.subplots(figsize=(14, 8))
             ax.imshow(img)
             ax.axis('off')
 
