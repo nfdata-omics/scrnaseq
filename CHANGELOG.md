@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix [#510](https://github.com/nf-core/scrnaseq/issues/510): Handle files with BOMs. ([#511](https://github.com/nf-core/scrnaseq/pull/511))
 - Address [#512], adding early validation of the cellranger multi barcode sheet ([#513](https://github.com/nf-core/scrnaseq/pull/513))
 
+### Chore
+
+- Template update for nf-core/tools v3.5.1 ([#509](https://github.com/nf-core/scrnaseq/pull/509))
+
 ## Fixes
 
 - Fix `modules.config` structure to make sure all ways of providing the `aligner` param work ([514](https://github.com/nf-core/scrnaseq/pull/514))

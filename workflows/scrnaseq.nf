@@ -30,9 +30,9 @@ workflow SCRNASEQ {
     ch_fastq
 
     main:
-    ch_multiqc_files = Channel.empty()
-    ch_versions      = Channel.empty()
-    ch_mtx_matrices  = Channel.empty()
+    ch_multiqc_files = channel.empty()
+    ch_versions      = channel.empty()
+    ch_mtx_matrices  = channel.empty()
 
     protocol_config = Utils.getProtocol(workflow, log, params.aligner, params.protocol)
     if (protocol_config['protocol'] == 'auto' && params.aligner !in ["cellranger", "cellrangerarc", "cellrangermulti"]) {
@@ -68,7 +68,7 @@ workflow SCRNASEQ {
 
     //star params
     star_index        = params.star_index ? file(params.star_index, checkIfExists: true) : null
-    ch_star_index     = star_index ? Channel.value( [[id: star_index.baseName], star_index] ) : []
+    ch_star_index     = star_index ? channel.value( [[id: star_index.baseName], star_index] ) : []
 
     //cellranger params
     ch_cellranger_index = params.cellranger_index ? file(params.cellranger_index, checkIfExists: true) : []
@@ -96,7 +96,7 @@ workflow SCRNASEQ {
             ch_genome_fasta    = GUNZIP_FASTA ( [ [:], ch_genome_fasta ] ).gunzip.map { it[1] }
             ch_versions        = ch_versions.mix(GUNZIP_FASTA.out.versions)
         } else {
-            ch_genome_fasta = Channel.value( ch_genome_fasta )
+            ch_genome_fasta = channel.value( ch_genome_fasta )
         }
     }
 
@@ -108,7 +108,7 @@ workflow SCRNASEQ {
             ch_gtf      = GUNZIP_GTF ( [ [:], ch_gtf ] ).gunzip.map { it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
         } else {
-            ch_gtf = Channel.value( ch_gtf )
+            ch_gtf = channel.value( ch_gtf )
         }
     }
 
@@ -315,7 +315,25 @@ workflow SCRNASEQ {
     //
     // Collate and save software versions
     //
-    softwareVersionsToYAML(ch_versions)
+    def topic_versions = channel.topic("versions")
+        .distinct()
+        .branch { entry ->
+            versions_file: entry instanceof Path
+            versions_tuple: true
+        }
+
+    def topic_versions_string = topic_versions.versions_tuple
+        .map { process, tool, version ->
+            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
+        }
+        .groupTuple(by:0)
+        .map { process, tool_versions ->
+            tool_versions.unique().sort()
+            "${process}:\n${tool_versions.join('\n')}"
+        }
+
+    softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
+        .mix(topic_versions_string)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
             name: 'nf_core_'  +  'scrnaseq_software_'  + 'mqc_'  + 'versions.yml',
@@ -327,24 +345,24 @@ workflow SCRNASEQ {
         //
         // MODULE: MultiQC
         //
-        ch_multiqc_config        = Channel.fromPath(
+        ch_multiqc_config        = channel.fromPath(
             "$projectDir/assets/multiqc_config.yml", checkIfExists: true)
         ch_multiqc_custom_config = params.multiqc_config ?
-            Channel.fromPath(params.multiqc_config, checkIfExists: true) :
-            Channel.empty()
+            channel.fromPath(params.multiqc_config, checkIfExists: true) :
+            channel.empty()
         ch_multiqc_logo          = params.multiqc_logo ?
-            Channel.fromPath(params.multiqc_logo, checkIfExists: true) :
-            Channel.empty()
+            channel.fromPath(params.multiqc_logo, checkIfExists: true) :
+            channel.empty()
 
         summary_params      = paramsSummaryMap(
             workflow, parameters_schema: "nextflow_schema.json")
-        ch_workflow_summary = Channel.value(paramsSummaryMultiqc(summary_params))
+        ch_workflow_summary = channel.value(paramsSummaryMultiqc(summary_params))
         ch_multiqc_files = ch_multiqc_files.mix(
             ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
         ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
             file(params.multiqc_methods_description, checkIfExists: true) :
             file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
-        ch_methods_description                = Channel.value(
+        ch_methods_description                = channel.value(
             methodsDescriptionText(ch_multiqc_custom_methods_description))
 
         ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
@@ -365,7 +383,7 @@ workflow SCRNASEQ {
         )
         ch_multiqc_report = MULTIQC.out.report
     } else {
-        ch_multiqc_report = Channel.empty()
+        ch_multiqc_report = channel.empty()
     }
 
     emit:
