@@ -10,7 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": ["outdir"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -39,6 +39,15 @@
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
                     "fa_icon": "fas fa-file-signature"
+                },
+                "counts": {
+                    "type": "string",
+                    "description": "Path to a counts matrix in MTX format.",
+                    "fa_icon": "far fa-file-excel"
+                },
+                "metadata": {
+                    "type": "string",
+                    "description": "Path to metadata file containing sample annotations."
                 }
             }
         },
@@ -91,6 +100,18 @@
                 "skip_cellbender": {
                     "type": "boolean",
                     "description": "Skip cellbender empty drops filter subworkflow"
+                },
+                "skip_integration": {
+                    "type": "boolean",
+                    "description": "Skip integration subworkflow"
+                },
+                "skip_doublets": {
+                    "type": "boolean",
+                    "description": "Skip doublet detection subworkflow"
+                },
+                "skip_qcfilters": {
+                    "type": "boolean",
+                    "description": "Skip qc filtering subworkflow"
                 },
                 "skip_emptydrops": {
                     "type": "boolean",
@@ -375,6 +396,123 @@
                 }
             }
         },
+        "downstream_analysis_options": {
+            "title": "Downstream Analysis options",
+            "type": "object",
+            "description": "Parameters for downstream analysis of single cell data including quality control, normalization, dimensionality reduction, and clustering.",
+            "default": "",
+            "properties": {
+                "demultiplexing_doublets": {
+                    "type": "string",
+                    "description": "Path to demultiplexing doublets file."
+                },
+                "cell_cycle_file": {
+                    "type": "string",
+                    "description": "Path to cell cycle markers file for cell cycle scoring."
+                },
+                "blacklist_path": {
+                    "type": "string",
+                    "description": "Path to blacklist file containing regions to exclude from peak calling."
+                },
+                "mt_threshold": {
+                    "type": "integer",
+                    "default": 15,
+                    "description": "Mitochondrial content threshold (%) for quality control filtering."
+                },
+                "tss_threshold": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Transcription start site (TSS) enrichment threshold for ATAC-seq quality control."
+                },
+                "min_fragments_counts": {
+                    "type": "integer",
+                    "default": 1000,
+                    "description": "Minimum number of fragments per cell for ATAC-seq."
+                },
+                "max_fragments_counts": {
+                    "type": "integer",
+                    "default": 100000,
+                    "description": "Maximum number of fragments per cell for ATAC-seq."
+                },
+                "min_umi_gex": {
+                    "type": "integer",
+                    "default": 1400,
+                    "description": "Minimum number of UMIs per cell for gene expression data."
+                },
+                "max_umi_gex": {
+                    "type": "integer",
+                    "default": 50000,
+                    "description": "Maximum number of UMIs per cell for gene expression data."
+                },
+                "min_genes_gex": {
+                    "type": "integer",
+                    "default": 200,
+                    "description": "Minimum number of genes detected per cell for gene expression data."
+                },
+                "max_genes_gex": {
+                    "type": "integer",
+                    "default": 8000,
+                    "description": "Maximum number of genes detected per cell for gene expression data."
+                },
+                "min_cells_gex": {
+                    "type": "integer",
+                    "default": 5,
+                    "description": "Minimum number of cells expressed for genes that are kept in the gene expression data."
+                },
+                "min_features_adt": {
+                    "type": "integer",
+                    "default": 3,
+                    "description": "Minimum number of antibody-derived tag (ADT) features per cell."
+                },
+                "min_counts_adt": {
+                    "type": "integer",
+                    "default": 500,
+                    "description": "Minimum number of antibody-derived tag (ADT) counts per cell."
+                },
+                "n_pcs": {
+                    "type": "integer",
+                    "default": 30,
+                    "description": "Number of principal components to use  for UMAP calculation."
+                },
+                "n_neighbors": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Number of neighbors for UMAP calculation."
+                },
+                "min_dist": {
+                    "type": "number",
+                    "default": 0.1,
+                    "description": "Minimum distance for UMAP layout."
+                },
+                "n_neighbors_harmony": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Number of neighbors for Harmony integration."
+                },
+                "min_dist_harmony": {
+                    "type": "number",
+                    "default": 0.1,
+                    "description": "Minimum distance for Harmony UMAP layout."
+                },
+                "n_features_atac": {
+                    "type": "integer",
+                    "default": 500000,
+                    "description": "Number of features to select for ATAC-seq analysis."
+                },
+                "resolution": {
+                    "type": "integer",
+                    "description": "Resolution parameter for clustering (Leiden)."
+                },
+                "enrich_collection": {
+                    "type": "string",
+                    "description": "Gene set collection file to use for enrichment analysis."
+                },
+                "input_model": {
+                    "type": "string",
+                    "description": "Path to pre-trained celltypist model for cell type annotation."
+                }
+            }
+        },
         "institutional_config_options": {
             "title": "Institutional config options",
             "type": "object",
@@ -566,10 +704,57 @@
             "$ref": "#/$defs/cellranger_multi_options"
         },
         {
+            "$ref": "#/$defs/downstream_analysis_options"
+        },
+        {
             "$ref": "#/$defs/institutional_config_options"
         },
         {
             "$ref": "#/$defs/generic_options"
         }
-    ]
+    ],
+    "properties": {
+        "h5ad_matrix": {
+            "type": "string"
+        },
+        "frac_dup": {
+            "type": "number",
+            "default": 0.4
+        },
+        "peaks_frac": {
+            "type": "number",
+            "default": 0.2
+        },
+        "n_comps_atac": {
+            "type": "integer",
+            "default": 30
+        },
+        "n_neighbors_atac": {
+            "type": "integer",
+            "default": 15
+        },
+        "n_clusters_atac": {
+            "type": "integer",
+            "default": 20
+        },
+        "resolution_min": {
+            "type": "number",
+            "default": 0.1
+        },
+        "resolution_max": {
+            "type": "number",
+            "default": 1.1
+        },
+        "top_n_markers": {
+            "type": "integer",
+            "default": 10
+        },
+        "custom_geneset": {
+            "type": "string"
+        },
+        "integration_var": {
+            "type": "string",
+            "default": "sample"
+        }
+    }
 }

@@ -1,8 +1,14 @@
 {
     "test-dataset_cellranger_aligner": {
         "content": [
-            20,
+            22,
             {
+                "ANNDATAR_CONVERT": {
+                    "SeuratObject": "5.0.2",
+                    "SingleCellExperiment": "1.28.1",
+                    "anndataR": "0.99.0",
+                    "r-base": "R version 4.4.2 (2024-10-31)"
+                },
                 "CELLRANGER_COUNT": {
                     "cellranger": "cellranger 10.0.0 "
                 },
@@ -12,6 +18,28 @@
                 "CELLRANGER_MKREF": {
                     "cellranger": "10.0.0"
                 },
+                "CONCAT_H5AD": {
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
+                },
+                "CONVERT_MUDATA": {
+                    "convert.py": "0.0.1"
+                },
+                "DOUBLETS": {
+                    "Biobase": "2.66.0",
+                    "BiocGenerics": "0.52.0",
+                    "GenomeInfoDb": "1.42.1",
+                    "GenomicRanges": "1.58.0",
+                    "IRanges": "2.40.1",
+                    "MatrixGenerics": "1.18.1",
+                    "R": "4.4.2",
+                    "S4Vectors": "0.44.0",
+                    "SingleCellExperiment": "1.28.1",
+                    "SummarizedExperiment": "1.36.0",
+                    "matrixStats": "1.5.0",
+                    "optparse": "1.7.5",
+                    "scDblFinder": "1.20.0"
+                },
                 "FASTQC": {
                     "fastqc": "0.12.1"
                 },
@@ -20,6 +48,9 @@
                     "pandas": "2.2.2",
                     "python": "3.12.5",
                     "scanpy": "1.10.2"
+                },
+                "QUALITY_FILTERING": {
+                    "qualitymetricsfilters.py": "0.0.1"
                 }
             },
             [
@@ -218,8 +249,6 @@
                 "cellranger/mtx_conversions/combined_filtered_matrix.sce.rds",
                 "cellranger/mtx_conversions/combined_filtered_matrix.seurat.rds",
                 "cellranger/mtx_conversions/combined_raw_matrix.h5ad",
-                "cellranger/mtx_conversions/combined_raw_matrix.sce.rds",
-                "cellranger/mtx_conversions/combined_raw_matrix.seurat.rds",
                 "fastqc",
                 "fastqc/Sample_X_1_fastqc.html",
                 "fastqc/Sample_X_1_fastqc.zip",
@@ -233,6 +262,8 @@
                 "fastqc/Sample_Y_3_fastqc.zip",
                 "fastqc/Sample_Y_4_fastqc.html",
                 "fastqc/Sample_Y_4_fastqc.zip",
+                "mudata",
+                "mudata/matrix.mudata.h5mu",
                 "multiqc",
                 "multiqc/multiqc_data",
                 "multiqc/multiqc_data/cellranger-count-stats-table.txt",
@@ -311,7 +342,16 @@
                 "multiqc/multiqc_plots/svg/mqc_cellranger_count_saturation.svg",
                 "multiqc/multiqc_report.html",
                 "pipeline_info",
-                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml"
+                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml",
+                "qualitycontrol",
+                "qualitycontrol/Cells_after_filtering.pdf",
+                "qualitycontrol/Cells_before_filtering.pdf",
+                "qualitycontrol/QC_Density_MT-Ribo_all_samples.pdf",
+                "qualitycontrol/QC_Density_all_samples.pdf",
+                "qualitycontrol/doublets_score.csv",
+                "qualitycontrol/matrix.filtered.h5mu",
+                "qualitycontrol/summary_qualitycontrol_by_pool.csv",
+                "workflow_metadata.json"
             ],
             [
                 "barcodes.tsv.gz:md5,fe6e51564b4405b37ca8604a844b1f2e",
@@ -356,6 +396,7 @@
                 "Sample_Y_raw_matrix.h5ad:md5,d5c3a30bcd4d8011eb5aa39ad0f1c286",
                 "Sample_Y_raw_matrix.sce.rds:md5,061ab8ba3ed28e6312c0367a2a9dfeb3",
                 "Sample_Y_raw_matrix.seurat.rds:md5,3f4a3e6529b10c646fd08173d5baa339",
+                "matrix.mudata.h5mu:md5,14b4722b9ee4efac343247a953cf2e44",
                 "cellranger-count-stats-table.txt:md5,b596a1ed25c8dba1ff3026db56dc5f5d",
                 "cellranger-count-warnings-table.txt:md5,f257d0a84efc395072a517db643b7935",
                 "fastqc-status-check-heatmap.txt:md5,d122badcaa647409c35a809e8a127f99",
@@ -373,7 +414,15 @@
                 "multiqc_cellranger_count.txt:md5,997745b8a1015fc74ffbe8ec35056f8d",
                 "multiqc_citations.txt:md5,db9f58c039af2923e06a61e46e82c015",
                 "multiqc_fastqc.txt:md5,12027880857508ce5cedc3904a351730",
-                "multiqc_general_stats.txt:md5,92a7a66e313e6ce2d13da53b501b5c0c"
+                "multiqc_general_stats.txt:md5,92a7a66e313e6ce2d13da53b501b5c0c",
+                "Cells_after_filtering.pdf:md5,2f14357d024836f3adc1db71fb42de86",
+                "Cells_before_filtering.pdf:md5,c8588b49abf02b532d44cb1e19dc98cc",
+                "QC_Density_MT-Ribo_all_samples.pdf:md5,d564894f0aa2dbd713ab3860f65af106",
+                "QC_Density_all_samples.pdf:md5,2c7a3cd6774ad75c110b6ef81cd55ac6",
+                "doublets_score.csv:md5,b5d6943cc97d9788277e0dedf63b7f12",
+                "matrix.filtered.h5mu:md5,653a63568d4aa3eed90682c64533180b",
+                "summary_qualitycontrol_by_pool.csv:md5,b7c69f93e634495e8c5db09544f9f5fb",
+                "workflow_metadata.json:md5,c02a342c3d92542f9a43847c12259333"
             ]
         ],
         "meta": {
