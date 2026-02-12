@@ -33,6 +33,8 @@ workflow PIPELINE_INITIALISATION {
     nextflow_cli_args //   array: List of positional nextflow CLI args
     outdir            //  string: The output directory where the results will be saved
     input             //  string: Path to input samplesheet
+    counts            //  string: Path to input counts matrix file
+    h5ad_matrix       //  string: Path to input h5ad matrix file
     help              // boolean: Display help message and exit
     help_full         // boolean: Show the full help message
     show_hidden       // boolean: Show hidden parameters in the help message
@@ -97,73 +99,89 @@ workflow PIPELINE_INITIALISATION {
     //
     validateInputParameters()
 
-    //
-    // Create channel from input file provided through params.input
-    //
-    if (params.aligner == 'cellrangermulti') { // the cellrangermulti sub-workflow logic needs that channels have reads separated by feature_type. Cannot merge all.
-        Channel
-            .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
-            .map {
-                meta, fastq_1, fastq_2 ->
-                    if (!fastq_2) {
-                        return [ meta.id, meta.feature_type, meta + [ single_end:true ], [ fastq_1 ] ]
-                    } else {
-                        return [ meta.id, meta.feature_type, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+    if (counts) {
+        ch_counts = counts ? Channel.fromPath( counts, checkIfExists: true ) : Channel.empty()
+        ch_samplesheet = Channel.empty()
+        ch_h5ad_matrix = Channel.empty()
+    }
+    else if (h5ad_matrix) {
+        ch_h5ad_matrix = h5ad_matrix ? Channel.fromPath( h5ad_matrix, checkIfExists: true ) : Channel.empty()
+        ch_counts = Channel.empty()
+        ch_samplesheet = Channel.empty()
+    }
+    else {
+        //
+        // Create channel from input file provided through params.input
+        //
+        if (params.aligner == 'cellrangermulti') { // the cellrangermulti sub-workflow logic needs that channels have reads separated by feature_type. Cannot merge all.
+            Channel
+                .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+                .map {
+                    meta, fastq_1, fastq_2 ->
+                        if (!fastq_2) {
+                            return [ meta.id, meta.feature_type, meta + [ single_end:true ], [ fastq_1 ] ]
+                        } else {
+                            return [ meta.id, meta.feature_type, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+                        }
+                }
+                .groupTuple( by: [0,1] )
+                .map{ id, type, meta, reads -> [ id, meta, reads ] }
+                .map {
+                    validateInputSamplesheet(it)
+                }
+                .map {
+                    meta, fastqs ->
+                        return [ meta, fastqs.flatten() ]
+                }
+                .set { ch_samplesheet }
+        } else if (params.aligner == 'cellrangerarc') { // the cellrangerarc sub-workflow logic needs that channels have a meta, type, subsample, fastqs structure.
+            Channel
+                .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+                .map { meta, fastq_1, fastq_2 ->
+                    if (!fastq_2 || (meta.sample_type == "atac" && !meta.fastq_barcode)) {
+                        error("Please check input samplesheet -> cellrangerarc requires both paired-end reads and barcode fastq files: ${meta.id}")
                     }
-            }
-            .groupTuple( by: [0,1] )
-            .map{ id, type, meta, reads -> [ id, meta, reads ] }
-            .map {
-                validateInputSamplesheet(it)
-            }
-            .map {
-                meta, fastqs ->
-                    return [ meta, fastqs.flatten() ]
-            }
-            .set { ch_samplesheet }
-    } else if (params.aligner == 'cellrangerarc') { // the cellrangerarc sub-workflow logic needs that channels have a meta, type, subsample, fastqs structure.
-        Channel
-            .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
-            .map { meta, fastq_1, fastq_2 ->
-                if (!fastq_2 || (meta.sample_type == "atac" && !meta.fastq_barcode)) {
-                    error("Please check input samplesheet -> cellrangerarc requires both paired-end reads and barcode fastq files: ${meta.id}")
-                }
-                if (meta.sample_type == "atac") {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2, file(meta.fastq_barcode, checkIfExists: true) ] ]
-                } else {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
-                }
-            }
-            .groupTuple()
-            .map {
-                cellrangerarcStructure(it)
-            }
-            .set { ch_samplesheet }
-    } else {
-        Channel
-            .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
-            .map {
-                meta, fastq_1, fastq_2 ->
-                    if (!fastq_2) {
-                        return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
+                    if (meta.sample_type == "atac") {
+                        return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2, file(meta.fastq_barcode, checkIfExists: true) ] ]
                     } else {
                         return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
                     }
-            }
-            .groupTuple()
-            .map {
-                validateInputSamplesheet(it)
-            }
-            .map {
-                meta, fastqs ->
-                    return [ meta, fastqs.flatten() ]
-            }
-            .set { ch_samplesheet }
+                }
+                .groupTuple()
+                .map {
+                    cellrangerarcStructure(it)
+                }
+                .set { ch_samplesheet }
+        } else {
+            Channel
+                .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+                .map {
+                    meta, fastq_1, fastq_2 ->
+                        if (!fastq_2) {
+                            return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
+                        } else {
+                            return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+                        }
+                }
+                .groupTuple()
+                .map {
+                    validateInputSamplesheet(it)
+                }
+                .map {
+                    meta, fastqs ->
+                        return [ meta, fastqs.flatten() ]
+                }
+                .set { ch_samplesheet }
+        }
+        ch_counts = Channel.empty()
+        ch_h5ad_matrix = Channel.empty()
     }
 
     emit:
     samplesheet = ch_samplesheet
     versions    = ch_versions
+    counts      = ch_counts
+    h5ad_matrix = ch_h5ad_matrix
 }
 
 /*

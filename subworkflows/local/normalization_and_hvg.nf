@@ -1,0 +1,43 @@
+/* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
+include { NORMALIZATION } from '../../modules/local/normalization'
+include { HIGHLY_VARIABLE_GENES } from '../../modules/local/highly_variable_genes'
+
+workflow NORMALIZATION_AND_HVG {
+
+    take:
+    h5mus
+    ch_h5ad_concat_raw
+    ch_cellcycle_file
+    n_pcs
+    n_neighbors
+    min_dist
+
+    main:
+        ch_versions = Channel.empty()
+
+        //
+        // MODULE: Normalize count matrices contained in the concatenated h5ad file
+        //
+        NORMALIZATION (
+            h5mus,
+            ch_h5ad_concat_raw,
+            ch_cellcycle_file
+        )
+        ch_versions = ch_versions.mix(NORMALIZATION.out.versions.first())
+
+        //
+        // MODULE: Highly variable genes detection, added with gene annotation
+        //
+        HIGHLY_VARIABLE_GENES (
+            NORMALIZATION.out.h5mu,
+            params.n_pcs,
+            params.n_neighbors,
+            params.min_dist
+        )
+        ch_versions = ch_versions.mix(HIGHLY_VARIABLE_GENES.out.versions.first())
+
+    emit:
+    ch_versions
+    h5mu = HIGHLY_VARIABLE_GENES.out.h5mu
+
+}

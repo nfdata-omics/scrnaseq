@@ -17,7 +17,7 @@ nextflow_process {
                     [
                         [ id:'test', single_end:false ], // meta map
                         file("https://raw.githubusercontent.com/nf-core/test-datasets/scdownstream/samples/SAMN14430799_raw_matrix_5k.h5ad", checkIfExists: true)
-                    
+
                     ]
                 ]).combine(Channel.from('TGGTTAGCAGAGCCAA', 'GGGAGATAGACTGTAA', 'GAGGTGACAGGTCTCG').collectFile(newLine: true))
                 """
@@ -44,7 +44,7 @@ nextflow_process {
                     [
                         [ id:'test', single_end:false ], // meta map
                         file("https://raw.githubusercontent.com/nf-core/test-datasets/scdownstream/samples/SAMN14430799_raw_matrix_5k.h5ad", checkIfExists: true)
-                    
+
                     ]
                 ]).combine(Channel.from('TGGTTAGCAGAGCCAA', 'GGGAGATAGACTGTAA', 'GAGGTGACAGGTCTCG').collectFile(newLine: true))
                 """

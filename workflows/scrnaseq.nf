@@ -1,7 +1,7 @@
 /*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { MULTIQC                                           } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                                  } from 'plugin/nf-schema'
@@ -22,12 +22,25 @@ include { GTF_GENE_FILTER                                   } from '../modules/l
 include { GUNZIP as GUNZIP_FASTA                            } from '../modules/nf-core/gunzip/main'
 include { GUNZIP as GUNZIP_GTF                              } from '../modules/nf-core/gunzip/main'
 include { H5AD_CONVERSION                                   } from '../subworkflows/local/h5ad_conversion'
-
+include { ATAC_PREPROCESSING                                } from '../subworkflows/local/preprocessing_atac'
+include { CONCATENATE_VDJ                                   } from '../modules/local/concatenate_vdj'
+include { CONVERT_MUDATA                                    } from '../modules/local/convert_mudata'
+include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
+include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
+include { CELL_ANNOTATION                                   } from '../modules/local/cellannotation'
+include { INTEGRATION_MODALITIES                            } from '../subworkflows/local/integration_modalities'
+include { CLUSTERING                                        } from '../modules/local/clustering'
+include { CLUSTREE                                          } from '../modules/local/clustree'
+include { ENRICH_MARKERS                                    } from '../modules/local/enrich_markers'
+include { CUSTOM_GENES                                      } from '../modules/local/custom_genes'
+include { DIFFERENTIAL_ANALYSIS                             } from '../modules/local/differential_analysis'
 
 workflow SCRNASEQ {
 
     take:
     ch_fastq
+    counts
+    h5ad_matrix
 
     main:
     ch_multiqc_files = channel.empty()
@@ -56,7 +69,9 @@ workflow SCRNASEQ {
 
     // samplesheet - this is passed to the MTX conversion functions to add metadata to the
     // AnnData objects.
-    ch_input = file(params.input)
+    ch_input = params.input                ? file(params.input, checkIfExists: true)    : []
+    ch_counts = params.counts              ? file(params.counts, checkIfExists: true)    : []
+    ch_h5ad_matrix = params.h5ad_matrix    ? file(params.h5ad_matrix, checkIfExists: true): []
 
     //kallisto params
     ch_kallisto_index = params.kallisto_index ? file(params.kallisto_index, checkIfExists: true) : []
@@ -206,7 +221,61 @@ workflow SCRNASEQ {
         )
         ch_versions = ch_versions.mix(CELLRANGERARC_ALIGN.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix( CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_raw, CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_filtered )
+
+
+        // Collect the fragments files and their index
+        ch_fragments =
+            CELLRANGERARC_ALIGN.out.cellrangerarc_out.map { meta, outs ->
+            def desired_files = outs.findAll { it.name == "atac_fragments.tsv.gz" }
+
+
+            if (desired_files.size() > 0) {
+                [meta, desired_files]
+            }
+            else {
+            }
+        }
+        ch_fragments_collect =  ch_fragments.collect()
+
+
+        ch_transformed_fragments_channel = ch_fragments_collect.map { list ->
+        def meta = []
+        def files = []
+
+        list.collate(2).each { pair ->
+            meta << pair[0]
+            files << pair[1]
+        }
+        return [meta, files.flatten()]
+        }
+
+
+        ch_fragments_index =
+            CELLRANGERARC_ALIGN.out.cellrangerarc_out.map { meta, outs ->
+            def desired_files = outs.findAll { it.name == "atac_fragments.tsv.gz.tbi" }
+
+
+            if (desired_files.size() > 0) {
+                [meta, desired_files]
+            }
+            else {
+            }
+        }
+        ch_vdj_fragments_index_collect =  ch_fragments_index.collect()
+
+
+        ch_transformed_fragments_index_channel = ch_vdj_fragments_index_collect.map { list ->
+        def meta = []
+        def files = []
+
+        list.collate(2).each { pair ->
+            meta << pair[0]
+            files << pair[1]
+        }
+        return [meta, files.flatten()]
+        }
     }
+
 
     // Run cellrangermulti pipeline
     if (params.aligner == 'cellrangermulti') {
@@ -265,6 +334,7 @@ workflow SCRNASEQ {
             ch_genome_fasta,
             ch_filter_gtf,
             ch_cellrangermulti_collected_channel,
+            //ch_transformed_fragments_index_channel,
             ch_cellranger_index,
             cellranger_vdj_index,
             ch_multi_samplesheet
@@ -277,17 +347,36 @@ workflow SCRNASEQ {
 
     }
 
+    ch_count_matrix = Channel.empty()
+    if ( params.counts ) {
+        ch_count_matrix = Channel
+        .fromPath(params.counts, checkIfExists: true)
+        .splitCsv(header: true)
+        .map { row ->
+            def meta = [
+                id         : row.sample,
+                input_type : row.input_type
+            ]
+            def matrix_file = file(row.h5)
+            tuple(meta, matrix_file)
+        }
+    } else {
+        ch_count_matrix = ch_mtx_matrices
+    }
+
+
     //
     // MODULE: Convert mtx matrices to h5ad
     //
     MTX_TO_H5AD (
-        ch_mtx_matrices,
+        ch_count_matrix,
         ch_txp2gene,
         star_index ? ch_star_index.map{it[1]} : [],
         params.aligner
     )
     ch_versions = ch_versions.mix(MTX_TO_H5AD.out.versions.first())
     ch_h5ads = MTX_TO_H5AD.out.h5ad
+
 
     //
     // SUBWORKFLOW: Run cellbender remove background subworkflow
@@ -309,9 +398,259 @@ workflow SCRNASEQ {
     //
     H5AD_CONVERSION (
         ch_h5ads,
-        ch_input
+        ch_input ?: ch_counts
     )
+    ch_versions = ch_versions.mix(H5AD_CONVERSION.out.ch_versions)
 
+    //
+    // MODULE: Concat vdj samples and save as h5ad format
+    //
+
+    if (params.aligner == "cellrangermulti") {
+        CONCATENATE_VDJ (
+            CELLRANGER_MULTI_ALIGN.out.vdj
+        )
+        ch_versions = ch_versions.mix(CONCATENATE_VDJ.out.versions)
+
+
+    //
+    // SUBWORKFLOW: Concat GEX, VDJ and CITE data and save as MuData object
+    //
+        ch_vdj = CONCATENATE_VDJ.out.h5ad
+            .map { meta, file -> [meta, file] }
+            .ifEmpty { [[id: 'dummy'], []] }
+    } else {
+        ch_vdj = [[id: 'dummy'], []]
+    }
+
+    //TODO: modify this part beacuse only one input is present
+    if (params.demultiplexing_doublets) {
+    ch_metadata_demuxafy = Channel.fromPath(params.demultiplexing_doublets, checkIfExists: true)
+        .splitCsv(header: true, sep: '\t')
+        .map { row ->
+            def meta = [ id: row.sample ]
+            def metadata_file = file(row.path)
+            tuple(meta, metadata_file)
+        }
+    } else {
+        ch_metadata_demuxafy = Channel.value([ [id: 'dummy'], [] ])
+    }
+
+    ch_metadata = params.metadata ? Channel.value(params.metadata) : Channel.value(file('dummy_metadata.csv'))
+
+
+    if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc" || params.aligner == "cellranger" ) {
+        def ch_h5ad_selected = params.counts ?
+            H5AD_CONVERSION.out.h5ad_cellbender :
+            (
+                params.h5ad_matrix ?
+                    Channel
+                        .fromPath(params.h5ad_matrix,checkIfExists: true)
+                        .splitCsv(header: true)
+                        .map { row ->
+                            def meta = [
+                                id         : row.sample,
+                                input_type : row.input_type
+                        ]
+                        def h5ad_file = file(row.h5ad)
+                        tuple(meta, h5ad_file)
+                    }
+                :
+                    H5AD_CONVERSION.out.h5ad_filtered
+            )
+        CONVERT_MUDATA(
+            ch_h5ad_selected,
+            ch_vdj,
+            ch_metadata_demuxafy,
+            ch_metadata
+        )
+        ch_versions = ch_versions.mix(CONVERT_MUDATA.out.versions)
+        ch_mudata = CONVERT_MUDATA.out.h5mu
+    } else {
+        ch_mudata = channel.empty()
+    }
+
+    //
+    // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
+    //
+    // Da togliere questa cosa ch_rds_selected, se counts, canale vuoto tanto non faro' la parte dei doppietti
+    def ch_rds_selected = params.counts ? H5AD_CONVERSION.out.rds_cellbender : H5AD_CONVERSION.out.rds_concat
+    if ( !params.skip_qcfilters ) {
+        DOUBLETS_QUALITYFILTERING (
+            ch_rds_selected,
+            CONVERT_MUDATA.out.h5mu,
+            params.mt_threshold,
+            params.min_umi_gex,
+            params.max_umi_gex,
+            params.min_genes_gex,
+            params.max_genes_gex,
+            params.min_cells_gex,
+            params.min_features_adt,
+            params.min_counts_adt
+        )
+        ch_versions = ch_versions.mix(DOUBLETS_QUALITYFILTERING.out.ch_versions)
+        ch_h5mu_filtered = DOUBLETS_QUALITYFILTERING.out.h5mu
+    } else {
+        ch_h5mu_filtered = CONVERT_MUDATA.out.h5mu
+    }
+
+    //
+    // SUBWORKFLOW: Run normalization on the concatenated h5ad files
+    //
+    ch_cellcycle_file = params.cell_cycle_file ?
+        file(params.cell_cycle_file, checkIfExists: true) :
+        channel.empty()
+
+    // Make raw h5ad optional for reclustering workflows
+    ch_h5ad_raw = params.h5ad_matrix ?
+        Channel.fromPath("${projectDir}/assets/EMPTY").map { [[:], it] } :
+        H5AD_CONVERSION.out.h5ad_raw
+
+    NORMALIZATION_AND_HVG (
+        ch_h5mu_filtered,
+        ch_h5ad_raw,
+        ch_cellcycle_file,
+        params.n_pcs,
+        params.n_neighbors,
+        params.min_dist
+    )
+    ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
+
+    //
+    // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
+    //
+    ch_input_model = params.input_model ? file(params.input_model, checkIfExists: true) : channel.empty()
+
+    if ( params.input_model ) {
+        CELL_ANNOTATION (
+            NORMALIZATION_AND_HVG.out.h5mu,
+            ch_input_model
+        )
+        ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
+        ch_mu5ad = CELL_ANNOTATION.out.h5mu
+        cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata
+    } else {
+        ch_mu5ad = NORMALIZATION_AND_HVG.out.h5mu
+        cell_annotation_meta_ch = channel.empty()
+    }
+
+    //
+    // SUBWORKFLOW: Run ATAC preprocessing
+    //
+    atac_out_h5ad = Channel.empty()
+
+    if (params.aligner == "cellrangerarc") {
+        blacklist_path = params.blacklist_path ? \
+                         channel.value(file(params.blacklist_path, checkIfExists: true)) : \
+                         channel.empty()
+
+        ATAC_PREPROCESSING (
+            ch_transformed_fragments_channel,
+            ch_transformed_fragments_index_channel,
+            params.tss_threshold,
+            params.min_fragments_counts,
+            params.max_fragments_counts,
+            params.n_features_atac,
+            params.frac_dup,
+            params.peaks_frac,
+            params.n_comps_atac,
+            params.n_neighbors_atac,
+            params.n_clusters_atac,
+            blacklist_path,
+            cell_annotation_meta_ch
+        )
+        atac_out_h5ad = ATAC_PREPROCESSING.out.h5ad
+        ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
+    }
+
+    //
+    // SUBWORKFLOW: Run integration for GEX and ADT indipendently and jointly
+    //
+
+    INTEGRATION_MODALITIES (
+        ch_mu5ad,
+        atac_out_h5ad,
+        params.n_neighbors_harmony,
+        params.min_dist_harmony,
+        params.integration_var
+    )
+    ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
+
+    //
+    // MODULES: Run clustering for GEX
+    //
+    CLUSTERING (
+        INTEGRATION_MODALITIES.out.h5mu_out,
+        params.resolution_min,
+        params.resolution_max,
+        params.top_n_markers
+    )
+    ch_versions = ch_versions.mix(CLUSTERING.out.versions)
+
+    //
+    // MODULES: Plot clustree graph
+    //
+    CLUSTREE (
+        CLUSTERING.out.metadata_final
+    )
+    ch_versions = ch_versions.mix(CLUSTREE.out.versions)
+
+    // Handling multiple resolutions
+    if ( params.resolution ) {
+        resolution_ch = Channel.fromList(params.resolution.toString().split(',').flatten())
+
+        //
+        // MODULES: Enrichment on marker genes for a selected resolution
+        //
+        if ( params.enrich_collection ){
+            ch_enrich_collection = Channel.fromList(params.enrich_collection.split(',').flatten())
+            resolution_ch
+                .combine( ch_enrich_collection )
+                .map{ res, coll -> [["res": res, "coll": coll], res, coll] }
+                .set { ch_res_enrich }
+
+            ENRICH_MARKERS (
+                CLUSTERING.out.ranked_genes.collect(),
+                ch_res_enrich
+            )
+            ch_versions = ch_versions.mix(ENRICH_MARKERS.out.versions)
+        }
+    }
+
+    //
+    // MODULES: Plot custom genelist
+    //
+    if ( params.custom_geneset ) {
+        ch_custom_geneset = Channel.fromList(params.custom_geneset.split(',').flatten())
+
+        if ( params.resolution ) {
+            resolution_ch
+                .combine( ch_custom_geneset )
+                .map{ res, genes -> [["res": res, "genes": genes], res, genes] }
+                .set { ch_res_geneset }
+        } else {
+            // if no resolution is provided, use 100 as fake resolution
+            fake_res = 100
+            ch_res_geneset = ch_custom_geneset.map { genes ->
+                [["res": fake_res, "genes": genes], fake_res, genes]
+            }
+        }
+        CUSTOM_GENES (
+            CLUSTERING.out.h5mu.collect(),
+            ch_res_geneset
+        )
+        ch_versions = ch_versions.mix(CUSTOM_GENES.out.versions)
+    }
+
+    '''
+    //
+    // MODULE: Run differential analysis
+    //
+    DIFFERENTIAL_ANALYSIS (
+        CLUSTERING.out.h5mu
+    )
+    ch_versions = ch_versions.mix(DIFFERENTIAL_ANALYSIS.out.versions)
+    '''
     //
     // Collate and save software versions
     //

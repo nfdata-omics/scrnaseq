@@ -17,7 +17,8 @@ def _mtx_to_adata(
     input: str,
     sample: str,
 ):
-    adata = sc.read_10x_h5(input)
+
+    adata = sc.read_10x_h5(input,gex_only=False)
     adata.var["gene_symbols"] = adata.var_names
     adata.var.set_index("gene_ids", inplace=True)
     adata.obs["sample"] = sample

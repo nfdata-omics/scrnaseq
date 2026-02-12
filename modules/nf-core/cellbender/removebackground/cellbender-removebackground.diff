@@ -1,0 +1,20 @@
+Changes in component 'nf-core/cellbender/removebackground'
+'modules/nf-core/cellbender/removebackground/environment.yml' is unchanged
+'modules/nf-core/cellbender/removebackground/meta.yml' is unchanged
+Changes in 'cellbender/removebackground/main.nf':
+--- modules/nf-core/cellbender/removebackground/main.nf
++++ modules/nf-core/cellbender/removebackground/main.nf
+@@ -1,6 +1,6 @@
+ process CELLBENDER_REMOVEBACKGROUND {
+     tag "$meta.id"
+-    label 'process_medium'
++    label 'process_high'
+     label 'process_gpu'
+ 
+     conda "${moduleDir}/environment.yml"
+
+'modules/nf-core/cellbender/removebackground/tests/tags.yml' is unchanged
+'modules/nf-core/cellbender/removebackground/tests/main.nf.test.snap' is unchanged
+'modules/nf-core/cellbender/removebackground/tests/main.nf.test' is unchanged
+'modules/nf-core/cellbender/removebackground/tests/epochs.config' is unchanged
+************************************************************

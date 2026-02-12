@@ -12,3 +12,4 @@ reports/
 testme.sh
 .nf-test*
 .vscode
+modules/local/cellannotation/Adult_COVID19_PBMC.pkl

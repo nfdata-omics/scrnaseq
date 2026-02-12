@@ -3,6 +3,12 @@
         "content": [
             14,
             {
+                "ANNDATAR_CONVERT": {
+                    "SeuratObject": "5.0.2",
+                    "SingleCellExperiment": "1.28.1",
+                    "anndataR": "0.99.0",
+                    "r-base": "R version 4.4.2 (2024-10-31)"
+                },
                 "CELLRANGERARC_COUNT": {
                     "cellrangerarc": "2.0.2"
                 },
@@ -11,6 +17,13 @@
                 },
                 "CELLRANGERARC_MKREF": {
                     "cellrangerarc": "2.0.2"
+                },
+                "CONCAT_H5AD": {
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
+                },
+                "CONVERT_MUDATA": {
+                    "convert.py": "0.0.1"
                 },
                 "FASTQC": {
                     "fastqc": "0.12.1"
@@ -145,8 +158,6 @@
                 "cellrangerarc/mtx_conversions/combined_filtered_matrix.sce.rds",
                 "cellrangerarc/mtx_conversions/combined_filtered_matrix.seurat.rds",
                 "cellrangerarc/mtx_conversions/combined_raw_matrix.h5ad",
-                "cellrangerarc/mtx_conversions/combined_raw_matrix.sce.rds",
-                "cellrangerarc/mtx_conversions/combined_raw_matrix.seurat.rds",
                 "fastqc",
                 "fastqc/10k_PBMC_1_fastqc.html",
                 "fastqc/10k_PBMC_1_fastqc.zip",
@@ -158,6 +169,8 @@
                 "fastqc/10k_PBMC_4_fastqc.zip",
                 "fastqc/10k_PBMC_5_fastqc.html",
                 "fastqc/10k_PBMC_5_fastqc.zip",
+                "mudata",
+                "mudata/matrix.mudata.h5mu",
                 "multiqc",
                 "multiqc/multiqc_data",
                 "multiqc/multiqc_data/fastqc-status-check-heatmap.txt",
@@ -258,12 +271,13 @@
                 "transcriptInfo.tab:md5,5a6ee447f3efac16042d8c99f653747b",
                 "config:md5,055bd80c554d66120313c0500ff2f00d",
                 "versions.yml:md5,e9926d37b6e80aa8cb9344ace558b449",
-                "10k_PBMC_filtered_matrix.h5ad:md5,60b9311d46f756cd2b9fb737628713b3",
-                "10k_PBMC_filtered_matrix.sce.rds:md5,359160d80821c5dbf1ebc7a88dbe8400",
-                "10k_PBMC_filtered_matrix.seurat.rds:md5,ca44f68f2ea255bfd556c71a6b91423e",
-                "10k_PBMC_raw_matrix.h5ad:md5,4ac50d4109bcccd1d82ed83fc00d7580",
-                "10k_PBMC_raw_matrix.sce.rds:md5,196adfcb230f9ba9bb7d0aba36e7e261",
-                "10k_PBMC_raw_matrix.seurat.rds:md5,8ff4d68d88a6a7e3528147e06aeaa4dd",
+                "10k_PBMC_filtered_matrix.h5ad:md5,363249fcd16f215cac32e5bf14e3114d",
+                "10k_PBMC_filtered_matrix.sce.rds:md5,4e5aa6979ccc31d70cd0ab3bbba7b77f",
+                "10k_PBMC_filtered_matrix.seurat.rds:md5,4161560d20e92b01f91efd6a3b9ec9af",
+                "10k_PBMC_raw_matrix.h5ad:md5,25d6d103ad31112ab5d2c170aa3ad975",
+                "10k_PBMC_raw_matrix.sce.rds:md5,47dcd79cd08669f4e818f0c785cbfb7e",
+                "10k_PBMC_raw_matrix.seurat.rds:md5,361aed11e3a6cdc8937bfcc6b6f302b7",
+                "matrix.mudata.h5mu:md5,0467ce01cf5934c3900d1082585cee08",
                 "fastqc-status-check-heatmap.txt:md5,55b658eef7b63c6f8e3d559be41f5df8",
                 "fastqc_adapter_content_plot.txt:md5,31ca16758049ac46cc84875ddc4ff6d3",
                 "fastqc_overrepresented_sequences_plot.txt:md5,314754adfcfa2977ee4f61c2ec5444f2",
@@ -280,8 +294,8 @@
             ]
         ],
         "meta": {
-            "nf-test": "0.9.2",
-            "nextflow": "25.04.6"
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.3"
         },
         "timestamp": "2026-01-09T23:04:03.610975848"
     }
