@@ -92,6 +92,10 @@
                     "type": "boolean",
                     "description": "Skip cellbender empty drops filter subworkflow"
                 },
+                "skip_qcatch": {
+                    "type": "boolean",
+                    "description": "Skip qcatch QC for simpleaf aligner"
+                },
                 "skip_emptydrops": {
                     "type": "boolean",
                     "deprecated": true,
