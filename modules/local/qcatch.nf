@@ -2,7 +2,7 @@ process QCATCH {
     tag "$meta.id"
     label 'process_low'
 
-    conda "${moduleDir}/environment.yml"
+    conda "bioconda::qcatch=0.2.8"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/qcatch:0.2.8--pyhdfd78af_0':
         'biocontainers/qcatch:0.2.8--pyhdfd78af_0' }"

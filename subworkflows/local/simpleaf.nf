@@ -1,5 +1,5 @@
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
-include { QCATCH                } from '../../modules/nf-core/qcatch'
+include { QCATCH                } from '../../modules/local/qcatch'
 include { SIMPLEAF_INDEX        } from '../../modules/nf-core/simpleaf/index'
 include { SIMPLEAF_QUANT        } from '../../modules/nf-core/simpleaf/quant'
 
