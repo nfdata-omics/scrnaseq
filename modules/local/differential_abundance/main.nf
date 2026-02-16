@@ -20,6 +20,10 @@ process DIFFERENTIAL_ABUNDANCE {
 
     script:
     """
+    export NUMBA_CACHE_DIR=/tmp
+    export MPLCONFIGDIR=/tmp
+    export XDG_CONFIG_HOME=/tmp
+    
     python3 ${moduleDir}/resources/usr/bin/differential_abundance.py \
         --mdata $h5mu \
         --target $target \
