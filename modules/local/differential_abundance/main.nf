@@ -4,7 +4,7 @@ process DIFFERENTIAL_ABUNDANCE {
 
     conda "${moduleDir}/environment.yml"
 
-    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.4'
+    container 'docker.io/nfdata/sc_rnaseq:v1.0.1'
 
     input:
     tuple val(meta), path(h5mu)
@@ -20,7 +20,7 @@ process DIFFERENTIAL_ABUNDANCE {
 
     script:
     """
-    python3 \${moduleDir}/resources/usr/bin/differential_abundance.py \
+    python3 ${moduleDir}/resources/usr/bin/differential_abundance.py \
         --mdata $h5mu \
         --target $target \
         --reference $reference \

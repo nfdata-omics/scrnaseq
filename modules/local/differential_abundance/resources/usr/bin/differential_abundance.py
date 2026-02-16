@@ -6,11 +6,11 @@
 # Following vignette: https://pertpy.readthedocs.io/en/latest/tutorials/notebooks/milo.html
 # Import libraries
 import warnings
-import argparse                     
-import os                         
-import matplotlib  
-import matplotlib.pyplot as plt     
-import pandas as pd                 
+import argparse
+import os
+import matplotlib
+import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 import pertpy as pt
 import mudata as md
@@ -105,7 +105,7 @@ print("Mean neighborhood size:", np.mean(nhood_size))
 print("Median neighborhood size:", np.median(nhood_size))
 
 # Count cells in neighbourhoods
-# Milo leverages the variation in cell numbers between replicates for the same experimental condition to test for differential abundance. 
+# Milo leverages the variation in cell numbers between replicates for the same experimental condition to test for differential abundance.
 # We have to count how many cells from each sample are in each neighbourhood.
 mmdata = milo.count_nhoods(mmdata, sample_col="sample")
 
@@ -141,8 +141,8 @@ with PdfPages(f"diff_abundance/milo_diagnostics.{target_level}_vs_{ref_level}.pd
     plt.close(fig)
 
 # Visualize results on embedding
-# Building an abstracted graph of neighbourhoods that can be superimposed on the single-cell embedding. 
-# Each node represents a neighbourhood, and the layout of nodes is determined by the position of the index cell in the UMAP. 
+# Building an abstracted graph of neighbourhoods that can be superimposed on the single-cell embedding.
+# Each node represents a neighbourhood, and the layout of nodes is determined by the position of the index cell in the UMAP.
 # The neighbourhoods displaying singificant DA are colored by their log-Fold Change.
 milo.build_nhood_graph(mmdata, basis='X_umap')
 plt.figure(figsize=(6, 6))
@@ -152,7 +152,7 @@ plt.close()
 
 
 # Visualize result by celltype
-# Visualize whether DA is particularly evident in certain cell types. 
+# Visualize whether DA is particularly evident in certain cell types.
 # To do this, each neighbourhood is assigned to a cell type by finding the most abundant cell type within cells in that neighbourhood
 milo.annotate_nhoods(mmdata, anno_col="leiden_0.5")
 # Mixed celltypes if the fraction of the most abundant celltype is lower than 0.6
