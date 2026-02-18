@@ -97,6 +97,11 @@ workflow SCRNASEQ {
     // cellrangerarc params
     ch_cellrangerarc_config = params.cellrangerarc_config ? file(params.cellrangerarc_config)          : []
 
+    // Differential analysis params
+    ch_target = params.target ? Channel.value(params.target) : []
+    ch_reference = params.reference ? Channel.value(params.reference) : []
+    ch_column_to_test = params.column_to_test ? Channel.value(params.column_to_test) : []
+
     // Run FastQC
     if (!params.skip_fastqc) {
         FASTQC_CHECK ( ch_fastq )
@@ -656,9 +661,9 @@ workflow SCRNASEQ {
     if ( !params.skip_diff_abundance ) {
         DIFFERENTIAL_ABUNDANCE(
             CLUSTERING.out.h5mu,
-            Channel.value("6_days"),
-            Channel.value("none"),
-            Channel.value("infection")
+            ch_target,
+            ch_reference,
+            ch_column_to_test
         )
     }
 
