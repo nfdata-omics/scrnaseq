@@ -4,7 +4,7 @@ process DIFFERENTIAL_ABUNDANCE {
 
     conda "${moduleDir}/environment.yml"
 
-    container 'docker.io/nfdata/sc_rnaseq:v1.0.1'
+    container 'docker.io/nfdata/scverse-pertpy:v1.0.0-scanpy1.12'
 
     input:
     tuple val(meta), path(h5mu)

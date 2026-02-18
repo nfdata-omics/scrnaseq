@@ -50,8 +50,8 @@ mdata = md.read(args.mdata)
 gex = mdata.mod['gex']
 
 # Handle gene names (parse version)
-gex.var['gene_name'] = gex.var['gene_name'].astype('str')
-gex.var_names = gex.var["gene_name"]
+gex.var['gene_symbols'] = gex.var['gene_symbols'].astype('str')
+gex.var_names = gex.var["gene_symbols"]
 gex.var_names_make_unique()
 
 # Set categories to compare

@@ -656,9 +656,9 @@ workflow SCRNASEQ {
     if ( !params.skip_diff_abundance ) {
         DIFFERENTIAL_ABUNDANCE(
             CLUSTERING.out.h5mu,
-            Channel.value("NoSRS"),
-            Channel.value("sham"),
-            Channel.value("group")
+            Channel.value("6_days"),
+            Channel.value("none"),
+            Channel.value("infection")
         )
     }
 
