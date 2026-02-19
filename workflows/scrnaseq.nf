@@ -99,7 +99,7 @@ workflow SCRNASEQ {
 
     // Differential analysis params
     ch_comparisons = params.comparisons ? Channel
-        .fromList(params.comparisons.split(',').flatten())
+        .fromList(params.comparisons.split(',').collect{ it.trim()} )
         : []
 
     // Run FastQC
@@ -659,8 +659,7 @@ workflow SCRNASEQ {
     '''
 
     DIFFERENTIAL_ABUNDANCE(
-        CLUSTERING.out.h5mu,
-        ch_comparisons
+        CLUSTERING.out.h5mu.combine(ch_comparisons)
     )
     if (DIFFERENTIAL_ABUNDANCE.out.versions) {
         ch_versions = ch_versions.mix(DIFFERENTIAL_ABUNDANCE.out.versions)
