@@ -117,10 +117,6 @@
                     "type": "boolean",
                     "deprecated": true,
                     "errorMessage": "Parameter has been deprecated in favour of --skip_cellbender to properly match name of workflow."
-                },
-                "skip_diff_abundance": {
-                    "type": "boolean",
-                    "description": "Skip differential abundance calculation"
                 }
             }
         },
@@ -514,17 +510,9 @@
                     "type": "string",
                     "description": "Path to pre-trained celltypist model for cell type annotation."
                 },
-                "target": {
+                "comparisons": {
                     "type": "string",
-                    "description": "Name of the target condition (e.g. treated)"
-                },
-                "reference": {
-                    "type": "string",
-                    "description": "Name of the reference condition (e.g. control)"
-                },
-                "column_to_test": {
-                    "type": "string",
-                    "description": "Name of the column to use for differential abundance (e.g. condition)"
+                    "description": "Comparisons to be done during differential analysis/abundance (e.g., variable1:condition1:condition2,variable2:condition3:condition4))"
                 }
             }
         },
