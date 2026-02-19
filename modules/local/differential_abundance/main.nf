@@ -8,9 +8,7 @@ process DIFFERENTIAL_ABUNDANCE {
 
     input:
     tuple val(meta), path(h5mu)
-    val target
-    val reference
-    val column
+    val comparisons
 
     output:
     path "diff_abundance/*", emit: diff_abund_results
@@ -26,9 +24,7 @@ process DIFFERENTIAL_ABUNDANCE {
 
     python3 ${moduleDir}/resources/usr/bin/differential_abundance.py \
         --mdata $h5mu \
-        --target $target \
-        --reference $reference \
-        --column_to_test $column
+        --comparisons $comparisons
     """
 
 }

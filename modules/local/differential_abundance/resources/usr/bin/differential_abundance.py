@@ -28,15 +28,20 @@ parser = argparse.ArgumentParser(description="Differential abundance analysis")
 
 parser.add_argument("--mdata", type=str, required=True,
                     help="Path to input MuData object (h5mu file)")
-parser.add_argument("--target", type=str, required=True,
-                    help="Name of the target condition (e.g. treated)")
-parser.add_argument("--reference", type=str, required=True,
-                    help="Name of the reference condition (e.g. control)")
-parser.add_argument("--column_to_test", type=str, required=True,
-                    help="Name of the column to use for differential abundance (e.g. condition)")
+parser.add_argument("--comparisons", type=str, required=True,
+                    help="Comparisons to be performed following column:target:reference (e.g. group:treated:control)")
 
 args = parser.parse_args()
 
+#########################################
+# Get column_name, target_level and
+# ref_level from comparisons
+#########################################
+comparisons = args.comparisons.split(':')
+
+column_name = comparisons[0]
+target_level = comparisons[1]
+ref_level = comparisons[2]
 
 #########################################
 # Load data
@@ -53,13 +58,6 @@ gex = mdata.mod['gex']
 gex.var['gene_symbols'] = gex.var['gene_symbols'].astype('str')
 gex.var_names = gex.var["gene_symbols"]
 gex.var_names_make_unique()
-
-# Set categories to compare
-target_level = args.target
-ref_level = args.reference
-
-# Set real name of column with target and reference
-column_name = "meta_" + args.column_to_test
 
 # Check how many samples per group
 gex.obs[["sample", column_name]].drop_duplicates().value_counts(column_name)

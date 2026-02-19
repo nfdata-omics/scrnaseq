@@ -98,9 +98,10 @@ workflow SCRNASEQ {
     ch_cellrangerarc_config = params.cellrangerarc_config ? file(params.cellrangerarc_config)          : []
 
     // Differential analysis params
-    ch_target = params.target ? Channel.value(params.target) : []
-    ch_reference = params.reference ? Channel.value(params.reference) : []
-    ch_column_to_test = params.column_to_test ? Channel.value(params.column_to_test) : []
+    ch_comparisons = params.comparisons ? Channel
+        .fromList(params.comparisons.split(',').flatten())
+        .set{ comparisons_ch }
+        : []
 
     // Run FastQC
     if (!params.skip_fastqc) {
@@ -658,14 +659,10 @@ workflow SCRNASEQ {
     ch_versions = ch_versions.mix(DIFFERENTIAL_ANALYSIS.out.versions)
     '''
 
-    if ( !params.skip_diff_abundance ) {
-        DIFFERENTIAL_ABUNDANCE(
-            CLUSTERING.out.h5mu,
-            ch_target,
-            ch_reference,
-            ch_column_to_test
-        )
-    }
+    DIFFERENTIAL_ABUNDANCE(
+        CLUSTERING.out.h5mu,
+        ch_comparisons
+    )
 
     //
     // Collate and save software versions
