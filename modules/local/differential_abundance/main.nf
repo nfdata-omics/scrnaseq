@@ -12,6 +12,7 @@ process DIFFERENTIAL_ABUNDANCE {
 
     output:
     path "diff_abundance/*", emit: diff_abund_results
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when

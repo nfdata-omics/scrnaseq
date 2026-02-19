@@ -100,7 +100,6 @@ workflow SCRNASEQ {
     // Differential analysis params
     ch_comparisons = params.comparisons ? Channel
         .fromList(params.comparisons.split(',').flatten())
-        .set{ comparisons_ch }
         : []
 
     // Run FastQC
@@ -663,6 +662,9 @@ workflow SCRNASEQ {
         CLUSTERING.out.h5mu,
         ch_comparisons
     )
+    if (DIFFERENTIAL_ABUNDANCE.out.versions) {
+        ch_versions = ch_versions.mix(DIFFERENTIAL_ABUNDANCE.out.versions)
+    }
 
     //
     // Collate and save software versions
