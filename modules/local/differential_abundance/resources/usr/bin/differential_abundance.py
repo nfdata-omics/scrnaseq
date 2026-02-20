@@ -21,6 +21,43 @@ import importlib
 import importlib.metadata
 import yaml
 
+def versions_yaml(process_name, list_of_libs=None):
+    """
+    Generate YAML formatted string with versions of relevant libraries.
+
+    Parameters
+    ----------
+    process_name : str
+        Process name to use as key in the versions dictionary.
+    list_of_libs : list of str, optional
+        List of specific library names to include in the versions dictionary.
+
+    Returns
+    -------
+    str
+        YAML formatted string containing library versions and Python version.
+    """
+
+    versions = {}
+    versions[process_name] = {}
+
+    versions[process_name]['python'] = f"{sys.version_info.major}" \
+        f".{sys.version_info.minor}.{sys.version_info.micro}"
+
+    for lib in list_of_libs:
+        try:
+            version = importlib.metadata.version(lib)
+        except importlib.metadata.PackageNotFoundError:
+            try:
+                module = importlib.import_module(lib)
+                version = getattr(module, '__version__', 'unknown')
+            except (ImportError, AttributeError):
+                version = None
+        if version is not None:
+            versions[process_name][lib] = version
+
+    return yaml.dump(versions)
+
 warnings.filterwarnings("ignore")
 
 # Set to not interactive
