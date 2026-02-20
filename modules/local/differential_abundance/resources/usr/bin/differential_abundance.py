@@ -77,6 +77,11 @@ parser.add_argument("--versions-dict", type=str,
                     help="Return dictionary of versions used by the module and exit")
 args = parser.parse_args()
 
+if args.versions_dict:
+   lib_list = ['pandas', 'numpy', 'pertpy', 'mudata', 'argparse', 'matplotlib']
+   print(versions_yaml(args.versions_dict, lib_list ))
+   sys.exit(0)
+ 
 #########################################
 # Get column_name, target_level and
 # ref_level from comparisons
