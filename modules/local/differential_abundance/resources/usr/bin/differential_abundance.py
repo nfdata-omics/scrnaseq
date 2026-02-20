@@ -68,9 +68,9 @@ matplotlib.use("Agg")
 #########################################
 parser = argparse.ArgumentParser(description="Differential abundance analysis")
 
-parser.add_argument("--mdata", type=str, required=True,
+parser.add_argument("--mdata", type=str,
                     help="Path to input MuData object (h5mu file)")
-parser.add_argument("--comparisons", type=str, required=True,
+parser.add_argument("--comparisons", type=str,
                     help="Comparisons to be performed following column:target:reference (e.g. group:treated:control)")
 
 parser.add_argument("--versions-dict", type=str,
