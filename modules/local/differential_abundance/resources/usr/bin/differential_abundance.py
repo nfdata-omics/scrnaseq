@@ -81,7 +81,7 @@ if args.versions_dict:
    lib_list = ['pandas', 'numpy', 'pertpy', 'mudata', 'argparse', 'matplotlib']
    print(versions_yaml(args.versions_dict, lib_list ))
    sys.exit(0)
- 
+
 #########################################
 # Get column_name, target_level and
 # ref_level from comparisons
@@ -220,4 +220,3 @@ plt.figure(figsize=(10, 6))
 milo.plot_da_beeswarm(mmdata, alpha=0.1)
 plt.savefig(f"diff_abundance/milo_logFC_by_celltypes.{target_level}_vs_{ref_level}.pdf", bbox_inches="tight")
 plt.close()
-
