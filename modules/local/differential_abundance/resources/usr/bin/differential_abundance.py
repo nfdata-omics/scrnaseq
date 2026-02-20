@@ -216,25 +216,3 @@ milo.plot_da_beeswarm(mmdata, alpha=0.1)
 plt.savefig(f"diff_abundance/milo_logFC_by_celltypes.{target_level}_vs_{ref_level}.pdf", bbox_inches="tight")
 plt.close()
 
-# ----------------------------------
-# Print versions of relevant libraries
-# ----------------------------------
-
-versions = {}
-proc_name = "DIFFERENTIAL_ABUNDANCE"
-
-versions[proc_name] = {}
-versions[proc_name]['python'] = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-
-for lib in ['pandas', 'numpy', 'pertpy', 'mudata', 'matplotlib.backends.backend_pdf.PdfPages',
-            'argparse', 'matplotlib']:
-    try:
-        module = importlib.import_module(lib)
-        version = getattr(module, '__version__', 'unknown')
-    except Exception:
-        version = None
-    if version is not None:
-        versions[proc_name][lib] = version
-
-with open('versions.yml', 'w') as f:
-    yaml.dump(versions, f)
