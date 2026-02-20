@@ -18,6 +18,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 import sys
 import importlib
+import importlib.metadata
 import yaml
 
 warnings.filterwarnings("ignore")
