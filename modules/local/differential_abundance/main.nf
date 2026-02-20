@@ -29,5 +29,11 @@ process DIFFERENTIAL_ABUNDANCE {
     python3  ${moduleDir}/resources/usr/bin/differential_abundance.py \
         --versions-dict "${task.process}" > versions.yml
     """
+    stub:
+    """
+    mkdir diff_abundance/
 
+    python3  ${moduleDir}/resources/usr/bin/differential_abundance.py \
+        --versions-dict "${task.process}" > versions.yml
+    """
 }
