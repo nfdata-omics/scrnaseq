@@ -35,6 +35,8 @@ parser.add_argument("--mdata", type=str, required=True,
 parser.add_argument("--comparisons", type=str, required=True,
                     help="Comparisons to be performed following column:target:reference (e.g. group:treated:control)")
 
+parser.add_argument("--versions-dict", type=str,
+                    help="Return dictionary of versions used by the module and exit")
 args = parser.parse_args()
 
 #########################################
