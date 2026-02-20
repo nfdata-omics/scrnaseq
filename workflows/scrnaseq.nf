@@ -98,9 +98,9 @@ workflow SCRNASEQ {
     ch_cellrangerarc_config = params.cellrangerarc_config ? file(params.cellrangerarc_config)          : []
 
     // Differential analysis params
-    ch_comparisons = params.comparisons ? Channel
-        .fromList(params.comparisons.split(',').collect{ it.trim()} )
-        : []
+    ch_diff_abundance_comparisons = params.diff_abundance_comparisons ? Channel
+        .fromList(params.diff_abundance_comparisons.split(',').flatten())
+        : channel.empty()
 
     // Run FastQC
     if (!params.skip_fastqc) {
