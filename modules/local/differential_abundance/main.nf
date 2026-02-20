@@ -25,6 +25,9 @@ process DIFFERENTIAL_ABUNDANCE {
     python3 ${moduleDir}/resources/usr/bin/differential_abundance.py \
         --mdata $h5mu \
         --comparisons $comparisons
+
+    python3  ${moduleDir}/resources/usr/bin/differential_abundance.py \
+        --versions-dict "${task.process}" > versions.yml
     """
 
 }
