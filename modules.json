@@ -75,6 +75,11 @@
                         "git_sha": "53c2b466994f07def210b7f4cc866bb5a8a2cb92",
                         "installed_by": ["modules"]
                     },
+                    "qcatch": {
+                        "branch": "master",
+                        "git_sha": "00754db05f6a7ca74a1252d0e79b88418b08bac9",
+                        "installed_by": ["modules"]
+                    },
                     "kallistobustools/ref": {
                         "branch": "master",
                         "git_sha": "de8215983defba48cd81961d620a9e844f11c7e7",

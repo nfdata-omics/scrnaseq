@@ -1,15 +1,32 @@
 {
     "test_qcatch - 1k_pbmc_v3": {
         "content": [
+            4049945,
             [
-                "versions.yml:md5,46f73aa6be1b23a13365040ab92e22af"
+                [
+                    {
+                        "id": "1k_pbmc_v3"
+                    },
+                    "1k_pbmc_v3_filtered_quants.h5ad:md5,0642f9ce60e77af039b00a99447c1aca"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "1k_pbmc_v3"
+                    },
+                    "1k_pbmc_v3_metrics_summary.csv:md5,22deb2f3aea4e4abf476970576362428"
+                ]
+            ],
+            [
+                "versions.yml:md5,85d6c24bb4fe57161bd6b9ee6493d1e7"
             ]
         ],
         "meta": {
             "nf-test": "0.9.3",
-            "nextflow": "25.10.3"
+            "nextflow": "25.10.2"
         },
-        "timestamp": "2026-02-13T21:36:15.677759721"
+        "timestamp": "2026-02-21T17:42:42.767783832"
     },
     "test_qcatch - stub": {
         "content": [
@@ -39,7 +56,7 @@
                     ]
                 ],
                 "3": [
-                    "versions.yml:md5,46f73aa6be1b23a13365040ab92e22af"
+                    "versions.yml:md5,85d6c24bb4fe57161bd6b9ee6493d1e7"
                 ],
                 "filtered_h5ad": [
                     [
@@ -66,7 +83,7 @@
                     ]
                 ],
                 "versions": [
-                    "versions.yml:md5,46f73aa6be1b23a13365040ab92e22af"
+                    "versions.yml:md5,85d6c24bb4fe57161bd6b9ee6493d1e7"
                 ]
             }
         ],
@@ -74,6 +91,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2026-02-13T21:56:57.673052701"
+        "timestamp": "2026-02-21T17:43:06.660613547"
     }
 }

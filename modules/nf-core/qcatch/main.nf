@@ -4,13 +4,13 @@ process QCATCH {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/qcatch:0.2.8--3089b62e628f96d7':
-        'community.wave.seqera.io/library/qcatch:0.2.8--454a9b478b62c36f' }"
+        'oras://community.wave.seqera.io/library/pip_qcatch_scikit-image:611dba8accdf2676':
+        'community.wave.seqera.io/library/pip_qcatch_scikit-image:d4047a6bc8fbc441' }"
     input:
     tuple val(meta), val(chemistry), path(quant_dir)
 
     output:
-    tuple val(meta), path("*.html")                         , emit: report
+    tuple val(meta), path("*.html")                , emit: report
     tuple val(meta), path("*_filtered_quants.h5ad") , emit: filtered_h5ad
     tuple val(meta), path("*_metrics_summary.csv")  , emit: metrics_summary
     path  "versions.yml"                                    , emit: versions
