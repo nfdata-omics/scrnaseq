@@ -20,6 +20,13 @@
 params.fasta            = getGenomeAttribute('fasta')
 params.gtf              = getGenomeAttribute('gtf')
 params.star_index       = getGenomeAttribute('star')
+if (params.aligner == "cellrangerarc") {
+   params.cellranger_index = getGenomeAttribute('cellranger_atac')
+} else {
+   params.cellranger_index = getGenomeAttribute('cellranger')
+}
+params.cellranger_vdj_index = getGenomeAttribute('cellranger_vdj')
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
