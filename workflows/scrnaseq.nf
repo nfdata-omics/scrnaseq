@@ -227,6 +227,7 @@ workflow SCRNASEQ {
             if (meta.feature_type.toString() == 'gex') {
                 parsed_meta.options['create-bam'] = params.save_align_intermeds  // force bam creation -- param required by cellranger multi
                 if (meta.expected_cells) { parsed_meta.options['expected-cells'] = meta.expected_cells }
+                parsed_meta.options['chemistry'] = protocol_config['protocol']
             }
 
             [ parsed_meta.id , parsed_meta ]
