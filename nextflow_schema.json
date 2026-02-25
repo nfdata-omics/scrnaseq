@@ -510,6 +510,10 @@
                 "input_model": {
                     "type": "string",
                     "description": "Path to pre-trained celltypist model for cell type annotation."
+                },
+                "diff_abundance_comparisons": {
+                    "type": "string",
+                    "description": "Comparisons to be done during differential abundance analysis (e.g., variable1:condition1:condition2,variable2:condition3:condition4))"
                 }
             }
         },

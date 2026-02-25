@@ -1,0 +1,48 @@
+name: differential_abundance
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11.14
+  - pip=25.3
+  - matplotlib=3.10.8
+  - pandas=2.3.3
+  - statsmodels=0.14.6
+  - scikit-learn=1.8.0
+  - scikit-misc=0.5.2
+  - scanpy=1.11.5
+  - numba=0.63.1
+  - numpy=2.3.5
+  - numpyro=0.19.0
+  - seaborn=0.13.2
+  - rpy2=3.6.4
+  - pertpy=1.0.3
+  - umap-learn=0.5.11
+  - mudata=0.3.2
+  - anndata=0.12.7
+  - blitzgsea=1.3.40
+  - zarr=3.1.5
+  - zipp=3.23.0
+  - h5netcdf=1.8.0
+  - h5py=3.15.1
+  - hdf5=1.14.6
+  - pyarrow=20.0.0
+  - openpyxl=3.1.5
+  - r-base=4.5.2
+  - rpy2=3.6.4
+  - r-recommended=4.5
+
+  - pip:
+      - formulaic==1.2.1
+      - formulaic-contrasts==1.0.0
+      - fsspec==2026.1.0
+      - igraph==1.0.0
+      - interface-meta==1.3.0
+      - narwhals==2.15.0
+      - psutil==7.2.1
+      - pydeseq2==0.5.3
+      - rpy2-rinterface==3.6.3
+      - rpy2-robjects==3.6.3
+      - session-info==1.0.1
+      - stdlib-list==0.12.0
+      - texttable==1.7.0

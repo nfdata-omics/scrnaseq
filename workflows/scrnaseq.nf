@@ -34,6 +34,7 @@ include { CLUSTREE                                          } from '../modules/l
 include { ENRICH_MARKERS                                    } from '../modules/local/enrich_markers'
 include { CUSTOM_GENES                                      } from '../modules/local/custom_genes'
 include { DIFFERENTIAL_ANALYSIS                             } from '../modules/local/differential_analysis'
+include { DIFFERENTIAL_ABUNDANCE                            } from '../modules/local/differential_abundance'
 
 workflow SCRNASEQ {
 
@@ -95,6 +96,11 @@ workflow SCRNASEQ {
 
     // cellrangerarc params
     ch_cellrangerarc_config = params.cellrangerarc_config ? file(params.cellrangerarc_config)          : []
+
+    // Differential analysis params
+    ch_diff_abundance_comparisons = params.diff_abundance_comparisons ? Channel
+        .fromList(params.diff_abundance_comparisons.split(',').flatten())
+        : channel.empty()
 
     // Run FastQC
     if (!params.skip_fastqc) {
@@ -651,6 +657,14 @@ workflow SCRNASEQ {
     )
     ch_versions = ch_versions.mix(DIFFERENTIAL_ANALYSIS.out.versions)
     '''
+
+    DIFFERENTIAL_ABUNDANCE(
+        CLUSTERING.out.h5mu.combine(ch_diff_abundance_comparisons)
+    )
+    if (DIFFERENTIAL_ABUNDANCE.out.versions) {
+        ch_versions = ch_versions.mix(DIFFERENTIAL_ABUNDANCE.out.versions)
+    }
+
     //
     // Collate and save software versions
     //
