@@ -1,7 +1,7 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/nf-core/scrnaseq/master/nextflow_schema.json",
-    "title": "nf-core/scrnaseq pipeline parameters",
+    "$id": "https://raw.githubusercontent.com/nfdata-omics/scrnaseq/master/nextflow_schema.json",
+    "title": "nfdata-omics/scrnaseq pipeline parameters",
     "description": "Pipeline for processing 10x Genomics single cell rnaseq data",
     "type": "object",
     "$defs": {
@@ -20,7 +20,7 @@
                     "mimetype": "text/csv",
                     "pattern": "^\\S+\\.csv$",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/scrnaseq/usage#samplesheet-input).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row.",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "outdir": {

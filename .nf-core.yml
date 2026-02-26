@@ -13,8 +13,8 @@ template:
     H
   description: Pipeline for processing 10x Genomics single cell rnaseq data
   force: false
-  is_nfcore: true
+  is_nfcore: false
   name: scrnaseq
-  org: nf-core
+  org: nfdata-omics
   outdir: .
   version: 4.1.0

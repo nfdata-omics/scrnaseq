@@ -1,11 +1,9 @@
 #!/usr/bin/env nextflow
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    nf-core/scrnaseq
+    nfdata-omics/scrnaseq
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Github : https://github.com/nf-core/scrnaseq
-    Website: https://nf-co.re/scrnaseq
-    Slack  : https://nfcore.slack.com/channels/scrnaseq
+    Github : https://github.com/nfdata-omics/scrnaseq
 ----------------------------------------------------------------------------------------
 */
 
@@ -40,7 +38,7 @@ params.fasta = getGenomeAttribute('fasta')
 //
 // WORKFLOW: Run main analysis pipeline depending on type of input
 //
-workflow NFCORE_SCRNASEQ {
+workflow NFDATAOMICS_SCRNASEQ {
 
     take:
     samplesheet // channel: samplesheet read in from --input
@@ -83,7 +81,7 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    NFCORE_SCRNASEQ (
+    NFDATAOMICS_SCRNASEQ (
         PIPELINE_INITIALISATION.out.samplesheet
     )
     //
@@ -96,7 +94,7 @@ workflow {
         params.outdir,
         params.monochrome_logs,
         params.hook_url,
-        NFCORE_SCRNASEQ.out.multiqc_report
+        NFDATAOMICS_SCRNASEQ.out.multiqc_report
     )
 }
 
