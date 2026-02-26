@@ -395,7 +395,6 @@
                 "Sample_Y_raw_matrix.h5ad:md5,d5c3a30bcd4d8011eb5aa39ad0f1c286",
                 "Sample_Y_raw_matrix.sce.rds:md5,061ab8ba3ed28e6312c0367a2a9dfeb3",
                 "Sample_Y_raw_matrix.seurat.rds:md5,3f4a3e6529b10c646fd08173d5baa339",
-                "matrix.mudata.h5mu:md5,e970bfc85bac035b7d5fa01dc5ea02e5",
                 "cellranger-count-stats-table.txt:md5,b596a1ed25c8dba1ff3026db56dc5f5d",
                 "cellranger-count-warnings-table.txt:md5,f257d0a84efc395072a517db643b7935",
                 "fastqc-status-check-heatmap.txt:md5,d122badcaa647409c35a809e8a127f99",
