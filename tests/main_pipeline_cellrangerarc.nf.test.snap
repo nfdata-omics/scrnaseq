@@ -277,7 +277,6 @@
                 "10k_PBMC_raw_matrix.h5ad:md5,25d6d103ad31112ab5d2c170aa3ad975",
                 "10k_PBMC_raw_matrix.sce.rds:md5,47dcd79cd08669f4e818f0c785cbfb7e",
                 "10k_PBMC_raw_matrix.seurat.rds:md5,361aed11e3a6cdc8937bfcc6b6f302b7",
-                "matrix.mudata.h5mu:md5,0467ce01cf5934c3900d1082585cee08",
                 "fastqc-status-check-heatmap.txt:md5,55b658eef7b63c6f8e3d559be41f5df8",
                 "fastqc_adapter_content_plot.txt:md5,31ca16758049ac46cc84875ddc4ff6d3",
                 "fastqc_overrepresented_sequences_plot.txt:md5,314754adfcfa2977ee4f61c2ec5444f2",
