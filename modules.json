@@ -1,6 +1,6 @@
 {
-    "name": "nf-core/scrnaseq",
-    "homePage": "https://github.com/nf-core/scrnaseq",
+    "name": "nfdata-omics/scrnaseq",
+    "homePage": "https://github.com/nfdata-omics/scrnaseq",
     "repos": {
         "https://github.com/nf-core/modules.git": {
             "modules": {

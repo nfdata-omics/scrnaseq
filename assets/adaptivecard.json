@@ -17,7 +17,7 @@
                         "size": "Large",
                         "weight": "Bolder",
                         "color": "<% if (success) { %>Good<% } else { %>Attention<%} %>",
-                        "text": "nf-core/scrnaseq v${version} - ${runName}",
+                        "text": "nfdata-omics/scrnaseq v${version} - ${runName}",
                         "wrap": true
                     },
                     {
