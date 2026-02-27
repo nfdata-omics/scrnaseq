@@ -344,10 +344,6 @@
                 "pipeline_info",
                 "pipeline_info/scrnaseq_software_mqc_versions.yml",
                 "qualitycontrol",
-                "qualitycontrol/Cells_after_filtering.pdf",
-                "qualitycontrol/Cells_before_filtering.pdf",
-                "qualitycontrol/QC_Density_MT-Ribo_all_samples.pdf",
-                "qualitycontrol/QC_Density_all_samples.pdf",
                 "qualitycontrol/doublets_score.csv",
                 "qualitycontrol/matrix.filtered.h5mu",
                 "qualitycontrol/summary_qualitycontrol_by_pool.csv"
@@ -413,10 +409,6 @@
                 "multiqc_citations.txt:md5,db9f58c039af2923e06a61e46e82c015",
                 "multiqc_fastqc.txt:md5,12027880857508ce5cedc3904a351730",
                 "multiqc_general_stats.txt:md5,92a7a66e313e6ce2d13da53b501b5c0c",
-                "Cells_after_filtering.pdf:md5,315a1e3741946c5e44cc2490cc1d8a5d",
-                "Cells_before_filtering.pdf:md5,0283baf279496f3c743a7760508a10c6",
-                "QC_Density_MT-Ribo_all_samples.pdf:md5,ae3b352fc2c4e66faf22b4512962534c",
-                "QC_Density_all_samples.pdf:md5,4dfd789b6b02b3d5ca452eb4e38c553e",
                 "doublets_score.csv:md5,d6e51e2be679de020aa9fe473840ffe8",
                 "matrix.filtered.h5mu:md5,4e912fb0e5b75cf50c90b0ed31e8789f",
                 "summary_qualitycontrol_by_pool.csv:md5,b7c69f93e634495e8c5db09544f9f5fb"
