@@ -20,3 +20,4 @@ pipeline_info/*.{html,json,txt,yml}
 **/10k_PBMC_lib.csv
 **/**combined_*
 mudata/matrix.mudata.h5mu
+qualitycontrol/*.pdf
