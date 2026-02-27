@@ -21,3 +21,4 @@ pipeline_info/*.{html,json,txt,yml}
 **/**combined_*
 mudata/matrix.mudata.h5mu
 qualitycontrol/*.pdf
+qualitycontrol/matrix.filtered.h5mu
