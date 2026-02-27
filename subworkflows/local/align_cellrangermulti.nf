@@ -114,6 +114,10 @@ workflow CELLRANGER_MULTI_ALIGN {
             .map { if ( it.size() == 2 ) { it[1] } else { [] } } // a correct tuple from snippet will have: [ sample, frna.csv ]
             .set { ch_frna_sample_csv }
 
+            ch_grouped_fastq.gex.view()
+            PARSE_CELLRANGERMULTI_SAMPLESHEET.out.frna.flatten().view()
+            ch_frna_sample_csv.view()
+
         } else {
             ch_cmo_barcode_csv = []
             ch_ocm_barcode_csv = []

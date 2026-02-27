@@ -1,19 +1,26 @@
 lint:
   files_exist:
+    - CODE_OF_CONDUCT.md
+    - assets/nf-core-scrnaseq_logo_light.png
+    - docs/images/nf-core-scrnaseq_logo_light.png
+    - docs/images/nf-core-scrnaseq_logo_dark.png
+    - .github/ISSUE_TEMPLATE/config.yml
+    - .github/workflows/awstest.yml
+    - .github/workflows/awsfulltest.yml
     - lib/Utils.groovy
     - tests/default.nf.test
   files_unchanged:
     - .github/ISSUE_TEMPLATE/bug_report.yml
   schema_params: false
   template_strings: false
-nf_core_version: 3.5.1
+nf_core_version: 3.5.2
 repository_type: pipeline
 template:
   author: Bailey PJ, Botvinnik O, Marques de Almeida F, Peltzer A, Sturm G, Dongze H
   description: Pipeline for processing 10x Genomics single cell rnaseq data
   force: false
-  is_nfcore: true
+  is_nfcore: false
   name: scrnaseq
-  org: nf-core
+  org: nfdata-omics
   outdir: .
   version: 4.1.0

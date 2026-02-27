@@ -1,4 +1,4 @@
-# nf-core/scrnaseq: Output
+# nfdata-omics/scrnaseq: Output
 
 ## Introduction
 

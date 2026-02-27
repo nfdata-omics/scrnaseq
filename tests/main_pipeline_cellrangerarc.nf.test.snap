@@ -232,7 +232,7 @@
                 "multiqc/multiqc_plots/svg/fastqc_top_overrepresented_sequences_table.svg",
                 "multiqc/multiqc_report.html",
                 "pipeline_info",
-                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml"
+                "pipeline_info/scrnaseq_software_mqc_versions.yml"
             ],
             [
                 "atac_cut_sites.bigwig:md5,7114cf85657c09f92d5c3dbd32432759",
@@ -243,7 +243,7 @@
                 "barcodes.tsv.gz:md5,dc8ef24c54122529bdb2c7cd5969c805",
                 "features.tsv.gz:md5,456af0e5fa4a7bcb3968400f300d12e9",
                 "matrix.mtx.gz:md5,4b3aa16b720d414f5df50c533052d360",
-                "versions.yml:md5,d345d055b9def0e0d4dd6cf0c1c4058c",
+                "versions.yml:md5,b49c3719f6516067d6abc6239fbec851",
                 "genome_genes.filtered.gtf:md5,4328009f62d38b9220dd941c1a66e480",
                 "genome.fa:md5,69bd44ef67566a76d6cbb8aa4a25ae35",
                 "genome.fa.amb:md5,fe9a4b4f263654a130bb314e282b00f1",
@@ -270,14 +270,13 @@
                 "sjdbList.out.tab:md5,be8b2978e8ac3a2c8266c798c7c34b90",
                 "transcriptInfo.tab:md5,5a6ee447f3efac16042d8c99f653747b",
                 "config:md5,055bd80c554d66120313c0500ff2f00d",
-                "versions.yml:md5,e9926d37b6e80aa8cb9344ace558b449",
+                "versions.yml:md5,32284e865be19c9c9e4b4968135e611c",
                 "10k_PBMC_filtered_matrix.h5ad:md5,363249fcd16f215cac32e5bf14e3114d",
                 "10k_PBMC_filtered_matrix.sce.rds:md5,4e5aa6979ccc31d70cd0ab3bbba7b77f",
                 "10k_PBMC_filtered_matrix.seurat.rds:md5,4161560d20e92b01f91efd6a3b9ec9af",
                 "10k_PBMC_raw_matrix.h5ad:md5,25d6d103ad31112ab5d2c170aa3ad975",
                 "10k_PBMC_raw_matrix.sce.rds:md5,47dcd79cd08669f4e818f0c785cbfb7e",
                 "10k_PBMC_raw_matrix.seurat.rds:md5,361aed11e3a6cdc8937bfcc6b6f302b7",
-                "matrix.mudata.h5mu:md5,0467ce01cf5934c3900d1082585cee08",
                 "fastqc-status-check-heatmap.txt:md5,55b658eef7b63c6f8e3d559be41f5df8",
                 "fastqc_adapter_content_plot.txt:md5,31ca16758049ac46cc84875ddc4ff6d3",
                 "fastqc_overrepresented_sequences_plot.txt:md5,314754adfcfa2977ee4f61c2ec5444f2",
@@ -297,6 +296,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.3"
         },
-        "timestamp": "2026-01-09T23:04:03.610975848"
+        "timestamp": "2026-02-26T12:47:27.731623851"
     }
 }
