@@ -19,3 +19,6 @@ pipeline_info/*.{html,json,txt,yml}
 **/atac_*.{gz,tbi,bed}
 **/10k_PBMC_lib.csv
 **/**combined_*
+mudata/matrix.mudata.h5mu
+qualitycontrol/*.pdf
+qualitycontrol/matrix.filtered.h5mu
