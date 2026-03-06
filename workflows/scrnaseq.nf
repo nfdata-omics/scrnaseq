@@ -35,6 +35,7 @@ include { ENRICH_MARKERS                                    } from '../modules/l
 include { CUSTOM_GENES                                      } from '../modules/local/custom_genes'
 include { DIFFERENTIAL_ANALYSIS                             } from '../modules/local/differential_analysis'
 include { DIFFERENTIAL_ABUNDANCE                            } from '../modules/local/differential_abundance'
+include { PSEUDOBULK_ANALYSIS                               } from '../subworkflows/local/pseudobulk_analysis'
 
 workflow SCRNASEQ {
 
@@ -100,6 +101,15 @@ workflow SCRNASEQ {
     // Differential analysis params
     ch_diff_abundance_comparisons = params.diff_abundance_comparisons ? Channel
         .fromList(params.diff_abundance_comparisons.split(',').flatten())
+        : channel.empty()
+
+    // Pseudobulk params
+    ch_pseudobulk_group = params.pseudobulk_group ? Channel
+        .value(params.pseudobulk_group)
+        : Channel.empty()
+
+    ch_pseudobulk_comparisons = params.pseudobulk_comparisons ? Channel
+        .fromList(params.pseudobulk_comparisons.split(',').flatten())
         : channel.empty()
 
     // Run FastQC
@@ -663,6 +673,16 @@ workflow SCRNASEQ {
     )
     if (DIFFERENTIAL_ABUNDANCE.out.versions) {
         ch_versions = ch_versions.mix(DIFFERENTIAL_ABUNDANCE.out.versions)
+    }
+
+    PSEUDOBULK_ANALYSIS(
+        CLUSTERING.out.h5mu,
+        params.resolution,
+        ch_pseudobulk_group,
+        ch_pseudobulk_comparisons
+    )
+    if (PSEUDOBULK_ANALYSIS.out.versions) {
+        ch_versions = ch_versions.mix(PSEUDOBULK_ANALYSIS.out.versions)
     }
 
     //
