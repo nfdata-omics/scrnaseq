@@ -79,8 +79,8 @@ def main():
                         help="minimum number of genes per cell to keep (default is 200)")
     parser.add_argument('-maxg', '--max-genes', dest='max_genes_gex', type=int, default=8000,
                         help="maximum number of genes per cell to keep (default is 8000)")
-    parser.add_argument('-minc', '--min-cells', dest='min_cells_gex', type=int, default=5,
-                        help="minimum number of cells per gene to keep (default is 5)")
+    parser.add_argument('-minc', '--min-cells', dest='min_cells_gex', type=int, default=100,
+                        help="minimum number of cells per gene to keep (default is 100)")
     parser.add_argument('-minf', '--min-features-adt', dest='min_features_adt', type=int, default=3,
                         help="minimum number of features per cell to keep (default is 3)")
     parser.add_argument('-mincadt', '--min-counts-adt', dest='min_counts_adt', type=int, default=500,
@@ -230,7 +230,7 @@ def main():
 #                           EVALUATE GENES BASED ON NUMBER OF CELLS
 # --------------------------------------------------------------------------------------------------------------------
         min_cells = round(1/100 * gex.shape[0])
-        min_cells = max(min_cells, min_cells_gex)  # Ensure at least 3 cells for a gene to be considered expressed
+        min_cells = min(min_cells, min_cells_gex)  # Ensure at least 3 cells for a gene to be considered expressed
         gex.var["gene_pass"] = gex.var["n_cells_by_counts"] >= min_cells
 
 # --------------------------------------------------------------------------------------------------------------------
