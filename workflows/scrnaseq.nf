@@ -658,11 +658,29 @@ workflow SCRNASEQ {
     ch_versions = ch_versions.mix(DIFFERENTIAL_ANALYSIS.out.versions)
     '''
 
-    DIFFERENTIAL_ABUNDANCE(
-        CLUSTERING.out.h5mu.combine(ch_diff_abundance_comparisons)
+    if (params.resolution) {
+
+        resolution_ch = Channel.fromList(params.resolution.toString().split(',').flatten())
+
+        DIFFERENTIAL_ABUNDANCE(
+            CLUSTERING.out.h5mu
+                .combine(ch_diff_abundance_comparisons)
+                .combine(resolution_ch)
+        )
+        if (DIFFERENTIAL_ABUNDANCE.out.versions) {
+            ch_versions = ch_versions.mix(DIFFERENTIAL_ABUNDANCE.out.versions)
+        }
+
+    }
+
+    PSEUDOBULK_ANALYSIS(
+        CLUSTERING.out.h5mu,
+        params.resolution,
+        ch_pseudobulk_group,
+        ch_pseudobulk_comparisons
     )
-    if (DIFFERENTIAL_ABUNDANCE.out.versions) {
-        ch_versions = ch_versions.mix(DIFFERENTIAL_ABUNDANCE.out.versions)
+    if (PSEUDOBULK_ANALYSIS.out.versions) {
+        ch_versions = ch_versions.mix(PSEUDOBULK_ANALYSIS.out.versions)
     }
 
     //
