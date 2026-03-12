@@ -675,15 +675,21 @@ workflow SCRNASEQ {
         ch_versions = ch_versions.mix(DIFFERENTIAL_ABUNDANCE.out.versions)
     }
 
-    PSEUDOBULK_ANALYSIS(
-        CLUSTERING.out.h5mu,
-        params.resolution,
-        ch_pseudobulk_group,
-        ch_pseudobulk_comparisons
-    )
-    if (PSEUDOBULK_ANALYSIS.out.versions) {
-        ch_versions = ch_versions.mix(PSEUDOBULK_ANALYSIS.out.versions)
+    if ( params.resolution ) {
+
+        ch_resolution = Channel.fromList(params.resolution.toString().split(',').flatten())
+
+        PSEUDOBULK_ANALYSIS(
+            CLUSTERING.out.h5mu,
+            ch_resolution,
+            ch_pseudobulk_group,
+            ch_pseudobulk_comparisons
+        )
+        if (PSEUDOBULK_ANALYSIS.out.versions) {
+            ch_versions = ch_versions.mix(PSEUDOBULK_ANALYSIS.out.versions)
+        }
     }
+
 
     //
     // Collate and save software versions
