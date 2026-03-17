@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `modules.config` structure to make sure all ways of providing the `aligner` param work ([514](https://github.com/nf-core/scrnaseq/pull/514))
 - Fix [515](https://github.com/nf-core/scrnaseq/issues/515), failure when running singleplex flex data by updating cellranger multi module ([517](https://github.com/nf-core/scrnaseq/pull/517))
 - Fix [522](https://github.com/nf-core/scrnaseq/issues/522), protocol not being passed correctly when running cellranger multi ([524](https://github.com/nf-core/scrnaseq/pull/524))
+- Fix [533](https://github.com/nf-core/scrnaseq/issues/533), FASTQC module results in naming collisions if files have same basename ([534](https://github.com/nf-core/scrnaseq/pull/534))
 
 ## v4.1.0 - 2025-08-01
 
