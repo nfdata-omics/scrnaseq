@@ -113,11 +113,6 @@
                 "skip_qcfilters": {
                     "type": "boolean",
                     "description": "Skip qc filtering subworkflow"
-                },
-                "skip_emptydrops": {
-                    "type": "boolean",
-                    "deprecated": true,
-                    "errorMessage": "Parameter has been deprecated in favour of --skip_cellbender to properly match name of workflow."
                 }
             }
         },
