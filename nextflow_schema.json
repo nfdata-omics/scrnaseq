@@ -457,7 +457,7 @@
                 },
                 "min_cells_gex": {
                     "type": "integer",
-                    "default": 5,
+                    "default": 100,
                     "description": "Minimum number of cells expressed for genes that are kept in the gene expression data."
                 },
                 "min_features_adt": {
