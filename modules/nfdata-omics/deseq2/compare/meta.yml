@@ -1,0 +1,80 @@
+name: deseq2_compare
+description: Module for performing differential gene expression analysis using DESeq2 based on a fitted DESeq2 object and a specified model formula.
+keywords:
+  - deseq2
+  - dge
+  - differential analysis
+tools:
+  - "deseq2":
+      description: "Differential gene expression analysis based on the negative binomial
+        distribution"
+      homepage: "https://bioconductor.org/packages/release/bioc/html/DESeq2.html"
+      documentation: "https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html"
+      tool_dev_url: "https://github.com/mikelove/DESeq2"
+      doi: "10.1186/s13059-014-0550-8"
+      licence: ["LGPL >=3"]
+      identifier: biotools:deseq2
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing comparison information
+          e.g. [ id:'comparison' ]
+    - model:
+        type: file
+        description: Input RDS file containing the fitted DESeq2 object
+        pattern: "*.{rds}"
+        ontologies: []
+    - comparison:
+        type: string
+        description: Comparison information in the format "factor:target:reference", e.g. "condition:Treated:Control"
+  - fdr_threshold:
+      type: number
+      description: False discovery rate (FDR) threshold for determining significant differential expression
+output:
+  dge:
+    - - meta:
+        type: map
+        description: |
+          Groovy Map containing file information
+          e.g. [ id:'dge', cf:'featureCounts' ]
+      - "deseq2_toptable.*.txt":
+          type: file
+          description: Output file containing the DESeq2 results in tab-delimited format
+          pattern: "deseq2_toptable.*.txt"
+  summary:
+    - - meta:
+        type: map
+        description: |
+          Groovy Map containing file information
+          e.g. [ id:'dge', cf:'featureCounts' ]
+      - "deseq2_summary.*.txt":
+          type: file
+          description: Output file containing a summary of the DESeq2 results
+          pattern: "deseq2_summary.*.txt"
+  hist_pval:
+    - - meta:
+        type: map
+        description: |
+          Groovy Map containing file information
+          e.g. [ id:'dge', cf:'featureCounts' ]
+      - "pvalue_hist.*.pdf":
+          type: file
+          description: Output file containing a histogram of p-values from the DESeq2 results
+          pattern: "pvalue_hist.*.pdf"
+  volcano:
+    - - meta:
+        type: map
+        description: |
+          Groovy Map containing file information
+          e.g. [ id:'dge', cf:'featureCounts' ]
+      - "volcano.*.pdf":
+          type: file
+          description: Output file containing a volcano plot of the DESeq2 results
+          pattern: "volcano.*.pdf"
+  versions:
+    - versions.yml:
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"

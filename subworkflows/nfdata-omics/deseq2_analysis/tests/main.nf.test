@@ -1,0 +1,35 @@
+nextflow_workflow {
+    name "Test DESeq2 subrworkflow"
+    script "../main.nf"
+    workflow "DIFFERENTIAL_ANALYSIS"
+    config "./nextflow.config"
+ 
+    test("gene count data (featureCounts) - rnaseq") {
+        when {
+            workflow {
+                """
+                input[0] = [
+                    [ id:'counts' ],                                                                                                                 // meta map with file identifier
+                    file('https://raw.githubusercontent.com/nfdata-omics/test-datasets/refs/heads/deseq2/featureCounts/counts.tsv')   // input file
+                ]
+
+                input[1] = [
+                    [ id:'metadata' ],                                                                                                               // meta map with file identifier
+                    file('https://raw.githubusercontent.com/nfdata-omics/test-datasets/refs/heads/deseq2/featureCounts/metadata.tsv') // input file
+                ]
+
+                input[2] = Channel.value("~0+batch+treatment")
+
+                input[3] = Channel.value("treatment:Treated:Control")
+
+                input[4] = Channel.value(0.05)
+                """
+            }
+        }
+ 
+        then {
+            assert workflow.success                        // Check workflow completed successfully
+            assert snapshot(workflow.out.rds).match()      // Compare result to expected output (snapshot testing)
+        }
+    }
+}

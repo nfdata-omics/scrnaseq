@@ -92,7 +92,7 @@ if args.versions_dict:
 #########################################
 comparisons = args.comparisons.split(':')
 
-column_name = "meta_" + comparisons[0]
+column_name = comparisons[0]
 target_level = comparisons[1]
 ref_level = comparisons[2]
 
@@ -119,7 +119,7 @@ if cluster_key not in gex.obs.keys():
 ps = pt.tl.PseudobulkSpace()
 
 # Set variable with column name to perform pseudobulking on
-group_column = "meta_" + args.group_column
+group_column = args.group_column
 
 gex.obs[f'sample_{set_res}'] = (gex.obs['sample'].astype(str) + "_" + gex.obs[cluster_key].astype(str))
 
