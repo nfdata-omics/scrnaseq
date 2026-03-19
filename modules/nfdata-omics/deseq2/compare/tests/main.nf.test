@@ -1,0 +1,27 @@
+nextflow_process {
+    name "Test DESeq2 compare process"
+    script "../main.nf"
+    process "DESEQ2_COMPARE"
+    config "./nextflow.config"
+ 
+    test("RDS object - rnaseq") {
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', cf:'featureCounts' ],                                                                                                       // meta map with file identifier
+                    file(params.test_data['featureCounts']['deseq2_rds']),        // input file
+                    "treatment:Treated:Control"
+                ]
+
+                input[1] = 0.05
+                """
+            }
+        }
+ 
+        then {
+            assert process.success                        // Check process completed successfully
+            assert snapshot(process.out.rds).match()      // Compare result to expected output (snapshot testing)
+        }
+    }
+}

@@ -2,6 +2,31 @@
     "name": "nfdata-omics/scrnaseq",
     "homePage": "https://github.com/nfdata-omics/scrnaseq",
     "repos": {
+        "git@gitlab.fht.org:nfdata-omics/modules.git": {
+            "modules": {
+                "nfdata-omics": {
+                    "deseq2/compare": {
+                        "branch": "main",
+                        "git_sha": "dca4b51dfc024cb16c619843a3810c220e2eefe4",
+                        "installed_by": ["deseq2_analysis", "modules"]
+                    },
+                    "deseq2/fit": {
+                        "branch": "main",
+                        "git_sha": "54fd5d844080f913fd76be809e8922a3bae898e5",
+                        "installed_by": ["deseq2_analysis", "modules"]
+                    }
+                }
+            },
+            "subworkflows": {
+                "nfdata-omics": {
+                    "deseq2_analysis": {
+                        "branch": "main",
+                        "git_sha": "f1f34eea2e63aacf3f86fcabf5a84209293df7d5",
+                        "installed_by": ["subworkflows"]
+                    }
+                }
+            }
+        },
         "https://github.com/nf-core/modules.git": {
             "modules": {
                 "nf-core": {

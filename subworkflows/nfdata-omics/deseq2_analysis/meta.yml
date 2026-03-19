@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
+name: "deseq2_analysis"
+description: DESeq2 differential analysis
+keywords:
+  - DESeq2
+  - differential expression
+  - differential abundance
+components:
+  - deseq2/fit
+  - deseq2/compare
+input:
+  - - meta:
+      type: map
+      description: |
+        Groovy Map containing file information
+        e.g. `[ id:'test' ]`
+    - counts:
+      type: file
+      description: Feature count matrix in tab-delimited format with samples as columns and features as rows
+      pattern: "*.tsv"
+  - - meta:
+      type: map
+      description: |
+        Groovy Map containing file information
+        e.g. `[ id:'test' ]`
+    - metadata:
+      type: file
+      description: Sample metadata in tab-delimited format with samples as rows and metadata fields as columns
+      pattern: "*.tsv"
+  - formula:
+      type: string
+      description: Design formula for DESeq2 analysis, e.g. "~condition + batch"
+  - comparison:
+      type: string
+      description: Comparison information in the format "factor:target:reference", e.g. "condition:Treated:Control"
+  - fdr_threshold:
+      type: number
+      description: False discovery rate (FDR) threshold for determining significant differential expression
+output:
+  - rds:
+      type: file
+      description: Output RDS file containing the fitted DESeq2 object
+      pattern: "*.{rds}"
+  - dge:
+      type: file
+      description: Output file containing the DESeq2 results in tab-delimited format
+      pattern: "deseq2_toptable.*.txt"
+  - summary:
+      type: file
+      description: Output file containing a summary of the DESeq2 results
+      pattern: "deseq2_summary.*.txt"
+  - hist_pval:
+      type: file
+      description: Output file containing a histogram of p-values from the DESeq2 results
+      pattern: "pvalue_hist.*.pdf"
+  - volcano:
+      type: file
+      description: Output file containing a volcano plot of the DESeq2 results
+      pattern: "volcano.*.pdf"
+  - versions:
+      type: file
+      description: Output file containing version information for the tools used in the workflow
+      pattern: "versions.*.txt"

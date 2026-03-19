@@ -1,0 +1,31 @@
+nextflow_process {
+    name "Test DESeq2 fit process"
+    script "../main.nf"
+    process "DESEQ2_FIT"
+    config "./nextflow.config"
+ 
+    test("gene count data (featureCounts) - rnaseq") {
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'counts' ],                                    // meta map with file identifier
+                    file(params.test_data['featureCounts']['counts'])   // input file
+                ]
+
+                input[1] = [
+                    [ id:'metadata' ],                                  // meta map with file identifier
+                    file(params.test_data['featureCounts']['metadata']) // input file
+                ]
+
+                input[2] = "~0+batch+treatment"
+                """
+            }
+        }
+ 
+        then {
+            assert process.success                        // Check process completed successfully
+            assert snapshot(process.out.rds).match()      // Compare result to expected output (snapshot testing)
+        }
+    }
+}

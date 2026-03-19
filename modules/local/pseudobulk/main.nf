@@ -8,7 +8,8 @@ process PSEUDOBULK {
     tuple val(meta), path(h5mu), val(group_column), val(resolution), val(comparison)
 
     output:
-    path "pseudobulk/*", emit: pseudobulk_results
+    path "pseudobulk/*.pdf", emit: pseudobulk_plots
+    tuple val(meta), path("pseudobulk/export_deseq2"), emit: pseudobulk_deseq2
     path "versions.yml", emit: versions
 
     when:
