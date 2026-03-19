@@ -496,7 +496,7 @@
                     "description": "Number of features to select for ATAC-seq analysis."
                 },
                 "resolution": {
-                    "type": "number",
+                    "type": "string",
                     "description": "Resolution parameter for clustering (Leiden)."
                 },
                 "enrich_collection": {
