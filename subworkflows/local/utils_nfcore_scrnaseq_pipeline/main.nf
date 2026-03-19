@@ -227,7 +227,7 @@ def validateInputParameters() {
     genomeExistsError()
 
     // Validate cellranger_multi_barcodes if provided and aligner is cellrangermulti
-    if (params.aligner == 'cellrangermulti' && params.cellranger_multi_barcodes) {
+    if (params.aligner == 'cellrangermulti' && params.cellranger_multi_barcodes  && params.input) {
         validateCellrangerMultiBarcodes()
     }
 }
