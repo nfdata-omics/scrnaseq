@@ -32,7 +32,7 @@ workflow CELLRANGER_MULTI_ALIGN {
         .map{ meta ->
             def meta_clone = meta.clone()
             def data_dict  = meta_clone.find{ it.key == "${meta_clone.feature_type}" }
-            fastqs = data_dict?.value
+            def fastqs = data_dict?.value
             meta_clone.remove( data_dict?.key )
             [ meta_clone, fastqs ]
         }
@@ -145,15 +145,14 @@ workflow CELLRANGER_MULTI_ALIGN {
             if ( params.gex_frna_probe_set && params.gex_reference_version ) {
                 def probeset_file = file(params.gex_frna_probe_set)
                 def probeset_reference = null
-                probeset_file.withReader { reader ->
-                    String line
-                    while ((line = reader.readLine()) != null) {
-                        if (line.startsWith("#reference_genome=")) {
-                            ref_split = line.split("=")
-                            if (ref_split.size() > 1) {
-                                probeset_reference = ref_split[1].trim()
-                            }
-                            break
+                def done = false
+                probeset_file.eachLine { line ->
+                    if (done)
+                        return
+                    if (line.startsWith("#reference_genome=")) {
+                        def ref_split = line.split("=")
+                        if (ref_split.size() > 1) {
+                            probeset_reference = ref_split[1].trim()
                         }
                     }
                 }
@@ -249,27 +248,27 @@ workflow CELLRANGER_MULTI_ALIGN {
 }
 
 def parse_demultiplexed_output_channels(in_ch, pattern) {
-    out_ch =
-    in_ch.map { meta, mtx_files ->
-        def desired_files = []
-        mtx_files.each{ if ( it.toString().contains("${pattern}") ) { desired_files.add( it ) } }
-        [ meta, desired_files ]
-    }                    // separate only desired files
-    .transpose()         // transpose for handling one meta/file pair at a time
-    .map { meta, mtx_files ->
-        def meta_clone = meta.clone()
-        meta_clone.input_type = pattern.contains('raw_') ? 'raw' : 'filtered' // add metadata for conversion workflow
-        if ( mtx_files.toString().contains("per_sample_outs") ) {
-            def demultiplexed_sample_id = mtx_files.toString().split('/per_sample_outs/')[1].split('/')[0]
-            if ( demultiplexed_sample_id.toString() == meta.id) {
-                return null
+    def out_ch = in_ch
+        .map { meta, mtx_files ->
+            def desired_files = []
+            mtx_files.each{ if ( it.toString().contains("${pattern}") ) { desired_files.add( it ) } }
+            [ meta, desired_files ]
+        }                    // separate only desired files
+        .transpose()         // transpose for handling one meta/file pair at a time
+        .map { meta, mtx_files ->
+            def meta_clone = meta.clone()
+            meta_clone.input_type = pattern.contains('raw_') ? 'raw' : 'filtered' // add metadata for conversion workflow
+            if ( mtx_files.toString().contains("per_sample_outs") ) {
+                def demultiplexed_sample_id = mtx_files.toString().split('/per_sample_outs/')[1].split('/')[0]
+                if ( demultiplexed_sample_id.toString() == meta.id) {
+                    return null
+                }
+                meta_clone.id = demultiplexed_sample_id.toString()
             }
-            meta_clone.id = demultiplexed_sample_id.toString()
-        }
-        [ meta_clone, mtx_files ]
-    }                    // check if output is from demultiplexed sample, if yes, correct meta.id for proper conversion naming
-    .filter{ it != null } // remove nulls from previous step
-    .groupTuple( by: 0 ) // group it back as one file collection per sample
+            [ meta_clone, mtx_files ]
+        }                    // check if output is from demultiplexed sample, if yes, correct meta.id for proper conversion naming
+        .filter{ it != null } // remove nulls from previous step
+        .groupTuple( by: 0 ) // group it back as one file collection per sample
 
     return out_ch
 }

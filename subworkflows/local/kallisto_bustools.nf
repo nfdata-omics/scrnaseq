@@ -5,8 +5,6 @@ include {KALLISTOBUSTOOLS_COUNT }             from '../../modules/nf-core/kallis
 include { GUNZIP }                      from '../../modules/nf-core/gunzip/main'
 include { KALLISTOBUSTOOLS_REF }        from '../../modules/nf-core/kallistobustools/ref/main'
 
-def multiqc_report    = []
-
 workflow KALLISTO_BUSTOOLS {
     take:
     genome_fasta
