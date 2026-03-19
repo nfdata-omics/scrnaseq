@@ -15,7 +15,7 @@ workflow PSEUDOBULK_ANALYSIS {
         .combine(resolution)
         .combine(group_column)
         .combine(comparisons)
-         .map { h5mu, resolution, group_column, comparisons -> tuple(h5mu, group_column, resolution) }
+         .map { meta, h5mu, resolution, group_column, comparisons -> tuple(meta, h5mu, group_column, resolution, comparisons) }
          .set { pseudobulk_inputs }
 
     PSEUDOBULK(

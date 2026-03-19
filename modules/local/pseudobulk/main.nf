@@ -16,19 +16,24 @@ process PSEUDOBULK {
 
     script:
     """
+    export NUMBA_CACHE_DIR=/tmp
+    export MPLCONFIGDIR=/tmp
+    export XDG_CONFIG_HOME=/tmp
+
     cat > pseudobulk.py <<EOF
 ${file("${moduleDir}/pseudobulk.py").text}
 EOF
 
-    python3 ${moduleDir}/differential_abundance.py \
+    python3 pseudobulk.py \
         --mdata $h5mu \
         --resolution $resolution \
-        --group_column $group_column
+        --group_column $group_column \
+        --comparisons $comparison
 
     cat <<-END_VERSIONS > versions.yml
 "${task.process}":
 END_VERSIONS
-    python3 ${moduleDir}/differential_abundance.py --versions-dict "${task.process}" > versions.yml
+    python3 pseudobulk.py --versions-dict "${task.process}" >> versions.yml
     """
 
     stub:
@@ -39,6 +44,6 @@ END_VERSIONS
 ${file("${moduleDir}/pseudobulk.py").text}
 EOF
 
-    python3 ${moduleDir}/differential_abundance.py --versions-dict "${task.process}" > versions.yml
+    python3 pseudobulk.py --versions-dict "${task.process}" > versions.yml
     """
 }
