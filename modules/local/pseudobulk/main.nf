@@ -9,7 +9,7 @@ process PSEUDOBULK {
 
     output:
     path "pseudobulk/*.pdf", emit: pseudobulk_plots
-    tuple val(meta), path("pseudobulk/export_deseq2"), emit: pseudobulk_deseq2
+    tuple val(resolution), path("pseudobulk/export_deseq2"), emit: pseudobulk_deseq2
     path "versions.yml", emit: versions
 
     when:

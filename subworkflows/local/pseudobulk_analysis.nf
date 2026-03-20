@@ -34,7 +34,7 @@ workflow PSEUDOBULK_ANALYSIS {
                 def cluster = cluster_dir.name
                 def coldata = cluster_dir.resolve("coldata_cl_${cluster}.tsv")
                 def counts  = cluster_dir.resolve("counts_cl_${cluster}.tsv")
-                [ [id: cluster], counts, coldata ]
+                [ [id: cluster, resolution: meta], counts, coldata ]
             }
         }
         .multiMap { cluster, counts, coldata ->
