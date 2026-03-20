@@ -75,6 +75,11 @@
                         "git_sha": "53c2b466994f07def210b7f4cc866bb5a8a2cb92",
                         "installed_by": ["modules"]
                     },
+                    "qcatch": {
+                        "branch": "master",
+                        "git_sha": "cd518d4aca6ba4b4fcff8b0172cf8f921ad7b724",
+                        "installed_by": ["modules"]
+                    },
                     "kallistobustools/ref": {
                         "branch": "master",
                         "git_sha": "de8215983defba48cd81961d620a9e844f11c7e7",
@@ -87,12 +92,12 @@
                     },
                     "simpleaf/index": {
                         "branch": "master",
-                        "git_sha": "4ce8f451b1c44e02f5846b39276f5c501ca199ac",
+                        "git_sha": "e753770db613ce014b3c4bc94f6cba443427b726",
                         "installed_by": ["modules"]
                     },
                     "simpleaf/quant": {
                         "branch": "master",
-                        "git_sha": "4ce8f451b1c44e02f5846b39276f5c501ca199ac",
+                        "git_sha": "e753770db613ce014b3c4bc94f6cba443427b726",
                         "installed_by": ["modules"]
                     },
                     "star/genomegenerate": {

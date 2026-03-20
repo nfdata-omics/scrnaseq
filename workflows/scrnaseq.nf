@@ -39,6 +39,10 @@ workflow SCRNASEQ {
         error "Only cellranger supports `protocol = 'auto'`. Please specify the protocol manually!"
     }
 
+    // Get qcatch chemistry for simpleaf QC (if using simpleaf aligner)
+    qcatch_config = params.aligner == "simpleaf" ? Utils.getProtocol(workflow, log, "qcatch", params.protocol) : [:]
+    qcatch_chemistry = qcatch_config.containsKey('protocol') ? qcatch_config['protocol'] : null
+
     // general input and params
     ch_genome_fasta         = params.fasta                ? file(params.fasta, checkIfExists: true)    : []
     ch_gtf                  = params.gtf                  ? file(params.gtf, checkIfExists: true)      : []
@@ -143,6 +147,8 @@ workflow SCRNASEQ {
             ch_txp2gene,
             ch_barcode_whitelist,
             protocol_config['protocol'],
+            qcatch_chemistry,
+            params.skip_qcatch,
             params.simpleaf_umi_resolution,
             ch_fastq,
             [] // for existing map dir; not applicable
