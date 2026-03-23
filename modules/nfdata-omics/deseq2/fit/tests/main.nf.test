@@ -3,7 +3,7 @@ nextflow_process {
     script "../main.nf"
     process "DESEQ2_FIT"
     config "./nextflow.config"
- 
+
     test("gene count data (featureCounts) - rnaseq") {
         when {
             process {
@@ -22,7 +22,7 @@ nextflow_process {
                 """
             }
         }
- 
+
         then {
             assert process.success                        // Check process completed successfully
             assert snapshot(process.out.rds).match()      // Compare result to expected output (snapshot testing)

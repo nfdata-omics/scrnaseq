@@ -57,7 +57,7 @@ counts = counts[,-1]
 
 # Check if counts can be converted to numeric matrix. If not, stop the script and print an error message
 if(!all(sapply(counts, is.numeric))){
-  stop("Counts cannot be converted to numeric matrix. 
+  stop("Counts cannot be converted to numeric matrix.
        Please check the input file and make sure that are no gene names or other non-numeric values in the counts matrix.", call.=FALSE)
 }
 

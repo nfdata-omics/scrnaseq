@@ -10,7 +10,7 @@ workflow PSEUDOBULK_ANALYSIS {
     group_column
     comparisons
     formula
-    
+
     main:
 
     ch_versions = Channel.empty()
