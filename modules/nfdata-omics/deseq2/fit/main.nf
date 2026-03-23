@@ -6,7 +6,7 @@ process DESEQ2_FIT {
 
     input:
     tuple val(meta), path(counts)
-    tuple val(meta), path(metadata)
+    tuple val(meta2), path(metadata)
     val model_formula
 
     output:
