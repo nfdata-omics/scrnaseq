@@ -2,31 +2,6 @@
     "name": "nfdata-omics/scrnaseq",
     "homePage": "https://github.com/nfdata-omics/scrnaseq",
     "repos": {
-        "git@github.com:nfdata-omics/modules.git": {
-            "modules": {
-                "nfdata-omics": {
-                    "deseq2/compare": {
-                        "branch": "main",
-                        "git_sha": "27389abcbbc837e64c863281afe15a31461664f7",
-                        "installed_by": ["deseq2_analysis", "modules"]
-                    },
-                    "deseq2/fit": {
-                        "branch": "main",
-                        "git_sha": "e6522edb3fde0c0cfa47c8d91b84dbd61a9dd337",
-                        "installed_by": ["deseq2_analysis", "modules"]
-                    }
-                }
-            },
-            "subworkflows": {
-                "nfdata-omics": {
-                    "deseq2_analysis": {
-                        "branch": "main",
-                        "git_sha": "27389abcbbc837e64c863281afe15a31461664f7",
-                        "installed_by": ["subworkflows"]
-                    }
-                }
-            }
-        },
         "https://github.com/nf-core/modules.git": {
             "modules": {
                 "nf-core": {
@@ -153,6 +128,31 @@
                     "utils_nfschema_plugin": {
                         "branch": "master",
                         "git_sha": "4b406a74dc0449c0401ed87d5bfff4252fd277fd",
+                        "installed_by": ["subworkflows"]
+                    }
+                }
+            }
+        },
+        "https://github.com/nfdata-omics/modules.git": {
+            "modules": {
+                "nfdata-omics": {
+                    "deseq2/compare": {
+                        "branch": "main",
+                        "git_sha": "27389abcbbc837e64c863281afe15a31461664f7",
+                        "installed_by": ["deseq2_analysis"]
+                    },
+                    "deseq2/fit": {
+                        "branch": "main",
+                        "git_sha": "e6522edb3fde0c0cfa47c8d91b84dbd61a9dd337",
+                        "installed_by": ["deseq2_analysis"]
+                    }
+                }
+            },
+            "subworkflows": {
+                "nfdata-omics": {
+                    "deseq2_analysis": {
+                        "branch": "main",
+                        "git_sha": "27389abcbbc837e64c863281afe15a31461664f7",
                         "installed_by": ["subworkflows"]
                     }
                 }
