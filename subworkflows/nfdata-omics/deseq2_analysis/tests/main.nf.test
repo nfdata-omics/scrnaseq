@@ -3,7 +3,7 @@ nextflow_workflow {
     script "../main.nf"
     workflow "DIFFERENTIAL_ANALYSIS"
     config "./nextflow.config"
- 
+
     test("gene count data (featureCounts) - rnaseq") {
         when {
             workflow {
@@ -26,7 +26,7 @@ nextflow_workflow {
                 """
             }
         }
- 
+
         then {
             assert workflow.success                        // Check workflow completed successfully
             assert snapshot(workflow.out.rds).match()      // Compare result to expected output (snapshot testing)

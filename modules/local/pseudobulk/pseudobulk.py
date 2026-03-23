@@ -154,11 +154,11 @@ dc.swap_layer(pdata, "counts", inplace=True)
 # Plotting
 variables = ["sample", f"leiden_{set_res}", group_column]
 output_dir = os.path.join(os.getcwd(), 'pseudobulk')
-os.makedirs(output_dir, exist_ok=True) 
+os.makedirs(output_dir, exist_ok=True)
 
 for var in variables:
     fig, ax = plt.subplots(figsize=(40, 20))
-    sc.pl.pca(pdata, color=var, size=300, show=False)  
+    sc.pl.pca(pdata, color=var, size=300, show=False)
     file_path = os.path.join(output_dir, f'PCA_{var}.pdf')
     plt.savefig(file_path, bbox_inches='tight')
     plt.close()
@@ -175,10 +175,10 @@ clusters = gex.obs[f"leiden_{set_res}"].astype(str).unique().tolist()
 
 for cl in clusters:
     print(f"\nProcessing cluster {cl}")
-    
+
     # Subset cells to one cluster
     gex_cl = gex[gex.obs[f"leiden_{set_res}"].astype(str) == cl].copy()
-    
+
     # Skip small clusters
     if gex_cl.n_obs < 50:
         print(f"Skipping cluster {cl} (less than 50 cells)")
@@ -227,4 +227,4 @@ for cl in clusters:
     counts_df.to_csv(os.path.join(export_dir, f"counts_cl_{cl}.tsv"), sep="\t")
     coldata_df.to_csv(os.path.join(export_dir, f"coldata_cl_{cl}.tsv"), sep="\t")
 
-    print(f"Saved cluster {cl}")    
+    print(f"Saved cluster {cl}")

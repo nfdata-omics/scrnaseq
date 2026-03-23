@@ -15,7 +15,7 @@ option_list <- list(
 parser<-OptionParser(usage = "%prog [options] input_model contrast",
                      option_list = option_list, prog = "dge_deseq2_results",
                      description = "
-                     Extract results from a DGE model fitted with DESeq2. 
+                     Extract results from a DGE model fitted with DESeq2.
                      'input_model' is the path of the DESeq2 object containing the already fitted model.
                      'contrast' is a string of format variable:test:reference, with words separated by colon (:), where
                                 - 'variable' is the name of the variable (metadata column) on which the comparison will be performed (e.g. treatment). It must be one of the variables previously included in the model formula;
@@ -58,7 +58,7 @@ dds = get(load(input_model))
 
 # Extracting results
 if(n_num>1 | n_denom>1){
-  
+
   # Custom list A1,A2,A3... vs B1,B2... contrast
   num_list = paste(variable, num, sep="")
   num_list = num_list[num_list%in%resultsNames(dds)]
@@ -70,13 +70,13 @@ if(n_num>1 | n_denom>1){
   denomNames = gsub(variable, "", paste(denom_list, collapse="_"))
   my_res = results(dds, contrast=list(num_list, denom_list), listValues=c(1/n_num, -1/n_denom), independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
   # I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
-  
+
 } else {
-  
+
   # Direct A vs B contrast
   my_res = results(dds, contrast=c(variable, num, denom), independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
   # I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
-  
+
 }
 
 capture.output(summary(my_res, alpha=fdr), file=paste("deseq2_summary.",variable,"_",numNames,"_vs_",denomNames,suffix,".txt", sep=""))
