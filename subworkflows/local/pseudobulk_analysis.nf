@@ -10,6 +10,7 @@ workflow PSEUDOBULK_ANALYSIS {
     group_column
     comparisons
     formula
+    fdr
 
     main:
 
@@ -48,7 +49,7 @@ workflow PSEUDOBULK_ANALYSIS {
         deseq2_inputs.ch_metadata,
         formula,
         comparisons,
-        Channel.value("0.05")
+        fdr
     )
 
     ch_versions = ch_versions.mix(DIFFERENTIAL_ANALYSIS.out.versions)

@@ -522,6 +522,11 @@
                 "pseudobulk_formula": {
                     "type": "string",
                     "description": "Formula to be provided for DESeq2 analysis of pseudobulk data"
+                },
+                "pseudobulk_fdr": {
+                    "type": "number",
+                    "description": "FDR value to be used during differential analysis of pseudobulk",
+                    "default": 0.05
                 }
             }
         },
