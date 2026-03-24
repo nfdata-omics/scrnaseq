@@ -115,6 +115,10 @@ workflow SCRNASEQ {
         .value(params.pseudobulk_formula)
         : Channel.empty()
 
+    ch_pseudobulk_fdr = params.pseudobulk_fdr ? Channel
+        .value(params.pseudobulk_fdr)
+        : Channel.empty()
+
     // Run FastQC
     if (!params.skip_fastqc) {
         FASTQC_CHECK ( ch_fastq )
@@ -687,7 +691,8 @@ workflow SCRNASEQ {
             ch_resolution,
             ch_pseudobulk_group,
             ch_pseudobulk_comparisons,
-            ch_pseudobulk_formula
+            ch_pseudobulk_formula,
+            ch_pseudobulk_fdr
         )
         if (PSEUDOBULK_ANALYSIS.out.versions) {
             ch_versions = ch_versions.mix(PSEUDOBULK_ANALYSIS.out.versions)
