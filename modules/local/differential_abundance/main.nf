@@ -7,7 +7,7 @@ process DIFFERENTIAL_ABUNDANCE {
     container 'docker.io/nfdata/scverse-pertpy:v1.0.0-scanpy1.12'
 
     input:
-    tuple val(meta), path(h5mu), val(comparisons)
+    tuple val(meta), path(h5mu), val(comparisons), val(resolution)
 
     output:
     path "diff_abundance/*", emit: diff_abund_results
@@ -25,6 +25,7 @@ process DIFFERENTIAL_ABUNDANCE {
     python3 ${moduleDir}/resources/usr/bin/differential_abundance.py \
         --mdata $h5mu \
         --comparisons $comparisons
+        --resolution $resolution
 
     python3  ${moduleDir}/resources/usr/bin/differential_abundance.py \
         --versions-dict "${task.process}" > versions.yml
