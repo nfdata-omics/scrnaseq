@@ -24,7 +24,7 @@ process DIFFERENTIAL_ABUNDANCE {
 
     python3 ${moduleDir}/resources/usr/bin/differential_abundance.py \
         --mdata $h5mu \
-        --comparisons $comparisons
+        --comparisons $comparisons \
         --resolution $resolution
 
     python3  ${moduleDir}/resources/usr/bin/differential_abundance.py \
