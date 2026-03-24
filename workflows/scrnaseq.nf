@@ -673,14 +673,8 @@ workflow SCRNASEQ {
 
     }
 
-    PSEUDOBULK_ANALYSIS(
-        CLUSTERING.out.h5mu,
-        params.resolution,
-        ch_pseudobulk_group,
-        ch_pseudobulk_comparisons
-    )
-    if (PSEUDOBULK_ANALYSIS.out.versions) {
-        ch_versions = ch_versions.mix(PSEUDOBULK_ANALYSIS.out.versions)
+
+
     }
 
     //
