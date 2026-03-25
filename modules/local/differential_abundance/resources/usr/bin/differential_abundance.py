@@ -72,6 +72,8 @@ parser.add_argument("--mdata", type=str,
                     help="Path to input MuData object (h5mu file)")
 parser.add_argument("--comparisons", type=str,
                     help="Comparisons to be performed following column:target:reference (e.g. group:treated:control)")
+parser.add_argument("--resolution", type=str, default="0.5",
+                    help="Resolution of leiden clustering to be used for differential abundance (default: 0.5)")
 
 parser.add_argument("--versions-dict", type=str,
                     help="Return dictionary of versions used by the module and exit")
@@ -88,9 +90,12 @@ if args.versions_dict:
 #########################################
 comparisons = args.comparisons.split(':')
 
-column_name = "meta_" + comparisons[0]
+column_name = comparisons[0]
 target_level = comparisons[1]
 ref_level = comparisons[2]
+
+# Get resolution
+resolution = "leiden_" + args.resolution
 
 #########################################
 # Load data
@@ -113,9 +118,9 @@ gex.obs[["sample", column_name]].drop_duplicates().value_counts(column_name)
 
 # Create Excel file with how many cells per sample per cluster / per group per cluster
 with pd.ExcelWriter(os.path.join(os.getcwd(),'diff_abundance/cell_counts.xlsx')) as writer:
-    cell_counts = gex.obs.groupby(["sample", "leiden_0.5"]).size().unstack(fill_value=0)
+    cell_counts = gex.obs.groupby(["sample", resolution]).size().unstack(fill_value=0)
     cell_counts.to_excel(writer, sheet_name="samples_vs_clusters")
-    cell_counts = gex.obs.groupby([column_name, "leiden_0.5"]).size().unstack(fill_value=0)
+    cell_counts = gex.obs.groupby([column_name, resolution]).size().unstack(fill_value=0)
     cell_counts.to_excel(writer, sheet_name="group_vs_clusters")
 
 # Initialize object for Milo analysis: mudata object storing rna e milo matrix for differential abundance
@@ -123,7 +128,7 @@ milo = pt.tl.Milo()
 mmdata = milo.load(gex)
 mmdata['milo'].obs['sample'] = mmdata['rna'].obs['sample']
 mmdata['milo'].obs[column_name] = mmdata['rna'].obs[column_name]
-mmdata['milo'].obs['leiden_0.5'] = mmdata['rna'].obs['leiden_0.5']
+mmdata['milo'].obs[resolution] = mmdata['rna'].obs[resolution]
 
 # Check if knn graph is already compiled (it should be, since the object has been already processed with Scanpy workflow)
 print("KNN graph already compiled:", "neighbors" in gex.uns) # True, ok
@@ -201,7 +206,7 @@ plt.close()
 # Visualize result by celltype
 # Visualize whether DA is particularly evident in certain cell types.
 # To do this, each neighbourhood is assigned to a cell type by finding the most abundant cell type within cells in that neighbourhood
-milo.annotate_nhoods(mmdata, anno_col="leiden_0.5")
+milo.annotate_nhoods(mmdata, anno_col=resolution)
 # Mixed celltypes if the fraction of the most abundant celltype is lower than 0.6
 mmdata["milo"].var["nhood_annotation"] = mmdata["milo"].var["nhood_annotation"].cat.add_categories("Mixed")
 mmdata["milo"].var.loc[mmdata["milo"].var["nhood_annotation_frac"] < 0.6, "nhood_annotation"] = "Mixed"
