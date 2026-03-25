@@ -20,6 +20,23 @@
             "protocol": "dropseq"
         }
     },
+    "qcatch": {
+        "10XV1": {
+            "protocol": null
+        },
+        "10XV2": {
+            "protocol": "10X_3p_v2"
+        },
+        "10XV3": {
+            "protocol": "10X_3p_v3"
+        },
+        "10XV4": {
+            "protocol": "10X_3p_v4"
+        },
+        "dropseq": {
+            "protocol": null
+        }
+    },
     "cellranger": {
         "auto": {
             "protocol": "auto"

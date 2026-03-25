@@ -1,5 +1,5 @@
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
-include { ALEVINQC              } from '../../modules/local/alevinqc'
+include { QCATCH                } from '../../modules/nf-core/qcatch/main'
 include { SIMPLEAF_INDEX        } from '../../modules/nf-core/simpleaf/index'
 include { SIMPLEAF_QUANT        } from '../../modules/nf-core/simpleaf/quant'
 
@@ -13,6 +13,8 @@ workflow SIMPLEAF {
     txp2gene
     barcode_whitelist
     chemistry
+    qcatch_chemistry  // chemistry format for qcatch QC
+    skip_qcatch       // skip qcatch QC
     resolution
     ch_fastq   // channel
     map_dir
@@ -113,11 +115,18 @@ workflow SIMPLEAF {
 
     ch_af_map = map_dir ? ch_map_dir : SIMPLEAF_QUANT.out.map
     ch_af_quant = SIMPLEAF_QUANT.out.quant
+
     /*
-    * Run alevinQC
+    * Run qcatch QC (optional)
     */
-    ALEVINQC( ch_af_quant, ch_af_quant, ch_af_map )
-    ch_versions = ch_versions.mix(ALEVINQC.out.versions)
+    ch_qcatch_report = Channel.empty()
+    if ( !skip_qcatch ) {
+        // Map quant channel to include chemistry for qcatch: tuple(meta, chemistry, quant_dir)
+        ch_qcatch_input = ch_af_quant.map { meta, quant_dir -> [meta, qcatch_chemistry, quant_dir] }
+        QCATCH( ch_qcatch_input )
+        ch_versions = ch_versions.mix(QCATCH.out.versions)
+        ch_qcatch_report = QCATCH.out.report
+    }
 
 
     emit:
@@ -126,5 +135,5 @@ workflow SIMPLEAF {
     index       = simpleaf_index
     map         = ch_af_map
     quant       = ch_af_quant
-    alevinqc    = ALEVINQC.out.report
+    qcatch_report = ch_qcatch_report
 }
