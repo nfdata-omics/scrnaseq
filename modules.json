@@ -132,6 +132,31 @@
                     }
                 }
             }
+        },
+        "https://github.com/nfdata-omics/modules.git": {
+            "modules": {
+                "nfdata-omics": {
+                    "deseq2/compare": {
+                        "branch": "main",
+                        "git_sha": "52eb7383389f162cc4983d4e5c21f9e6ecc848d2",
+                        "installed_by": ["deseq2_analysis"]
+                    },
+                    "deseq2/fit": {
+                        "branch": "main",
+                        "git_sha": "52eb7383389f162cc4983d4e5c21f9e6ecc848d2",
+                        "installed_by": ["deseq2_analysis"]
+                    }
+                }
+            },
+            "subworkflows": {
+                "nfdata-omics": {
+                    "deseq2_analysis": {
+                        "branch": "main",
+                        "git_sha": "46c9fddbb892601df42985a3377f6c2e8089d7c3",
+                        "installed_by": ["subworkflows"]
+                    }
+                }
+            }
         }
     }
 }

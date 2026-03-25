@@ -33,8 +33,8 @@ include { CLUSTERING                                        } from '../modules/l
 include { CLUSTREE                                          } from '../modules/local/clustree'
 include { ENRICH_MARKERS                                    } from '../modules/local/enrich_markers'
 include { CUSTOM_GENES                                      } from '../modules/local/custom_genes'
-include { DIFFERENTIAL_ANALYSIS                             } from '../modules/local/differential_analysis'
 include { DIFFERENTIAL_ABUNDANCE                            } from '../modules/local/differential_abundance'
+include { PSEUDOBULK_ANALYSIS                               } from '../subworkflows/local/pseudobulk_analysis'
 
 workflow SCRNASEQ {
 
@@ -101,6 +101,23 @@ workflow SCRNASEQ {
     ch_diff_abundance_comparisons = params.diff_abundance_comparisons ? Channel
         .fromList(params.diff_abundance_comparisons.split(',').flatten())
         : channel.empty()
+
+    // Pseudobulk params
+    ch_pseudobulk_group = params.pseudobulk_group ? Channel
+        .value(params.pseudobulk_group)
+        : Channel.empty()
+
+    ch_pseudobulk_comparisons = params.pseudobulk_comparisons ? Channel
+        .fromList(params.pseudobulk_comparisons.split(',').flatten())
+        : channel.empty()
+
+    ch_pseudobulk_formula = params.pseudobulk_formula ? Channel
+        .value(params.pseudobulk_formula)
+        : Channel.empty()
+
+    ch_pseudobulk_fdr = params.pseudobulk_fdr ? Channel
+        .value(params.pseudobulk_fdr)
+        : Channel.empty()
 
     // Run FastQC
     if (!params.skip_fastqc) {
@@ -664,6 +681,24 @@ workflow SCRNASEQ {
     if (DIFFERENTIAL_ABUNDANCE.out.versions) {
         ch_versions = ch_versions.mix(DIFFERENTIAL_ABUNDANCE.out.versions)
     }
+
+    if ( params.resolution ) {
+
+        ch_resolution = Channel.fromList(params.resolution.toString().split(',').flatten())
+
+        PSEUDOBULK_ANALYSIS(
+            CLUSTERING.out.h5mu,
+            ch_resolution,
+            ch_pseudobulk_group,
+            ch_pseudobulk_comparisons,
+            ch_pseudobulk_formula,
+            ch_pseudobulk_fdr
+        )
+        if (PSEUDOBULK_ANALYSIS.out.versions) {
+            ch_versions = ch_versions.mix(PSEUDOBULK_ANALYSIS.out.versions)
+        }
+    }
+
 
     //
     // Collate and save software versions
