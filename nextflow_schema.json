@@ -510,6 +510,23 @@
                 "diff_abundance_comparisons": {
                     "type": "string",
                     "description": "Comparisons to be done during differential abundance analysis (e.g., variable1:condition1:condition2,variable2:condition3:condition4))"
+                },
+                "pseudobulk_group": {
+                    "type": "string",
+                    "description": "Metadata column to perform pseudobulking on"
+                },
+                "pseudobulk_comparisons": {
+                    "type": "string",
+                    "description": "Comparisons to be done during pseudobulk analysis (e.g., variable1:condition1:condition2,variable2:condition3:condition4))"
+                },
+                "pseudobulk_formula": {
+                    "type": "string",
+                    "description": "Formula to be provided for DESeq2 analysis of pseudobulk data"
+                },
+                "pseudobulk_fdr": {
+                    "type": "number",
+                    "description": "FDR value to be used during differential analysis of pseudobulk",
+                    "default": 0.05
                 }
             }
         },
