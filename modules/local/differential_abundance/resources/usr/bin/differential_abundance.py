@@ -90,7 +90,7 @@ if args.versions_dict:
 #########################################
 comparisons = args.comparisons.split(':')
 
-column_name = "meta_" + comparisons[0]
+column_name = comparisons[0]
 target_level = comparisons[1]
 ref_level = comparisons[2]
 
