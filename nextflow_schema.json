@@ -507,6 +507,16 @@
                     "type": "string",
                     "description": "Path to pre-trained celltypist model for cell type annotation."
                 },
+                "llm_species": {
+                    "type": "string",
+                    "description": "Sample species for LLM cell annotation",
+                    "fa_icon": "fas fa-otter"
+                },
+                "llm_tissue": {
+                    "type": "string",
+                    "description": "Sample tissue for LLM cell annotation",
+                    "fa_icon": "fas fa-bacterium"
+                },
                 "diff_abundance_comparisons": {
                     "type": "string",
                     "description": "Comparisons to be done during differential abundance analysis (e.g., variable1:condition1:condition2,variable2:condition3:condition4))"

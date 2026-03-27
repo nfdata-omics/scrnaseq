@@ -1,4 +1,4 @@
-process CELL_ANNOTATION  {
+process CELLANNOTATION_CELLTYPIST  {
     tag "$meta.id"
     label 'process_high'
 
