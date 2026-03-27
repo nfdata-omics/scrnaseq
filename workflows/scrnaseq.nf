@@ -27,7 +27,7 @@ include { CONCATENATE_VDJ                                   } from '../modules/l
 include { CONVERT_MUDATA                                    } from '../modules/local/convert_mudata'
 include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
 include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
-include { CELL_ANNOTATION                                   } from '../modules/local/cellannotation'
+include { CELL_ANNOTATION                                   } from '../subworkflows/local/cell_annotation'
 include { INTEGRATION_MODALITIES                            } from '../subworkflows/local/integration_modalities'
 include { CLUSTERING                                        } from '../modules/local/clustering'
 include { CLUSTREE                                          } from '../modules/local/clustree'
@@ -96,6 +96,11 @@ workflow SCRNASEQ {
 
     // cellrangerarc params
     ch_cellrangerarc_config = params.cellrangerarc_config ? file(params.cellrangerarc_config)          : []
+
+    // cell annotation params (celltypist and llm)
+    ch_input_model = params.input_model ? file(params.input_model, checkIfExists: true) : channel.empty()
+    ch_llm_tissue = params.llm_tissue ? Channel.value(params.llm_tissue) : Channel.empty()
+    ch_llm_species = params.llm_species ? Channel.value(params.llm_species) : Channel.empty()
 
     // Differential analysis params
     ch_diff_abundance_comparisons = params.diff_abundance_comparisons ? Channel
@@ -542,20 +547,14 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
     //
-    ch_input_model = params.input_model ? file(params.input_model, checkIfExists: true) : channel.empty()
 
-    if ( params.input_model ) {
-        CELL_ANNOTATION (
-            NORMALIZATION_AND_HVG.out.h5mu,
-            ch_input_model
-        )
-        ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
-        ch_mu5ad = CELL_ANNOTATION.out.h5mu
-        cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata
-    } else {
-        ch_mu5ad = NORMALIZATION_AND_HVG.out.h5mu
-        cell_annotation_meta_ch = channel.empty()
-    }
+    CELL_ANNOTATION (
+        CLUSTERING.out.h5mu,
+        ch_input_model,
+        params.resolution ? Channel.value(params.resolution) : Channel.empty(),
+        ch_llm_tissue,
+        ch_llm_species
+    )
 
     //
     // SUBWORKFLOW: Run ATAC preprocessing
