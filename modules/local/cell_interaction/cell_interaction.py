@@ -172,10 +172,9 @@ def main():
     # Read the count matrix for the combined samples and print some initial info
     print("\nProcessing count matrix in folder ... ", end="")
     mudata = mu.read_h5mu(input_h5mu_file)
-    adata = mudata.mod['gex']
+    adata = mudata.mod['normalized_gex']
     print("Done!")
     print(f"Count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes/ab")
-    print("Categories in testing variable:", adata.obs['meta_infection'].cat.categories)
 
     # --------------------------------------------------------------------------------------------------------------------
     #                                 PRE-PROCESSING

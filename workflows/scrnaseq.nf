@@ -721,7 +721,7 @@ workflow SCRNASEQ {
 
         ch_resolution = Channel.fromList(params.resolution.toString().split(',').flatten())
 
-        NORMALIZATION_AND_HVG.out.h5mu
+        CLUSTERING.out.h5mu
             .combine(ch_liana_method)
             .combine(ch_liana_resource)
             .combine(ch_resolution)
