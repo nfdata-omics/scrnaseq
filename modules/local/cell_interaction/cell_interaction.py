@@ -16,6 +16,7 @@ import liana as li                                          # cell-cell interact
 from liana.method import logfc, singlecellsignalr,natmi
 from liana.method import connectome,cellphonedb,logfc
 from liana.method import cellchat,geometric_mean,scseqcomm
+import mudata as mu
 import sys
 import importlib
 import importlib.metadata
@@ -146,7 +147,7 @@ def main():
     args = parser.parse_args()
 
     if args.versions_dict:
-        lib_list = ['liana', 'cellphonedb', 'matplotlib', 'scanpy']
+        lib_list = ['liana', 'cellphonedb', 'matplotlib', 'scanpy', 'mudata']
         print(versions_yaml(args.versions_dict, lib_list))
         sys.exit(0)
 
@@ -170,7 +171,8 @@ def main():
     print("\n===== READING COMBINED MATRIX =====")
     # Read the count matrix for the combined samples and print some initial info
     print("\nProcessing count matrix in folder ... ", end="")
-    adata = sc.read_h5ad(input_h5mu_file)
+    mudata = mu.read_h5mu(input_h5mu_file)
+    adata = mudata.mod['gex']
     print("Done!")
     print(f"Count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes/ab")
     print("Categories in testing variable:", adata.obs['meta_infection'].cat.categories)
