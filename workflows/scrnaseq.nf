@@ -731,6 +731,10 @@ workflow SCRNASEQ {
             cell_interaction_input
         )
 
+        if (CELL_INTERACTION.out.versions) {
+            ch_versions = ch_versions.mix(CELL_INTERACTION.out.versions)
+        }
+
     }
 
 

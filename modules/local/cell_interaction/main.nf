@@ -8,6 +8,9 @@ process CELL_INTERACTION {
     tuple val(meta), path(h5mu), val(method), val(resource), val(resolution)
 
     output:
+    path "*.pdf", emit: plots
+    path "*.xlsx", emit: excel
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
