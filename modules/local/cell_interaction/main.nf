@@ -25,7 +25,7 @@ process CELL_INTERACTION {
 ${file("${moduleDir}/cell_interaction.py").text}
 EOF
 
-    cell_interaction.py \
+    python3 cell_interaction.py \
         -ad $h5mu \
         -m $method \
         -resource $resource \
@@ -34,7 +34,7 @@ EOF
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
-        cell_interaction.py --version >> versions.yml
+        python3 cell_interaction.py --version >> versions.yml
     END_VERSIONS
     """
 
