@@ -35,6 +35,7 @@ include { ENRICH_MARKERS                                    } from '../modules/l
 include { CUSTOM_GENES                                      } from '../modules/local/custom_genes'
 include { DIFFERENTIAL_ABUNDANCE                            } from '../modules/local/differential_abundance'
 include { PSEUDOBULK_ANALYSIS                               } from '../subworkflows/local/pseudobulk_analysis'
+include { CELL_INTERACTION                                  } from '../modules/local/cell_interaction'
 
 workflow SCRNASEQ {
 
@@ -118,6 +119,14 @@ workflow SCRNASEQ {
     ch_pseudobulk_fdr = params.pseudobulk_fdr ? Channel
         .value(params.pseudobulk_fdr)
         : Channel.empty()
+
+    // Cell interaction params
+    ch_liana_method = params.liana_method ? Channel
+        .value(params.liana_method)
+        : channel.empty()
+    ch_liana_resource = params.liana_resource ? Channel
+        .value(params.liana_resource)
+        : channel.empty()
 
     // Run FastQC
     if (!params.skip_fastqc) {
@@ -705,6 +714,23 @@ workflow SCRNASEQ {
         if (PSEUDOBULK_ANALYSIS.out.versions) {
             ch_versions = ch_versions.mix(PSEUDOBULK_ANALYSIS.out.versions)
         }
+    }
+
+    // Cell to cell interaction
+    if ( params.resolution ) {
+
+        ch_resolution = Channel.fromList(params.resolution.toString().split(',').flatten())
+
+        NORMALIZATION_AND_HVG.out.h5mu
+            .combine(ch_liana_method)
+            .combine(ch_liana_resource)
+            .combine(ch_resolution)
+            .set { cell_interaction_input }
+
+        CELL_INTERACTION(
+            cell_interaction_input
+        )
+
     }
 
 
