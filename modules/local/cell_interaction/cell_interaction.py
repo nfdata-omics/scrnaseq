@@ -150,7 +150,7 @@ def main():
         print(versions_yaml(args.versions_dict, lib_list))
         sys.exit(0)
 
-    
+
     # --------------------------------------------------------------------------------------------------------------------
     #                                 DEFINE SAMPLES AND MTX PATHS
     # --------------------------------------------------------------------------------------------------------------------
@@ -217,7 +217,7 @@ def main():
         groupby=resolution,
         resource_name=resource,    # by default the resource uses HUMAN gene symbols, if you are working with mouse data, you can specify the resource_name as 'mouseconsensus'
         expr_prop=0.1,             # Minimum expression proportion for the ligands and receptors (+ their subunits) in the corresponding cell identities
-        return_all_lrs=False,      # Ligand-receptor pairs that pass the expr_prop threshold 
+        return_all_lrs=False,      # Ligand-receptor pairs that pass the expr_prop threshold
         use_raw=False,             # whether to use the log1p-transformed data for the analysis, by default it uses the log1p-transformed data, which is more suitable for the analysis.
         key_added = f"{method_name}_res",
         verbose=True,
@@ -259,7 +259,7 @@ def main():
             "size": "cellchat_pvals",
             "colour": "lr_probs"
         }
-    }   
+    }
 
     cfg = plot_config[method_name]
 
@@ -280,7 +280,7 @@ def main():
         size_range=(1, 6),
         return_fig=True,
     )
-    
+
     # Save the figure
     fig1.save(
         os.path.join(output_dir, plot_name),
@@ -289,7 +289,7 @@ def main():
         limitsize=False
     )
 
-    
+
 
     # Create the tileplot with filtered interactions statistics of ligands and receptors across the interacting cell types, which can be used to identify the cell types that are most likely to be involved in the interactions.
     plot_name = f"tileplot_cell-cell_interaction_{method_name}_{resolution}.pdf"
