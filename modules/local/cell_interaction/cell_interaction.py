@@ -160,6 +160,8 @@ def main():
     method = args.method
     resource = args.resource_name
     output_dir = os.path.join(os.getcwd(),f'cell_cell_interaction_final/{method}_{resource}')
+    os.makedirs(output_dir, exist_ok=True)
+
     resolution = "leiden_" + str(args.resolution)
 
 
