@@ -299,7 +299,7 @@ def main():
     plot_name = f"tileplot_cell-cell_interaction_{method_name}_{resolution}.pdf"
     fig2 = li.pl.tileplot(
         adata=adata,
-        fill=cfg.get("fill", "means"),
+        fill=cfg.get("fill", None),  
         label=cfg["label"],
         label_fun=lambda x: f"{x:.2f}",
         top_n=20,
