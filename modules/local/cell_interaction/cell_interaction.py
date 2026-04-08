@@ -172,7 +172,8 @@ def main():
     # Read the count matrix for the combined samples and print some initial info
     print("\nProcessing count matrix in folder ... ", end="")
     mudata = mu.read_h5mu(input_h5mu_file)
-    adata = mudata.mod['normalized_gex']
+    adata = mudata.mod['gex'].copy()
+    adata.X = adata.layers["normalized_gex"]
     print("Done!")
     print(f"Count matrix for combined samples has {adata.shape[0]} cells and {adata.shape[1]} genes/ab")
 
@@ -229,7 +230,7 @@ def main():
     # under the assumption that since CCC occurs between cell types, a sufficient proportion of cells within should express the genes.
     print(adata.uns[f"{method_name}_res"].head())
     res = adata.uns[f"{method_name}_res"]
-    res.to_excel(os.path.join(output_dir, f"{method_name}_results.xlsx"),index=False)
+    res.to_excel(os.path.join(output_dir, f"{method_name}_{resolution}_results.xlsx"),index=False)
 
     # --------------------------------------------------------------------------------------------------------------------
     #                           VISUALIZE PLOTS OF SIGNIFICANT INTERACTIONS FOR CHOSEN METHOD
