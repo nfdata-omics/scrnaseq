@@ -254,14 +254,18 @@ def main():
             "orderby_ascending": False,
             "filter_fun": lambda x: x["scaled_weight"] <= 0.05,
             "size": "scaled_weight",
-            "colour": "expr_prod"
+            "colour": "expr_prod",
+            "fill": "means",
+            "label": "props",
         },
         "cellchat": {
             "orderby": "lr_probs",
             "orderby_ascending": False,
             "filter_fun": lambda x: x["cellchat_pvals"] <= 0.05,
             "size": "cellchat_pvals",
-            "colour": "lr_probs"
+            "colour": "lr_probs",
+            "fill": "means",
+            "label": "props",
         }
     }
 
@@ -299,8 +303,8 @@ def main():
     plot_name = f"tileplot_cell-cell_interaction_{method_name}_{resolution}.pdf"
     fig2 = li.pl.tileplot(
         adata=adata,
-        fill=cfg.get("fill", None),
-        label=cfg.get("label", None),
+        fill=cfg["fill"],
+        label=cfg["label"],
         label_fun=lambda x: f"{x:.2f}",
         top_n=20,
         orderby=cfg["orderby"],
