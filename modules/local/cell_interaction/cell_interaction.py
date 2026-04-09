@@ -264,7 +264,7 @@ def main():
             "filter_fun": lambda x: x["cellchat_pvals"] <= 0.05,
             "size": "cellchat_pvals",
             "colour": "lr_probs",
-            "fill": "means",
+            "fill": "trimean",
             "label": "props",
         }
     }
