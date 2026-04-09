@@ -100,7 +100,7 @@ def main():
         metavar="H5MU_INPUT_FILES",
         type=pathlib.Path,
         dest="input_h5mu_files",
-        required=True,
+        required=False,
         help="paths of existing count matrix files in h5 format (including file names)"
     )
     parser.add_argument(
