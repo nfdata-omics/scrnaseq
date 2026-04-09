@@ -32,10 +32,10 @@ EOF
         --results cell_interaction \
         --resolution $resolution
 
-    cat <<-END_VERSIONS >> versions.yml
-    "${task.process}":
-        python3 cell_interaction.py --version >> versions.yml
-    END_VERSIONS
+    cat <<-END_VERSIONS > versions.yml
+"${task.process}":
+END_VERSIONS
+    python3 cell_interaction.py --versions-dict "${task.process}" >> versions.yml
     """
 
     stub:
