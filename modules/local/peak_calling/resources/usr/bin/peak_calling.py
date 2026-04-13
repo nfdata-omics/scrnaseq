@@ -45,8 +45,6 @@ def main():
                                     )
     parser.add_argument('-ad','--input-h5ad-combined',metavar= 'H5AD_INPUT_FILES', type=pathlib.Path, dest='input_h5ad_files',
                         required=True, help="paths of existing matrix files in h5ad format (including file names)")
-    parser.add_argument('-meta', '--input-metadata',metavar='META_FILE', type=pathlib.Path, dest='meta_file',
-                    help="Path of an csv input file (.csv)")
     parser.add_argument('-t', '--tile_out', metavar='H5AD_OUTPUT_TILE', type=pathlib.Path, default="matrix.tile_atac.h5ad",
                         help="path and name of the output h5ad file with the tile matrix")
     parser.add_argument('-p', '--peak_out', metavar='H5AD_OUTPUT_PEAK', type=pathlib.Path, default="matrix.peak_atac.h5ad",

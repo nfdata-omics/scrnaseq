@@ -18,8 +18,6 @@ workflow ATAC_PREPROCESSING {
     n_neighbors_atac
     n_clusters_atac
     blacklist_path
-    cell_annotation_meta_ch
-
 
 
     main:
@@ -53,8 +51,7 @@ workflow ATAC_PREPROCESSING {
 
 
         PEAK_CALLING(
-            DIMENSIONALITY_REDUCTION_ATAC.out.h5ad,
-            cell_annotation_meta_ch
+            DIMENSIONALITY_REDUCTION_ATAC.out.h5ad
         )
         ch_versions = ch_versions.mix(PEAK_CALLING.out.versions)
 
