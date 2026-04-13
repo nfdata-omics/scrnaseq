@@ -527,6 +527,14 @@
                     "type": "number",
                     "description": "FDR value to be used during differential analysis of pseudobulk",
                     "default": 0.05
+                },
+                "liana_resource": {
+                    "type": "string",
+                    "description": "Resource from Liana to be used when performing cell-cell interaction. Valid resources are: consensus (human) and mouseconsensus (mouse)"
+                },
+                "liana_method": {
+                    "type": "string",
+                    "description": "Method from Liana to be used when performing cell-cell interaction. Valid methods are: singlecellsignalr, connectome, cellphonedb, natmi, logfc, cellchat, geometric_mean, scseqcomm."
                 }
             }
         },
