@@ -32,7 +32,6 @@ include { INTEGRATION_MODALITIES                            } from '../subworkfl
 include { CLUSTERING                                        } from '../modules/local/clustering'
 include { CLUSTREE                                          } from '../modules/local/clustree'
 include { ENRICH_MARKERS                                    } from '../modules/local/enrich_markers'
-include { CUSTOM_GENES                                      } from '../modules/local/custom_genes'
 include { DIFFERENTIAL_ABUNDANCE                            } from '../modules/local/differential_abundance'
 include { PSEUDOBULK_ANALYSIS                               } from '../subworkflows/local/pseudobulk_analysis'
 
@@ -624,31 +623,6 @@ workflow SCRNASEQ {
             )
             ch_versions = ch_versions.mix(ENRICH_MARKERS.out.versions)
         }
-    }
-
-    //
-    // MODULES: Plot custom genelist
-    //
-    if ( params.custom_geneset ) {
-        ch_custom_geneset = Channel.fromList(params.custom_geneset.split(',').flatten())
-
-        if ( params.resolution ) {
-            resolution_ch
-                .combine( ch_custom_geneset )
-                .map{ res, genes -> [["res": res, "genes": genes], res, genes] }
-                .set { ch_res_geneset }
-        } else {
-            // if no resolution is provided, use 100 as fake resolution
-            fake_res = 100
-            ch_res_geneset = ch_custom_geneset.map { genes ->
-                [["res": fake_res, "genes": genes], fake_res, genes]
-            }
-        }
-        CUSTOM_GENES (
-            CLUSTERING.out.h5mu.collect(),
-            ch_res_geneset
-        )
-        ch_versions = ch_versions.mix(CUSTOM_GENES.out.versions)
     }
 
     //
