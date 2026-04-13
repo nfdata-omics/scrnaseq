@@ -80,6 +80,11 @@ workflow CELL_ANNOTATION {
         ch_dotplot = CUSTOM_GENES.out.dotplot
         ch_heatmap = CUSTOM_GENES.out.heatmap
         ch_violin = CUSTOM_GENES.out.violin
+    } else {
+        ch_featplot = channel.empty()
+        ch_dotplot = channel.empty()
+        ch_heatmap = channel.empty()
+        ch_violin = channel.empty()
     }
 
     emit:
