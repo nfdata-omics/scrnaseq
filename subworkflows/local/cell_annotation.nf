@@ -1,5 +1,5 @@
 include { CELLANNOTATION_CELLTYPIST       } from '../../modules/local/cellannotation/main.nf'
-include { CELLANNOTATION_LLM              } from '../../modules/local/cellannotation_llm/main.nf'
+include { CELL_ANNOTATION_LLM              } from '../../modules/local/cellannotation_llm/main.nf'
 
 workflow CELL_ANNOTATION {
 
@@ -14,7 +14,7 @@ workflow CELL_ANNOTATION {
     main:
 
     ch_versions = Channel.empty()
-    
+
     if ( params.input_model ) {
         CELLANNOTATION_CELLTYPIST (
             h5mu,
@@ -46,7 +46,7 @@ workflow CELL_ANNOTATION {
     emit:
 
     ch_versions
-    
+
     ch_mu5ad
     cell_annotation_meta_ch
     ch_versions
