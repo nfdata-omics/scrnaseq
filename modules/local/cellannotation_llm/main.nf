@@ -13,11 +13,11 @@ process CELL_ANNOTATION_LLM  {
     val(tissue)
 
     output:
-    tuple val(meta), path("*.annotated.h5mu"), emit: h5mu
-    path "umap_*.pdf"                        , emit: graph_umap
-    path "annotated_clusters_*.csv"          , emit: annotated_clusters     , optional: true
-    path "parameters_*.txt"                  , emit: parameters_txt         , optional: true
-    path "versions.yml"                      , emit: versions
+    tuple val(meta), path("**/*.annotated.h5mu"), emit: h5mu
+    path "**/umap_*.pdf"                        , emit: graph_umap
+    path "**/annotated_clusters_*.csv"          , emit: annotated_clusters     , optional: true
+    path "**/parameters_*.txt"                  , emit: parameters_txt         , optional: true
+    path "**/versions.yml"                      , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -51,10 +51,12 @@ END_VERSIONS
 
     stub:
     """
-    touch matrix.annotated.h5mu
-    touch umap_leiden_0.4_claude-haiku-4.5_2026.pdf
-    touch parameters_2026.txt
-    touch annotated_clusters_2026.csv
+    mkdir -p timestamp
+
+    touch timestamp/matrix.annotated.h5mu
+    touch timestamp/umap_leiden_0.4_claude-haiku-4.5_2026.pdf
+    touch timestamp/parameters_2026.txt
+    touch timestamp/annotated_clusters_2026.csv
 
     cat > cellannotation_llm.py <<EOF
 ${file("${moduleDir}/cellannotation_llm.py").text}

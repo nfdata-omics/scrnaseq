@@ -73,7 +73,6 @@ def main():
     parser.add_argument('--lfc', type=float, default=1.5, help='Log fold change threshold for marker gene selection')
     parser.add_argument('--resolutions', type=str, nargs='+', help='Leiden resolutions to do cell type annotation on (e.g. leiden_0.3)')
     parser.add_argument('--umap_embedding', type=str, default='X_umap', help='Name of UMAP embedding in .obsm (default: X_umap)')
-    parser.add_argument('--out', metavar='H5MU_OUTPUT_FILE', type=Path, default="matrix.annotated.h5mu", help="name of the output h5mu file after cell annotation")
     parser.add_argument('--versions_dict', type=str, help="Return dictionary of versions used by the module and exit")
     args = parser.parse_args()
 
@@ -105,6 +104,9 @@ def main():
     mct.setup_logging(log_level='ERROR')
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     sc.settings.figdir = "." # Set scanpy figure directory
+
+    # Create output directory
+    os.makedirs(timestamp, exist_ok=True)
 
     # --------------------------------------------------------------------------------------------------------------------
     #                                 READ H5MU FILES
@@ -214,9 +216,9 @@ def main():
                         show=False
                     )
 
-                    plt.savefig(os.path.join("./", f"{plot_name}.pdf"), bbox_inches='tight', dpi=300)
+                    plt.savefig(os.path.join(f"./{timestamp}", f"{plot_name}.pdf"), bbox_inches='tight', dpi=300)
                     plt.close()
-                    print(f"Saved UMAP plot as: {os.path.join("./", f'{plot_name}.pdf')}\n")
+                    print(f"Saved UMAP plot as: {os.path.join(f'./{timestamp}', f'{plot_name}.pdf')}\n")
                 except Exception as plot_error:
                     print(f"Warning: Could not save UMAP plot: {plot_error}\n")
             except Exception as e:
@@ -226,14 +228,14 @@ def main():
     #                           SAVE ANNOTATIONS TO CSV
     # --------------------------------------------------------------------------------------------------------------------
     results_df = pd.DataFrame(all_results)
-    results_file = f'./annotated_clusters_{timestamp}.csv'
+    results_file = f'./{timestamp}/annotated_clusters_{timestamp}.csv'
     results_df.to_csv(results_file, index=False)
     print(f"Saved annotation results to {results_file}")
 
     # --------------------------------------------------------------------------------------------------------------------
     #                           SAVE INPUT PARAMETERS TO TXT
     # --------------------------------------------------------------------------------------------------------------------
-    with open(f'./parameters_{timestamp}.txt', 'w') as f:
+    with open(f'./{timestamp}/parameters_{timestamp}.txt', 'w') as f:
         f.write(f"Models: {list(models_config.keys())}\np-value cutoff: {args.pval}\nlog2fc minimum: {args.lfc}\nNumber of marker genes: {args.n_genes}\nResolutions: {args.resolutions}\nSpecies: {args.species}\nTissue: {args.tissue}\n")
 
     # --------------------------------------------------------------------------------------------------------------------
@@ -252,7 +254,7 @@ def main():
     print(mu.obs)
     print(mu.var)
 
-    output = str(args.out)
+    output = str(f"./{timestamp}/matrix.annotated.h5mu")
     print("Saving h5mu data to file {}".format(output))
     mu.write(output)
     print(mu)
