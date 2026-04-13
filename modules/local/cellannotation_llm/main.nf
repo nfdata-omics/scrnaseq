@@ -3,7 +3,7 @@ process CELL_ANNOTATION_LLM  {
     label 'process_high'
 
 
-    container 'docker.io/nfdata/muon-sc_rnaseq:v1.0.3'
+    container 'docker.io/nfdata/mllmcelltype:v2.0.4'
 
 
     input:
