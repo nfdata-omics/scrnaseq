@@ -29,7 +29,11 @@ process CELL_ANNOTATION_LLM  {
     export XDG_CONFIG_HOME=/tmp
     export CELLTYPIST_FOLDER=/tmp
 
-    cellannotation_llm.py \
+    cat > cellannotation_llm.py <<EOF
+${file("${moduleDir}/cellannotation_llm.py").text}
+EOF
+
+    python3 cellannotation_llm.py \
         --input $input_h5mu \
         --species $species \
         --tissue $tissue \
@@ -39,10 +43,10 @@ process CELL_ANNOTATION_LLM  {
         --resolutions $resolutions \
         --umap_embedding X_umap
 
-    cat <<-END_VERSIONS >> versions.yml
-    "${task.process}":
-        cellannotation_llm.py --version >> versions.yml
-    END_VERSIONS
+    cat <<-END_VERSIONS > versions.yml
+"${task.process}":
+END_VERSIONS
+    python3 cellannotation_llm.py --versions-dict "${task.process}" >> versions.yml
     """
 
     stub:
@@ -52,9 +56,10 @@ process CELL_ANNOTATION_LLM  {
     touch parameters_2026.txt
     touch annotated_clusters_2026.csv
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        cellannotation.py --version >> versions.yml
-    END_VERSIONS
+    cat > cellannotation_llm.py <<EOF
+${file("${moduleDir}/cellannotation_llm.py").text}
+EOF
+
+    python3 cellannotation_llm.py --versions-dict "${task.process}" > versions.yml
     """
 }

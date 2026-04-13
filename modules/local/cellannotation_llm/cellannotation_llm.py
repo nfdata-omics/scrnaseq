@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import pandas as pd
 import anndata as ad
 import mudata as md
@@ -13,9 +14,49 @@ import os
 from dotenv import load_dotenv
 import argparse
 from pathlib import Path
+import importlib
+import importlib.metadata
+import yaml
 
 # set script version number
 VERSION = "0.0.1"
+
+def versions_yaml(process_name, list_of_libs=None):
+    """
+    Generate YAML formatted string with versions of relevant libraries.
+
+    Parameters
+    ----------
+    process_name : str
+        Process name to use as key in the versions dictionary.
+    list_of_libs : list of str, optional
+        List of specific library names to include in the versions dictionary.
+
+    Returns
+    -------
+    str
+        YAML formatted string containing library versions and Python version.
+    """
+
+    versions = {}
+    versions[process_name] = {}
+
+    versions[process_name]['python'] = f"{sys.version_info.major}" \
+        f".{sys.version_info.minor}.{sys.version_info.micro}"
+
+    for lib in list_of_libs:
+        try:
+            version = importlib.metadata.version(lib)
+        except importlib.metadata.PackageNotFoundError:
+            try:
+                module = importlib.import_module(lib)
+                version = getattr(module, '__version__', 'unknown')
+            except (ImportError, AttributeError):
+                version = None
+        if version is not None:
+            versions[process_name][lib] = version
+
+    return yaml.dump(versions)
 
 def main():
     """
@@ -33,7 +74,14 @@ def main():
     parser.add_argument('--resolutions', type=str, nargs='+', help='Leiden resolutions to do cell type annotation on (e.g. leiden_0.3)')
     parser.add_argument('--umap_embedding', type=str, default='X_umap', help='Name of UMAP embedding in .obsm (default: X_umap)')
     parser.add_argument('--out', metavar='H5MU_OUTPUT_FILE', type=Path, default="matrix.annotated.h5mu", help="name of the output h5mu file after cell annotation")
+    parser.add_argument('--versions_dict', type=str, help="Return dictionary of versions used by the module and exit")
     args = parser.parse_args()
+
+    # Return versions of libraries if --version flag is used
+    if args.versions_dict:
+        lib_list = ['pandas', 'anndata', 'mudata', 'argparse', 'matplotlib', 'scanpy', 'numpy', 'mllmcelltype']
+        print(versions_yaml(args.versions_dict, lib_list ))
+        sys.exit(0)
 
     # API Keys - FIGURE OUT WHERE TO PUT THIS IN PIPELINE
     load_dotenv()
