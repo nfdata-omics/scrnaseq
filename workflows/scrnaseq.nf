@@ -545,18 +545,6 @@ workflow SCRNASEQ {
     ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
 
     //
-    // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
-    //
-
-    CELL_ANNOTATION (
-        CLUSTERING.out.h5mu,
-        ch_input_model,
-        params.resolution ? Channel.value(params.resolution) : Channel.empty(),
-        ch_llm_tissue,
-        ch_llm_species
-    )
-
-    //
     // SUBWORKFLOW: Run ATAC preprocessing
     //
     atac_out_h5ad = Channel.empty()
@@ -663,6 +651,18 @@ workflow SCRNASEQ {
         )
         ch_versions = ch_versions.mix(CUSTOM_GENES.out.versions)
     }
+
+    //
+    // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
+    //
+
+    CELL_ANNOTATION (
+        CLUSTERING.out.h5mu,
+        ch_input_model,
+        params.resolution ? Channel.value(params.resolution) : Channel.empty(),
+        ch_llm_tissue,
+        ch_llm_species
+    )
 
     '''
     //

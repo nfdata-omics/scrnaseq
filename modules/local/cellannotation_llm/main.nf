@@ -3,7 +3,7 @@ process CELL_ANNOTATION_LLM  {
     label 'process_high'
 
 
-    container = 'docker.io/nfdata/muon-sc_rnaseq:v1.0.3'
+    container 'docker.io/nfdata/muon-sc_rnaseq:v1.0.3'
 
 
     input:
@@ -15,8 +15,8 @@ process CELL_ANNOTATION_LLM  {
     output:
     tuple val(meta), path("*.annotated.h5mu"), emit: h5mu
     path "umap_*.pdf"                        , emit: graph_umap
-    path "annotated_clusters_*.csv".         , emit: annotated_clusters     , optional: true
-    path "parameters_*.txt".                 , emit: parameters_txt         , optional: true
+    path "annotated_clusters_*.csv"          , emit: annotated_clusters     , optional: true
+    path "parameters_*.txt"                  , emit: parameters_txt         , optional: true
     path "versions.yml"                      , emit: versions
 
     when:
@@ -48,9 +48,9 @@ process CELL_ANNOTATION_LLM  {
     stub:
     """
     touch matrix.annotated.h5mu
-    touch umap_leiden_0.4_claude-haiku-4.5_2026.png
+    touch umap_leiden_0.4_claude-haiku-4.5_2026.pdf
     touch parameters_2026.txt
-    touch model_comparison_2026.csv
+    touch annotated_clusters_2026.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

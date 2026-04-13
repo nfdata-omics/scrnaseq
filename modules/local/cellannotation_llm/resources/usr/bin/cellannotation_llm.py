@@ -81,10 +81,10 @@ def main():
     # -------------------------------------------------------------------------------------------------------------------
 
     all_results = []
-    
+
     for res in args.resolutions:
         print(f"\n=== Processing Leiden resolution:: {res} ===")
-        
+
         # Calculate marker genes (once per resolution)
         sc.tl.rank_genes_groups(adata, res, method='wilcoxon')
         marker_genes = {}
@@ -93,7 +93,7 @@ def main():
             marker_genes[cluster] = genes
         print(f"Found {len(marker_genes)} clusters\n")
         print(f"Marker Genes per Cluster: {marker_genes}\n")
-        
+
         for model, provider in models_config.items():
             time.sleep(5)
             print(f"Testing model {model} with provider {provider}:")
@@ -126,7 +126,7 @@ def main():
                 for cluster, cell_type in sorted(annotations.items()):
                     print(f"  Cluster {cluster}: {cell_type}")
                 print()
-                
+
                 # Store cluster annotations
                 for cluster, celltype in annotations.items():
                     all_results.append({
@@ -135,24 +135,24 @@ def main():
                         'cluster': cluster,
                         'cell_type': celltype
                     })
-                
+
                 # --------------------------------------------------------------------------------------------------------------------
                 #                           ADD ANNOTATIONS BACK TO ANNDATA
                 # --------------------------------------------------------------------------------------------------------------------
                 col_name = f"celltype_{res}_{model_short}"
                 col_name_with_cluster = f"{col_name}_with_cluster"
-                
+
                 # Map cluster IDs to cell types
                 adata.obs[col_name] = adata.obs[res].astype(str).map(annotations)
-                
+
                 # Create combined label with cluster number and cell type
                 adata.obs[col_name_with_cluster] = (
                     adata.obs[res].astype(str) + ": " + adata.obs[col_name].astype(str)
                 )
-                
+
                 print(f"Annotating with {model}...")
                 print(f"  Unique cell types: {adata.obs[col_name].nunique()}")
-                
+
                 # --------------------------------------------------------------------------------------------------------------------
                 #                           PLOT UMAP WITH ANNOTATIONS
                 # --------------------------------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ def main():
                         title=f'{model} - {res}',
                         show=False
                     )
-                    
+
                     plt.savefig(os.path.join("./", f"{plot_name}.pdf"), bbox_inches='tight', dpi=300)
                     plt.close()
                     print(f"Saved UMAP plot as: {os.path.join("./", f'{plot_name}.pdf')}\n")
@@ -192,14 +192,14 @@ def main():
     #                           SAVING GEX DATA INTO MUDATA FILE
     # --------------------------------------------------------------------------------------------------------------------
     print("\n===== SAVING GEX DATA INTO MUDATA FILE =====")
-    
+
     # If input was h5ad, create a new MuData object with gex as the only modality (for simplicity - not going to happen in scrna pipeline)
     if args.input.suffix == '.h5ad':
         mu = md.MuData({'gex': adata})
     else:
         # If input was h5mu, update the existing mdata with annotated gex
         mu.mod['gex'] = adata
-    
+
     mu.update()
     print(mu.obs)
     print(mu.var)
@@ -212,4 +212,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
