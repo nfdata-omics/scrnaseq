@@ -6,7 +6,6 @@ process PEAK_CALLING  {
 
     input:
     tuple val(meta), path (input_h5ad)
-    path input_meta_file
 
     output:
     tuple val(meta), path("matrix.tile_atac.h5ad"), emit: h5ad_tile, optional: true
@@ -23,7 +22,7 @@ process PEAK_CALLING  {
     export XDG_CONFIG_HOME=/tmp
     export XDG_CACHE_HOME=/tmp
 
-    peak_calling.py  -ad $input_h5ad -meta $input_meta_file
+    peak_calling.py  -ad $input_h5ad
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":

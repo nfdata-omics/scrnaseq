@@ -566,8 +566,7 @@ workflow SCRNASEQ {
             params.n_comps_atac,
             params.n_neighbors_atac,
             params.n_clusters_atac,
-            blacklist_path,
-            cell_annotation_meta_ch
+            blacklist_path
         )
         atac_out_h5ad = ATAC_PREPROCESSING.out.h5ad
         ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
@@ -578,7 +577,7 @@ workflow SCRNASEQ {
     //
 
     INTEGRATION_MODALITIES (
-        ch_mu5ad,
+        NORMALIZATION_AND_HVG.out.h5mu,
         atac_out_h5ad,
         params.n_neighbors_harmony,
         params.min_dist_harmony,

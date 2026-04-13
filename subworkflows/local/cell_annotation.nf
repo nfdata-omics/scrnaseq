@@ -30,18 +30,18 @@ workflow CELL_ANNOTATION {
         cell_annotation_meta_ch = channel.empty()
     }
 
-    CELLANNOTATION_LLM(
+    CELL_ANNOTATION_LLM(
         h5mu,
         resolutions,
         llm_species,
         llm_tissue
     )
 
-    ch_versions = ch_versions.mix(CELLANNOTATION_LLM.out.versions)
-    ch_llm_h5mu = CELLANNOTATION_LLM.out.h5mu
-    ch_llm_umap = CELLANNOTATION_LLM.out.graph_umap
-    ch_llm_annotated_clusters = CELLANNOTATION_LLM.out.annotated_clusters
-    ch_llm_parameters_txt = CELLANNOTATION_LLM.out.parameters_txt
+    ch_versions = ch_versions.mix(CELL_ANNOTATION_LLM.out.versions)
+    ch_llm_h5mu = CELL_ANNOTATION_LLM.out.h5mu
+    ch_llm_umap = CELL_ANNOTATION_LLM.out.graph_umap
+    ch_llm_annotated_clusters = CELL_ANNOTATION_LLM.out.annotated_clusters
+    ch_llm_parameters_txt = CELL_ANNOTATION_LLM.out.parameters_txt
 
     emit:
 
