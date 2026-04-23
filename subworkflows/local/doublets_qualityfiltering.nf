@@ -18,7 +18,7 @@ workflow DOUBLETS_QUALITYFILTERING {
 
 
     main:
-        ch_versions = Channel.empty()
+        ch_versions = channel.empty()
 
         //
         // MODULE: Compute doublet score for each sample in the concatenated rds file
@@ -44,14 +44,14 @@ workflow DOUBLETS_QUALITYFILTERING {
             QUALITY_FILTERING (
                 ch_h5mu_concat_filtered,
                 doublets_out,
-                params.mt_threshold,
-                params.min_umi_gex,
-                params.max_umi_gex,
-                params.min_genes_gex,
-                params.max_genes_gex,
-                params.min_cells_gex,
-                params.min_features_adt,
-                params.min_counts_adt
+                mt_threshold,
+                min_umi_gex,
+                max_umi_gex,
+                min_genes_gex,
+                max_genes_gex,
+                min_cells_gex,
+                min_features_adt,
+                min_counts_adt
             )
             ch_versions = ch_versions.mix(QUALITY_FILTERING.out.versions.first())
             h5mu_out = QUALITY_FILTERING.out.h5mu

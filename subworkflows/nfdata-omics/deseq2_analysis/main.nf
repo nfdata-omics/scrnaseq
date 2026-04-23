@@ -12,7 +12,7 @@ workflow DIFFERENTIAL_ANALYSIS {
 
     main:
 
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     DESEQ2_FIT(
         ch_counts,

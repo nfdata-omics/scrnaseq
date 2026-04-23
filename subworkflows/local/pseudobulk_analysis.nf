@@ -14,13 +14,13 @@ workflow PSEUDOBULK_ANALYSIS {
 
     main:
 
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     h5mu
         .combine(resolution)
         .combine(group_column)
         .combine(comparisons)
-         .map { meta, h5mu, resolution, group_column, comparisons -> tuple(meta, h5mu, group_column, resolution, comparisons) }
+         .map { meta, file, res, column, comp -> tuple(meta, file, column, res, comp) }
          .set { pseudobulk_inputs }
 
     PSEUDOBULK(
