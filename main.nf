@@ -18,6 +18,9 @@
 params.fasta            = getGenomeAttribute('fasta')
 params.gtf              = getGenomeAttribute('gtf')
 params.star_index       = getGenomeAttribute('star')
+params.cellranger_index = getGenomeAttribute(
+    params.aligner == 'cellrangerarc' ? 'cellranger_atac' : 'cellranger'
+)
 params.cellranger_vdj_index = getGenomeAttribute('cellranger_vdj')
 
 
@@ -48,8 +51,6 @@ workflow NFDATAOMICS_SCRNASEQ {
     h5ad_matrix // channel: h5ad matrix file read as --h5ad_matrix
 
     main:
-
-    initializeConditionalParameters()
 
     //
     // WORKFLOW: Run pipeline
@@ -108,17 +109,6 @@ workflow {
         params.hook_url,
         NFDATAOMICS_SCRNASEQ.out.multiqc_report
     )
-}
-
-//
-// Initialize conditional parameters based on other parameter values
-//
-def initializeConditionalParameters() {
-    if (params.aligner == "cellrangerarc") {
-        params.cellranger_index = getGenomeAttribute('cellranger_atac')
-    } else {
-       params.cellranger_index = getGenomeAttribute('cellranger')
-    }
 }
 
 //
