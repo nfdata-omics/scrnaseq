@@ -13,16 +13,16 @@ workflow INTEGRATION_MODALITIES {
 
 
     main:
-        ch_versions = Channel.empty()
+        ch_versions = channel.empty()
 
         //
         // MODULE: Integrate GEX and ADT modalities indipendently with Harmony
         //
         INTEGRATION (
             h5mu,
-            params.n_neighbors_harmony,
-            params.min_dist_harmony,
-			params.integration_var
+            n_neighbors_harmony,
+            min_dist_harmony,
+			integration_var
         )
         ch_versions = ch_versions.mix(INTEGRATION.out.versions.first())
 	    integration_out = INTEGRATION.out.h5mu

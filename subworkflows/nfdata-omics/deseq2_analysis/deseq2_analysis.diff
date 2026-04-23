@@ -1,0 +1,19 @@
+Changes in component 'nfdata-omics/deseq2_analysis'
+'subworkflows/nfdata-omics/deseq2_analysis/meta.yml' is unchanged
+Changes in 'deseq2_analysis/main.nf':
+--- subworkflows/nfdata-omics/deseq2_analysis/main.nf
++++ subworkflows/nfdata-omics/deseq2_analysis/main.nf
+@@ -12,7 +12,7 @@
+ 
+     main:
+ 
+-    ch_versions = Channel.empty()
++    ch_versions = channel.empty()
+ 
+     DESEQ2_FIT(
+         ch_counts,
+
+'subworkflows/nfdata-omics/deseq2_analysis/tests/main.nf.test.snap' is unchanged
+'subworkflows/nfdata-omics/deseq2_analysis/tests/nextflow.config' is unchanged
+'subworkflows/nfdata-omics/deseq2_analysis/tests/main.nf.test' is unchanged
+************************************************************
