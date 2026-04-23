@@ -23,7 +23,7 @@ workflow ATAC_PREPROCESSING {
 
 
     main:
-        ch_versions = Channel.empty()
+        ch_versions = channel.empty()
 
 
         QUALITY_FILTERING_ATAC (
@@ -40,12 +40,12 @@ workflow ATAC_PREPROCESSING {
 
         DIMENSIONALITY_REDUCTION_ATAC (
             QUALITY_FILTERING_ATAC.out.h5ad,
-            params.n_features_atac,
-            params.frac_dup,
-            params.peaks_frac,
-            params.n_comps_atac,
-            params.n_neighbors_atac,
-            params.n_clusters_atac,
+            n_features_atac,
+            frac_dup,
+            peaks_frac,
+            n_comps_atac,
+            n_neighbors_atac,
+            n_clusters_atac,
             blacklist_path,
             QUALITY_FILTERING_ATAC.out.cell_counts
         )

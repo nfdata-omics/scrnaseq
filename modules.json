@@ -152,7 +152,7 @@
                 "nfdata-omics": {
                     "deseq2_analysis": {
                         "branch": "main",
-                        "git_sha": "46c9fddbb892601df42985a3377f6c2e8089d7c3",
+                        "git_sha": "7ee1c02b7a3ec4718fefb57f813fb2871753f4b4",
                         "installed_by": ["subworkflows"]
                     }
                 }

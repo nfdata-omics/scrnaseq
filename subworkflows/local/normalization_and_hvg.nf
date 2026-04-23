@@ -13,7 +13,7 @@ workflow NORMALIZATION_AND_HVG {
     min_dist
 
     main:
-        ch_versions = Channel.empty()
+        ch_versions = channel.empty()
 
         //
         // MODULE: Normalize count matrices contained in the concatenated h5ad file
@@ -30,9 +30,9 @@ workflow NORMALIZATION_AND_HVG {
         //
         HIGHLY_VARIABLE_GENES (
             NORMALIZATION.out.h5mu,
-            params.n_pcs,
-            params.n_neighbors,
-            params.min_dist
+            n_pcs,
+            n_neighbors,
+            min_dist
         )
         ch_versions = ch_versions.mix(HIGHLY_VARIABLE_GENES.out.versions.first())
 

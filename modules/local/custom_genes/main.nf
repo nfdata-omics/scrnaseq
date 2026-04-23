@@ -2,7 +2,7 @@ process CUSTOM_GENES {
     tag "${meta_geneset.res}_${meta_geneset.genes}"
     label 'process_medium'
 
-    container = 'docker.io/nfdata/sc_rnaseq:v1.0.1'
+    container 'docker.io/nfdata/sc_rnaseq:v1.0.1'
 
     input:
     tuple val(meta), path(input_h5mu)
