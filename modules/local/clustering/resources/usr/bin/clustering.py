@@ -56,7 +56,7 @@ def main():
     parser.add_argument('-e', '--excel_out', metavar='RANKED_GENES_XLSX', default="ranked_genes.xlsx",
                         help="path and name of excel table with ranked marker genes for each cluster and resolution")
     parser.add_argument('-csv', '--csv_out', metavar='H5AD_OUTPUT_FILE', default="final_metadata.csv",
-                        help="path and name of csv tabel with UMAP coordinates for each cell")
+                        help="path and name of csv table with UMAP coordinates for each cell")
     parser.add_argument('-min_res', '--resolution_min',  dest='min_res', type=float, default=0.1,
                         help="Minimum clustering resolution to be evaluated (default: 0.1). All resolution values between min_res and max_res will be evaluated.")
     parser.add_argument('-max_res', '--resolution_max',  dest='max_res', type=float, default=1.1,
@@ -112,8 +112,10 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                                 CLUSTERING
 # --------------------------------------------------------------------------------------------------------------------
-    # Clustering was performed on the Harmony representation (integrated reduced matrix)
-    print(gex.uns['neighbors']['params']['use_rep'])
+    # Clustering will be performed on the Harmony representation (integrated reduced matrix) if present,
+    # or on the PCA scores for single-sample/not-integrated datasets.
+    use_rep = gex.uns.get('neighbors', {}).get('params', {}).get('use_rep', 'X_pca')
+    print(f"Clustering will use neighbor graph built on: {use_rep}")
 
     print("\n===== CLUSTERING =====")
     # Clusters cells based on transcriptional similarities
