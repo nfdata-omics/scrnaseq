@@ -59,7 +59,7 @@ def main():
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered_atac.h5ad",
                         help="path and name of the output h5ad file")
     parser.add_argument('-csv_count', '--csv_out_count', metavar='CSV_Count', default="cell_counts.csv",
-                        help="path and name of csv tabel with the number of cells before and after filtering")
+                        help="path and name of csv table with the number of cells before and after filtering")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
                         help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)

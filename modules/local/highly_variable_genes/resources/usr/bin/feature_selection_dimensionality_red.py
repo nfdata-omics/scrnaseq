@@ -51,7 +51,7 @@ def main():
     parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.hvg.h5mu",
                         help="name of the output h5ad file after dimensionality reduction")
     parser.add_argument('-csv', '--csv_out', metavar='CSV_TABLE',type=pathlib.Path, default="umap_coordinates.csv",
-                        help="csv tabel with UMAP coordinates for each cell")
+                        help="csv table with UMAP coordinates for each cell")
     parser.add_argument('-pcs', '--n_princ_comps', dest='n_pcs', type=int, default=30, help="number of principal components to select and use for UMAP algorithms")
     parser.add_argument('-nn', '--n_neighbors', dest='n_neighbors', type=int, default=20, help="Size of local neighborhood used for manifold approximation. Larger values result in more global views of the manifold, while smaller values result in more local data being preserved. Values should be in the range 2 to 100")
     parser.add_argument('-md', '--min_dist', dest='min_dist', type=float, default=0.1, help="minimum distance between embedded points. Smaller values will result in a more clustered/clumped embedding where nearby points on the manifold are drawn closer together")
