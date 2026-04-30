@@ -27,12 +27,11 @@ include { CONCATENATE_VDJ                                   } from '../modules/l
 include { CONVERT_MUDATA                                    } from '../modules/local/convert_mudata'
 include { DOUBLETS_QUALITYFILTERING                         } from '../subworkflows/local/doublets_qualityfiltering'
 include { NORMALIZATION_AND_HVG                             } from '../subworkflows/local/normalization_and_hvg'
-include { CELL_ANNOTATION                                   } from '../modules/local/cellannotation'
+include { CELL_ANNOTATION                                   } from '../subworkflows/local/cell_annotation'
 include { INTEGRATION_MODALITIES                            } from '../subworkflows/local/integration_modalities'
 include { CLUSTERING                                        } from '../modules/local/clustering'
 include { CLUSTREE                                          } from '../modules/local/clustree'
 include { ENRICH_MARKERS                                    } from '../modules/local/enrich_markers'
-include { CUSTOM_GENES                                      } from '../modules/local/custom_genes'
 include { DIFFERENTIAL_ABUNDANCE                            } from '../modules/local/differential_abundance'
 include { PSEUDOBULK_ANALYSIS                               } from '../subworkflows/local/pseudobulk_analysis'
 include { CELL_INTERACTION                                  } from '../modules/local/cell_interaction'
@@ -97,6 +96,11 @@ workflow SCRNASEQ {
 
     // cellrangerarc params
     ch_cellrangerarc_config = params.cellrangerarc_config ? file(params.cellrangerarc_config)          : []
+
+    // cell annotation params (celltypist and llm)
+    ch_input_model = params.input_model ? file(params.input_model, checkIfExists: true) : channel.empty()
+    ch_llm_tissue = params.llm_tissue ? Channel.value(params.llm_tissue) : Channel.empty()
+    ch_llm_species = params.llm_species ? Channel.value(params.llm_species) : Channel.empty()
 
     // Differential analysis params
     ch_diff_abundance_comparisons = params.diff_abundance_comparisons ? Channel
@@ -549,24 +553,6 @@ workflow SCRNASEQ {
     ch_versions = ch_versions.mix(NORMALIZATION_AND_HVG.out.ch_versions)
 
     //
-    // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
-    //
-    ch_input_model = params.input_model ? file(params.input_model, checkIfExists: true) : channel.empty()
-
-    if ( params.input_model ) {
-        CELL_ANNOTATION (
-            NORMALIZATION_AND_HVG.out.h5mu,
-            ch_input_model
-        )
-        ch_versions = ch_versions.mix(CELL_ANNOTATION.out.versions)
-        ch_mu5ad = CELL_ANNOTATION.out.h5mu
-        cell_annotation_meta_ch = CELL_ANNOTATION.out.metadata
-    } else {
-        ch_mu5ad = NORMALIZATION_AND_HVG.out.h5mu
-        cell_annotation_meta_ch = channel.empty()
-    }
-
-    //
     // SUBWORKFLOW: Run ATAC preprocessing
     //
     atac_out_h5ad = Channel.empty()
@@ -588,8 +574,7 @@ workflow SCRNASEQ {
             params.n_comps_atac,
             params.n_neighbors_atac,
             params.n_clusters_atac,
-            blacklist_path,
-            cell_annotation_meta_ch
+            blacklist_path
         )
         atac_out_h5ad = ATAC_PREPROCESSING.out.h5ad
         ch_versions = ch_versions.mix(ATAC_PREPROCESSING.out.ch_versions)
@@ -600,7 +585,7 @@ workflow SCRNASEQ {
     //
 
     INTEGRATION_MODALITIES (
-        ch_mu5ad,
+        NORMALIZATION_AND_HVG.out.h5mu,
         atac_out_h5ad,
         params.n_neighbors_harmony,
         params.min_dist_harmony,
@@ -650,29 +635,16 @@ workflow SCRNASEQ {
     }
 
     //
-    // MODULES: Plot custom genelist
+    // SUBWORKFLOW: Run cell annotation on the concatenated h5ad files
     //
-    if ( params.custom_geneset ) {
-        ch_custom_geneset = Channel.fromList(params.custom_geneset.split(',').flatten())
 
-        if ( params.resolution ) {
-            resolution_ch
-                .combine( ch_custom_geneset )
-                .map{ res, genes -> [["res": res, "genes": genes], res, genes] }
-                .set { ch_res_geneset }
-        } else {
-            // if no resolution is provided, use 100 as fake resolution
-            fake_res = 100
-            ch_res_geneset = ch_custom_geneset.map { genes ->
-                [["res": fake_res, "genes": genes], fake_res, genes]
-            }
-        }
-        CUSTOM_GENES (
-            CLUSTERING.out.h5mu.collect(),
-            ch_res_geneset
-        )
-        ch_versions = ch_versions.mix(CUSTOM_GENES.out.versions)
-    }
+    CELL_ANNOTATION (
+        CLUSTERING.out.h5mu,
+        ch_input_model,
+        params.resolution ? Channel.value(params.resolution) : Channel.empty(),
+        ch_llm_tissue,
+        ch_llm_species
+    )
 
     '''
     //
