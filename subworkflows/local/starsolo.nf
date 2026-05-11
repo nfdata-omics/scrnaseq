@@ -51,16 +51,15 @@ workflow STARSOLO {
 
     raw_counts = STAR_ALIGN.out.raw_counts
         .join(STAR_ALIGN.out.raw_velocyto, remainder: true)
-        .map{ meta, count, velocity -> {
-                return [meta + [input_type: 'raw'], velocity ? [count, velocity] : [count]]
-            }
+        .map{
+            meta, count, velocity ->
+                [meta + [input_type: 'raw'], velocity ? [count, velocity] : [count]]
         }
 
     filtered_counts = STAR_ALIGN.out.filtered_counts
         .join(STAR_ALIGN.out.filtered_velocyto, remainder: true)
-        .map{ meta, count, velocity -> {
-                return [meta + [input_type: 'filtered'], velocity ? [count, velocity] : [count]]
-            }
+        .map{ meta, count, velocity ->
+            [meta + [input_type: 'filtered'], velocity ? [count, velocity] : [count]]
         }
 
     emit:
