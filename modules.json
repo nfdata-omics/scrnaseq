@@ -75,11 +75,6 @@
                         "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
                         "installed_by": ["modules"]
                     },
-                    "qcatch": {
-                        "branch": "master",
-                        "git_sha": "cd518d4aca6ba4b4fcff8b0172cf8f921ad7b724",
-                        "installed_by": ["modules"]
-                    },
                     "kallistobustools/ref": {
                         "branch": "master",
                         "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
@@ -88,6 +83,11 @@
                     "multiqc": {
                         "branch": "master",
                         "git_sha": "008f9d3e61209bf995edac3ba531f54e269e1215",
+                        "installed_by": ["modules"]
+                    },
+                    "qcatch": {
+                        "branch": "master",
+                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
                         "installed_by": ["modules"]
                     },
                     "simpleaf/index": {
