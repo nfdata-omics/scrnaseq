@@ -131,6 +131,7 @@ workflow SCRNASEQ {
         )
         ch_mtx_matrices = ch_mtx_matrices.mix( KALLISTO_BUSTOOLS.out.counts_raw, KALLISTO_BUSTOOLS.out.counts_filtered )
         ch_txp2gene = KALLISTO_BUSTOOLS.out.txp2gene
+        ch_versions = ch_versions.mix(KALLISTO_BUSTOOLS.out.versions)
     }
 
     // Run simpleaf pipeline

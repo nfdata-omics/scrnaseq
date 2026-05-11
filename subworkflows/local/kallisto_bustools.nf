@@ -2,7 +2,6 @@
 include {KALLISTOBUSTOOLS_COUNT }             from '../../modules/nf-core/kallistobustools/count/main'
 
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
-include { GUNZIP }                      from '../../modules/nf-core/gunzip/main'
 include { KALLISTOBUSTOOLS_REF }        from '../../modules/nf-core/kallistobustools/ref/main'
 
 workflow KALLISTO_BUSTOOLS {
@@ -18,6 +17,8 @@ workflow KALLISTO_BUSTOOLS {
     ch_fastq
 
     main:
+    ch_versions = Channel.empty()
+
     assert (txp2gene && kallisto_index) || (genome_fasta && gtf):
         "Must provide a genome fasta file ('--fasta') and a gtf file ('--gtf') if no index is given!"
 
@@ -30,6 +31,7 @@ workflow KALLISTO_BUSTOOLS {
         kallisto_index = KALLISTOBUSTOOLS_REF.out.index.collect()
         t1c = KALLISTOBUSTOOLS_REF.out.cdna_t2c.ifEmpty{ [] }
         t2c = KALLISTOBUSTOOLS_REF.out.intron_t2c.ifEmpty{ [] }
+        ch_versions = ch_versions.mix(KALLISTOBUSTOOLS_REF.out.versions)
     }
 
     /*
@@ -44,7 +46,7 @@ workflow KALLISTO_BUSTOOLS {
         protocol,
         kb_workflow
     )
-
+    ch_versions = ch_versions.mix(KALLISTOBUSTOOLS_COUNT.out.versions)
     // get raw/filtered counts
     ch_raw_counts = KALLISTOBUSTOOLS_COUNT.out.count.map{ meta, kb_dir ->
         if (file("${kb_dir.toUriString()}/counts_unfiltered").exists()) {
@@ -62,5 +64,5 @@ workflow KALLISTO_BUSTOOLS {
     counts_raw      = ch_raw_counts
     counts_filtered = ch_filtered_counts
     txp2gene        = txp2gene
-
+    versions        = ch_versions
 }
