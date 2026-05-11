@@ -112,14 +112,38 @@ def main():
     gex = mdata.mod["gex"]
     print(f"GEX data found with {gex.n_obs} cells and {gex.n_vars} features.")
     print(gex.obs)
+    print(gex.obs['chain_pairing'].unique())
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           CREATING CHAIN INDICES
 # --------------------------------------------------------------------------------------------------------------------
     print("\n===== CREATING CHAIN INDICES =====")
+    n_before = sum(len(x) for x in vdj.obsm["airr"])
+    print(f"Number of VDJ entries before creating chain indices: {n_before}")
     # Create chain indices
-    ir.pp.index_chains(vdj,filter = ["productive"])
+    ir.pp.index_chains(vdj,filter = ["productive","require_junction_aa"])
     print("Done!")
+
+    chain_idx = vdj.obsm["chain_indices"]
+
+    n_after = sum(
+        (len(v["VJ"]) + len(v["VDJ"])) > 0
+        for v in chain_idx
+    )
+
+    print(n_after)
+
+    n_before = vdj.n_obs
+    n_after = sum(
+        (len(v["VJ"]) + len(v["VDJ"])) > 0
+        for v in vdj.obsm["chain_indices"]
+    )
+
+    print("Before:", n_before)
+    print("After:", n_after)
+    print("Lost:", n_before - n_after)
+
+    print(vdj.obsm)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           TCR QUALITY CONTROL
@@ -138,47 +162,84 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
     all_abundance = []
-    print("\n===== GROUP ABUNDACE =====")
+
+    print("\n===== GROUP ABUNDANCE =====")
+
     for sample in vdj.obs["sample"].unique():
+
         print(f"\nProcessing sample {sample}")
-        # Receptor type
+
+        ad = vdj[vdj.obs["sample"] == sample]
+
+        # receptor_type
         df_type = ir.tl.group_abundance(
-            vdj[vdj.obs["sample"] == sample],
+            ad,
             groupby="receptor_type",
             target_col="sample",
             fraction=False
-        ).reset_index()
-        df_type["sample"] = sample
-        df_type["groupby"] = "receptor_type"
+        )
+
+        df_type = (
+            df_type
+            .stack()
+            .reset_index()
+        )
+
+        df_type.columns = ["category", "sample", "count"]
+        df_type["metric"] = "receptor_type"
+
         all_abundance.append(df_type)
 
-        # Receptor subtype
-        df_subtype = ir.tl.group_abundance(
-            vdj[vdj.obs["sample"] == sample],
+        # receptor_subtype
+        df_sub = ir.tl.group_abundance(
+            ad,
             groupby="receptor_subtype",
             target_col="sample",
             fraction=False
-        ).reset_index()
-        df_subtype["sample"] = sample
-        df_subtype["groupby"] = "receptor_subtype"
-        all_abundance.append(df_subtype)
+        )
 
-        # Chain pairing
+        df_sub = (
+            df_sub
+            .stack()
+            .reset_index()
+        )
+
+        df_sub.columns = ["category", "sample", "count"]
+        df_sub["metric"] = "receptor_subtype"
+
+        all_abundance.append(df_sub)
+
+        # chain_pairing
         df_chain = ir.tl.group_abundance(
-            vdj[vdj.obs["sample"] == sample],
+            ad,
             groupby="chain_pairing",
             target_col="sample",
             fraction=False
-        ).reset_index()
-        df_chain["sample"] = sample
-        df_chain["groupby"] = "chain_pairing"
+        )
+
+        df_chain = (
+            df_chain
+            .stack()
+            .reset_index()
+        )
+
+        df_chain.columns = ["category", "sample", "count"]
+        df_chain["metric"] = "chain_pairing"
+
         all_abundance.append(df_chain)
 
 
     combined_df = pd.concat(all_abundance, ignore_index=True)
 
+    # reorder columns
+    combined_df = combined_df[
+        ["sample", "metric", "category", "count"]
+        ]
+
     output_file = output_csv.parent / "VDJ_abundance_all_samples.csv"
+
     combined_df.to_csv(output_file, index=False)
+
     print(f"\nSaved combined abundance table at {output_file}")
 
 
@@ -186,7 +247,7 @@ def main():
 #                           STATISTICS ON THE NUMBER OF CHAINS PER CELL
 # --------------------------------------------------------------------------------------------------------------------
 
-    types = ["single pair","extra VJ", "extra VDJ", "two full chains", "multichain"]
+    types = ["single pair","extra VJ", "extra VDJ", "two full chains"]
 
 
     rows = []
@@ -293,7 +354,7 @@ def main():
 
     match_stats = []
 
-    types = ["single pair", "extra VJ", "extra VDJ", "two full chains", "multichain"]
+    types = ["single pair", "extra VJ", "extra VDJ", "two full chains"]
 
     vdj_samples = set(vdj.obs["sample_clean"].unique())
     gex_samples = set(gex.obs["sample_clean"].unique())
