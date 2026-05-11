@@ -92,6 +92,10 @@
                     "type": "boolean",
                     "description": "Skip cellbender empty drops filter subworkflow"
                 },
+                "skip_qcatch": {
+                    "type": "boolean",
+                    "description": "Skip qcatch QC for simpleaf aligner"
+                },
                 "skip_emptydrops": {
                     "type": "boolean",
                     "deprecated": true,
@@ -163,7 +167,7 @@
                 },
                 "txp2gene": {
                     "type": "string",
-                    "description": "Path to transcript to gene mapping file. This allows the specification of a transcript to gene mapping file for Kallisto/BUS and Alevin-fry with AlevinQC.",
+                    "description": "Path to transcript to gene mapping file. This allows the specification of a transcript to gene mapping file for Kallisto/BUS and Alevin-fry/SimpleAF.",
                     "fa_icon": "fas fa-map-marked-alt",
                     "format": "file-path",
                     "exists": true
@@ -198,6 +202,11 @@
                     "description": "UMI resolution strategy to deduplicate UMIs.",
                     "help_text": "This parameter specifies the [UMI resolution strategy](https://simpleaf.readthedocs.io/en/latest/quant-command.html) to use for deduplicating UMIs. The default is `cr-like`, which mimics the behavior of Cell Ranger, i.e., discarding UMIs equally compatible to multiple genes. Strategies that resolve multi-mapped UMIs by expectation maximization are available, like `cr-like-em`, `parsimony-em`, and `parsimony-gene-em`.",
                     "fa_icon": "fas fa-map-marked-alt"
+                },
+                "remove_doublets": {
+                    "type": "boolean",
+                    "description": "Enable doublet detection and removal using Scrublet via QCatch.",
+                    "help_text": "When enabled, QCatch will run Scrublet-based doublet detection and removal on the filtered count matrix, and include doublet visualizations in the QC report. Only applies when using the simpleaf aligner with QCatch enabled."
                 }
             }
         },
