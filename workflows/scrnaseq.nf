@@ -625,7 +625,9 @@ workflow SCRNASEQ {
         blacklist_path = params.blacklist_path ? \
                          channel.value(file(params.blacklist_path, checkIfExists: true)) : \
                          channel.empty()
-        def genome_annotation_path = file(params.genome_annotation_path, checkIfExists: true)
+        genome_annotation_path = params.genome_annotation_path ? \
+                         channel.value(file(params.genome_annotation_path, checkIfExists: true)) : \
+                         channel.empty()
 
 
         ATAC_PREPROCESSING (
