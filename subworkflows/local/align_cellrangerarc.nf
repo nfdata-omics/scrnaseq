@@ -21,21 +21,24 @@ workflow CELLRANGERARC_ALIGN {
             "Must provide either a cellranger index or a bundle of a fasta file ('--fasta') + gtf file ('--gtf')."
 
         if (!cellranger_index) {
-            // Filter GTF based on gene biotypes passed in params.modules
-            CELLRANGERARC_MKGTF( gtf )
-            filtered_gtf = CELLRANGERARC_MKGTF.out.gtf
-
-            // Make reference genome
             assert (( !params.cellrangerarc_reference && !cellrangerarc_config ) ||
                     ( params.cellrangerarc_reference && cellrangerarc_config ) ) :
                 "If you provide a config file you also have to specific the reference name and vice versa."
 
-            cellrangerarc_reference = 'cellrangerarc_reference'
-            if ( params.cellrangerarc_reference ){
-                cellrangerarc_reference = params.cellrangerarc_reference
-            }
+            def cellrangerarc_reference = params.cellrangerarc_reference ?: 'cellrangerarc_reference'
 
-            CELLRANGERARC_MKREF( fasta, filtered_gtf, motifs, cellrangerarc_config, cellrangerarc_reference )
+            // Filter GTF based on gene biotypes passed in params.modules
+            CELLRANGERARC_MKGTF( gtf.map { g -> [ [ id: cellrangerarc_reference ], g ] } )
+            filtered_gtf = CELLRANGERARC_MKGTF.out.gtf
+
+            // Make reference genome (single tuple channel: meta, fasta, gtf, motifs, reference_config)
+            ch_cellrangerarc_mkref = filtered_gtf
+                .combine(fasta)
+                .map { _mkgtf_meta, gtf_path, fasta_path ->
+                    [ [ id: cellrangerarc_reference ], fasta_path, gtf_path, motifs, cellrangerarc_config ]
+                }
+
+            CELLRANGERARC_MKREF( ch_cellrangerarc_mkref )
             cellranger_index = CELLRANGERARC_MKREF.out.reference
         }
 
