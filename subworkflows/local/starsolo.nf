@@ -17,7 +17,7 @@ workflow STARSOLO {
     other_10x_parameters
 
     main:
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     assert star_index || (genome_fasta && gtf):
         "Must provide a genome fasta file ('--fasta') and a gtf file ('--gtf') if no index is given!"

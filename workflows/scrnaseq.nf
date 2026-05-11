@@ -272,7 +272,7 @@ workflow SCRNASEQ {
             ch_multi_samplesheet
         )
         ch_multiqc_files = ch_multiqc_files.mix( CELLRANGER_MULTI_ALIGN.out.cellrangermulti_out.map{
-            meta, outs -> outs.findAll{ it -> it.name == "web_summary.html" }
+            _meta, outs -> outs.findAll{ it -> it.name == "web_summary.html" }
         })
         ch_mtx_matrices = ch_mtx_matrices.mix( CELLRANGER_MULTI_ALIGN.out.cellrangermulti_mtx_raw, CELLRANGER_MULTI_ALIGN.out.cellrangermulti_mtx_filtered )
 
@@ -284,7 +284,7 @@ workflow SCRNASEQ {
     MTX_TO_H5AD (
         ch_mtx_matrices,
         ch_txp2gene,
-        star_index ? ch_star_index.map{it[1]} : [],
+        star_index ? ch_star_index.map{index -> index[1]} : [],
         params.aligner
     )
     ch_versions = ch_versions.mix(MTX_TO_H5AD.out.versions.first())
@@ -297,7 +297,7 @@ workflow SCRNASEQ {
         // module should only run on the raw matrices thus, filter-out the filtered result of the aligners that can produce it
         H5AD_REMOVEBACKGROUND_BARCODES_CELLBENDER_ANNDATA (
             ch_h5ads
-                .filter { meta, mtx_files -> meta.input_type == 'raw' }
+                .filter { meta, _mtx_files -> meta.input_type == 'raw' }
                 .map { meta, mtx_files -> [ meta + [input_type: 'cellbender_filter'], mtx_files ]} // to avoid name collision
         )
         ch_h5ads = ch_h5ads.mix(
