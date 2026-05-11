@@ -8,9 +8,11 @@
 import warnings
 import argparse                     # command line arguments parser
 import os                           # filesystem utilities
+import re
 import pathlib                      # library for handle filesystem paths
 import matplotlib.pyplot as plt     # library for visualization
 import scanpy as sc                 # single-cell data processing
+import pandas as pd
 import muon as mu
 from mudata import MuData
 import mudata as md
@@ -108,6 +110,54 @@ def main():
         mdata.mod['atac'] = adata_atac
         print("ATAC modality added to MuData")
 
+        def normalize_gex(name):
+            return re.sub(r'_.*$', '', name)
+
+        def normalize_atac(name):
+            return re.sub(r'^.*?:', '', name)
+
+        # Add normalized cell IDs
+        mdata.mod['gex'].obs['cell_id_norm'] = [
+            normalize_gex(x) for x in mdata.mod['gex'].obs_names
+        ]
+
+        mdata.mod['atac'].obs['cell_id_norm'] = [
+            normalize_atac(x) for x in mdata.mod['atac'].obs_names
+        ]
+
+        # Union of samples
+        samples = set(mdata.mod['atac'].obs['sample']).union(
+            set(mdata.mod['gex'].obs['sample'])
+        )
+
+        results = []
+
+        for s in samples:
+            atac_cells = set(
+                mdata.mod['atac'].obs.loc[
+                    mdata.mod['atac'].obs['sample'] == s,
+                    'cell_id_norm'
+                ]
+            )
+
+            gex_cells = set(
+                mdata.mod['gex'].obs.loc[
+                    mdata.mod['gex'].obs['sample'] == s,
+                    'cell_id_norm'
+                ]
+            )
+
+            results.append({
+                'sample': s,
+                'ATAC_cells': len(atac_cells),
+                'GEX_cells': len(gex_cells),
+                'Both': len(atac_cells & gex_cells),
+                'Only_ATAC': len(atac_cells - gex_cells),
+                'Only_GEX': len(gex_cells - atac_cells),
+            })
+
+        df = pd.DataFrame(results)
+        print(df)
 # --------------------------------------------------------------------------------------------------------------------
 #                                 MOFA CALCULATION ON SELECTED MODALITIES
 # --------------------------------------------------------------------------------------------------------------------
