@@ -3,12 +3,12 @@ process QUALITY_METRICS_VDJ   {
     label 'process_medium'
 
     container = 'quay.io/biocontainers/scirpy:0.20.1--pyhdfd78af_0'
-    
+
 
     input:
     tuple val(meta), path(input_h5mu)
-    
-    
+
+
     output:
     tuple val(meta), path("*.qc_vdj.h5mu"),     emit: h5mu
     path "VDJ_abundance_all_samples.csv",       emit: vdj_abundance, optional: true
@@ -23,30 +23,30 @@ process QUALITY_METRICS_VDJ   {
     when:
     task.ext.when == null || task.ext.when
 
-    
+
     script:
-    
+
 
     """
     export NUMBA_CACHE_DIR=/tmp
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    
 
-    qualitymetrics_vdj.py -ad $input_h5mu 
-    
-    
+
+    qualitymetrics_vdj.py -ad $input_h5mu
+
+
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
         qualitymetrics_vdj.py --version >> versions.yml
     END_VERSIONS
     """
-    
+
     stub:
     """
     touch matrix.qc_vdj.h5mu
-    
+
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

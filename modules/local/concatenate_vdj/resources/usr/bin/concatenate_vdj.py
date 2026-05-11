@@ -119,7 +119,7 @@ def main():
         else:
             adata_vdj_concatenated = ad.concat(adata_vdj_list, join= "outer", merge ="same", label="sample",
                                         keys= input_run_id, index_unique="_")
-            
+
             print(adata_vdj_concatenated.obs)
 
         print(f"Concatenated vdj table for {len(input_run_id)} batched has {adata_vdj_concatenated.shape[0]} cells")

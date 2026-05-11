@@ -9,7 +9,7 @@
 import warnings
 import argparse                     # command line arguments parser
 import pathlib                      # library for handle filesystem paths
-from pathlib import Path  
+from pathlib import Path
 import glob
 import scanpy as sc                 # single-cell data processing
 import scirpy as ir                 # single-cell AIRR-data
@@ -70,12 +70,12 @@ def main():
     input_h5mu_file = args.input_h5mu_files
     output_csv= Path(args.csv_out)
     output =args.out
-    
+
 
     # print info on the available matrices
     print("Reading combined matrix from the following file:")
     print(f"-File {input_h5mu_file}")
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ H5MU FILES
 # --------------------------------------------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ def main():
     gex = mdata.mod["gex"]
     print(f"GEX data found with {gex.n_obs} cells and {gex.n_vars} features.")
     print(gex.obs)
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           CREATING CHAIN INDICES
 # --------------------------------------------------------------------------------------------------------------------
@@ -134,9 +134,9 @@ def main():
     print(vdj.obsm)
 
 # --------------------------------------------------------------------------------------------------------------------
-#                           GROUP ABUNDACE 
+#                           GROUP ABUNDACE
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     all_abundance = []
     print("\n===== GROUP ABUNDACE =====")
     for sample in vdj.obs["sample"].unique():
@@ -180,15 +180,15 @@ def main():
     output_file = output_csv.parent / "VDJ_abundance_all_samples.csv"
     combined_df.to_csv(output_file, index=False)
     print(f"\nSaved combined abundance table at {output_file}")
-        
-    
+
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           STATISTICS ON THE NUMBER OF CHAINS PER CELL
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     types = ["single pair","extra VJ", "extra VDJ", "two full chains", "multichain"]
 
-    
+
     rows = []
 
     for sample in vdj.obs["sample"].unique():
@@ -210,11 +210,11 @@ def main():
     pd.DataFrame(rows).to_csv(output_file, index=False)
     print(f"Saved chain pairing statistics for all samples at {output_file}")
 
-        
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           GROUP ABUNDACE PLOTTING
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     print("\n===== GROUP ABUNDACE PLOTTING =====")
     for sample in vdj.obs["sample"].unique():
         print(f"\nProcessing sample {sample}")
@@ -226,7 +226,7 @@ def main():
             )
         axs.get_figure().savefig(os.path.join(args.results, f'vdj_receptor_type_{sample}.png'), bbox_inches='tight')
         print(f"Saved plot for sample {sample}")
-        
+
         # Receptor subtype
         axs = ir.pl.group_abundance(
                 vdj[vdj.obs["sample"] == sample],
@@ -246,7 +246,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                          MATCH VDJ METRICS TO RNA MODALITY
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     print("\n===== MATCH VDJ METRICS TO RNA MODALITY =====")
     # Match VDJ metrics to RNA modality based on cells with productive receptors
 
@@ -341,7 +341,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           GROUP ABUNDACE ON INFERRED DONORS
 # --------------------------------------------------------------------------------------------------------------------
-    
+
     # productive_types = ["single pair", "extra VJ", "extra VDJ", "two full chains", "multichain"]
     # vdj_productive = vdj[vdj.obs["chain_pairing"].isin(productive_types)]
 
@@ -365,7 +365,7 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
-        
+
     mdata.mod["airr"] = vdj
 
     print("\n===== SAVING OUTPUT FILE =====")

@@ -35,7 +35,7 @@ process QUALITY_FILTERING_ATAC  {
     export XDG_CACHE_HOME=/tmp
 
     qualitymetricsfilters_atac.py  -fr ${fragment_files.join(' ')} -fri ${fragment_index_files.join(' ')}  -id ${meta.collect{ it.id }.join(' ')} -t $tss_threshold -mif $min_fragments_counts -maf $max_fragments_counts -b $blacklist_path -g $genome_annotation
-    
+
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
         qualitymetricsfilters_atac.py --version >> versions.yml
