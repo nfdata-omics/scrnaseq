@@ -18,8 +18,6 @@ workflow CELLRANGER_MULTI_ALIGN {
         ch_multi_samplesheet
 
     main:
-        ch_versions    = Channel.empty()
-
         //
         // TODO: Include checkers for cellranger multi parameter combinations. For example, when VDJ data is given, require VDJ ref. If FFPE, require frna probe sets, etc.
         //
@@ -127,7 +125,6 @@ workflow CELLRANGER_MULTI_ALIGN {
 
             // Filter GTF based on gene biotypes passed in params.modules
             CELLRANGER_MKGTF ( ch_gtf )
-            ch_versions = ch_versions.mix(CELLRANGER_MKGTF.out.versions)
 
         }
 
@@ -168,7 +165,6 @@ workflow CELLRANGER_MULTI_ALIGN {
                 CELLRANGER_MKGTF.out.gtf,
                 reference_name
             )
-            ch_versions = ch_versions.mix(CELLRANGER_MKREF.out.versions)
             ch_cellranger_gex_index = CELLRANGER_MKREF.out.reference.ifEmpty { [] }
 
         } else {
@@ -188,7 +184,6 @@ workflow CELLRANGER_MULTI_ALIGN {
                     [], // currently ignoring the 'seqs' option
                     "vdj_reference"
                 )
-                ch_versions = ch_versions.mix(CELLRANGER_MKVDJREF.out.versions)
                 ch_cellranger_vdj_index = CELLRANGER_MKVDJREF.out.reference.ifEmpty { [] }
             } else {
                 ch_cellranger_vdj_index = []
@@ -224,7 +219,6 @@ workflow CELLRANGER_MULTI_ALIGN {
             ch_ocm_barcode_csv,
             params.skip_cellranger_renaming
         )
-        ch_versions = ch_versions.mix(CELLRANGER_MULTI.out.versions)
 
         //
         // Cellranger multi splits the results from each sample. So, a module execution will have: (1) a raw counts dir for all;
@@ -241,7 +235,6 @@ workflow CELLRANGER_MULTI_ALIGN {
         ch_matrices_raw      = parse_demultiplexed_output_channels( CELLRANGER_MULTI.out.outs, "raw_feature_bc_matrix"      )
 
     emit:
-        ch_versions
         cellrangermulti_out          = CELLRANGER_MULTI.out.outs
         cellrangermulti_mtx_raw      = ch_matrices_raw
         cellrangermulti_mtx_filtered = ch_matrices_filtered

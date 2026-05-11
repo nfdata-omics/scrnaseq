@@ -17,8 +17,6 @@ workflow CELLRANGERARC_ALIGN {
         cellrangerarc_config
 
     main:
-        ch_versions = Channel.empty()
-
         assert cellranger_index || (fasta && gtf):
             "Must provide either a cellranger index or a bundle of a fasta file ('--fasta') + gtf file ('--gtf')."
 
@@ -26,7 +24,6 @@ workflow CELLRANGERARC_ALIGN {
             // Filter GTF based on gene biotypes passed in params.modules
             CELLRANGERARC_MKGTF( gtf )
             filtered_gtf = CELLRANGERARC_MKGTF.out.gtf
-            ch_versions = ch_versions.mix(CELLRANGERARC_MKGTF.out.versions)
 
             // Make reference genome
             assert (( !params.cellrangerarc_reference && !cellrangerarc_config ) ||
@@ -39,7 +36,6 @@ workflow CELLRANGERARC_ALIGN {
             }
 
             CELLRANGERARC_MKREF( fasta, filtered_gtf, motifs, cellrangerarc_config, cellrangerarc_reference )
-            ch_versions = ch_versions.mix(CELLRANGERARC_MKREF.out.versions)
             cellranger_index = CELLRANGERARC_MKREF.out.reference
         }
 
@@ -48,14 +44,12 @@ workflow CELLRANGERARC_ALIGN {
             ch_fastq,
             cellranger_index
         )
-        ch_versions = ch_versions.mix(CELLRANGERARC_COUNT.out.versions)
 
         // Parse the output channels to obtain filtered and raw matrices
         ch_matrices_filtered = parse_demultiplexed_output_channels( CELLRANGERARC_COUNT.out.outs, "filtered_feature_bc_matrix" )
         ch_matrices_raw      = parse_demultiplexed_output_channels( CELLRANGERARC_COUNT.out.outs, "raw_feature_bc_matrix"      )
 
     emit:
-        ch_versions
         cellrangerarc_out          = CELLRANGERARC_COUNT.out.outs
         cellrangerarc_mtx_filtered = ch_matrices_filtered
         cellrangerarc_mtx_raw      = ch_matrices_raw

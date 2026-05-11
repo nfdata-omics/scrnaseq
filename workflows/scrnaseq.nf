@@ -97,7 +97,6 @@ workflow SCRNASEQ {
     if (params.fasta) {
         if (params.fasta.endsWith('.gz')) {
             ch_genome_fasta    = GUNZIP_FASTA ( [ [:], ch_genome_fasta ] ).gunzip.map { it[1] }
-            ch_versions        = ch_versions.mix(GUNZIP_FASTA.out.versions)
         } else {
             ch_genome_fasta = channel.value( ch_genome_fasta )
         }
@@ -109,7 +108,6 @@ workflow SCRNASEQ {
     if (params.gtf) {
         if (params.gtf.endsWith('.gz')) {
             ch_gtf      = GUNZIP_GTF ( [ [:], ch_gtf ] ).gunzip.map { it[1] }
-            ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
         } else {
             ch_gtf = channel.value( ch_gtf )
         }
@@ -131,7 +129,6 @@ workflow SCRNASEQ {
             params.kb_workflow,
             ch_fastq
         )
-        ch_versions = ch_versions.mix(KALLISTO_BUSTOOLS.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix( KALLISTO_BUSTOOLS.out.counts_raw, KALLISTO_BUSTOOLS.out.counts_filtered )
         ch_txp2gene = KALLISTO_BUSTOOLS.out.txp2gene
     }
@@ -153,7 +150,6 @@ workflow SCRNASEQ {
             ch_fastq,
             [] // for existing map dir; not applicable
         )
-        ch_versions = ch_versions.mix(SIMPLEAF.out.ch_versions)
         ch_multiqc_files = ch_multiqc_files.mix(SIMPLEAF.out.quant.map{ _meta, it -> it })
         ch_mtx_matrices = ch_mtx_matrices.mix(
             SIMPLEAF.out.quant.map{
@@ -192,7 +188,6 @@ workflow SCRNASEQ {
             ch_fastq,
             protocol_config['protocol']
         )
-        ch_versions = ch_versions.mix(CELLRANGER_ALIGN.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix( CELLRANGER_ALIGN.out.cellranger_matrices_raw, CELLRANGER_ALIGN.out.cellranger_matrices_filtered )
         ch_multiqc_files = ch_multiqc_files.mix(CELLRANGER_ALIGN.out.cellranger_out.map {
             meta, outs -> outs.findAll{ it -> it.name == "web_summary.html"}
@@ -209,7 +204,6 @@ workflow SCRNASEQ {
             ch_fastq,
             ch_cellrangerarc_config
         )
-        ch_versions = ch_versions.mix(CELLRANGERARC_ALIGN.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix( CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_raw, CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_filtered )
     }
 
@@ -275,7 +269,6 @@ workflow SCRNASEQ {
             cellranger_vdj_index,
             ch_multi_samplesheet
         )
-        ch_versions = ch_versions.mix(CELLRANGER_MULTI_ALIGN.out.ch_versions)
         ch_multiqc_files = ch_multiqc_files.mix( CELLRANGER_MULTI_ALIGN.out.cellrangermulti_out.map{
             meta, outs -> outs.findAll{ it -> it.name == "web_summary.html" }
         })

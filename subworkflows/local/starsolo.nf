@@ -1,9 +1,7 @@
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
 include { STAR_ALIGN  } from '../../modules/local/star_align'
-include { MTX_TO_H5AD } from '../../modules/local/mtx_to_h5ad'
 
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
-include { GUNZIP }                      from '../../modules/nf-core/gunzip/main'
 include { STAR_GENOMEGENERATE }         from '../../modules/nf-core/star/genomegenerate/main'
 
 
@@ -35,7 +33,6 @@ workflow STARSOLO {
             gtf.map{ g -> [[id: g.baseName], g]}
         )
         star_index = STAR_GENOMEGENERATE.out.index.collect()
-        ch_versions = ch_versions.mix(STAR_GENOMEGENERATE.out.versions)
     }
 
     /*
