@@ -1,0 +1,379 @@
+#!/usr/bin/env python3
+# ====================================================================================================================
+#                                          PRELIMINARIES
+# ====================================================================================================================
+
+# MODULE IMPORT
+
+# MODULE IMPORT
+import warnings
+import argparse                     # command line arguments parser
+import pathlib                      # library for handle filesystem paths
+from pathlib import Path  
+import glob
+import scanpy as sc                 # single-cell data processing
+import scirpy as ir                 # single-cell AIRR-data
+import anndata as ad                # store annotated matrix as anndata object
+import pandas as pd                 # data analysis and manipulation tool
+import os                           # misc operating system interfaces
+import mudata as md
+import matplotlib.pyplot as plt     # plotting library
+import numpy as np                  # scientific computing with Python
+
+
+
+warnings.filterwarnings("ignore")
+# PARAMETERS
+# set script version number
+VERSION = "0.0.1"
+
+# ====================================================================================================================
+#                                          MAIN FUNCTION
+# ====================================================================================================================
+
+def main():
+    """
+    This function concatenates csv files from vdj modality.
+    """
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                          LIBRARY CONFIG
+# --------------------------------------------------------------------------------------------------------------------
+
+    sc.settings.verbosity = 3             # verbosity: errors (0), warnings (1), info (2), hints (3)
+    sc.logging.print_header()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                          INPUT FROM COMMAND LINE
+# --------------------------------------------------------------------------------------------------------------------
+
+#Define command line arguments with argparse
+    parser = argparse.ArgumentParser(prog='QC_filter_vdj', usage='%(prog)s [options]', description = "QC metrics and filtering for vdj data",
+                                    epilog = "This function calculates common quality control (QC) metrics for each sample for vdj modality, inspects QC plots for each sample.",
+                                    )
+    parser.add_argument('-ad','--input-h5mu-combined',metavar= 'H5MU_INPUT_FILES', type=pathlib.Path, dest='input_h5mu_files',
+                        required=True, help="paths of existing matrix files in h5mu format (including file names)")
+    parser.add_argument('-o', '--out', metavar='H5MU_OUTPUT_FILE', type=pathlib.Path, default="matrix.qc_vdj.h5mu",
+                        help="path and name of the output h5mu file")
+    parser.add_argument('-csv', '--csv_out', metavar='QUALITY_CONTROL', default="group_abundance.csv",
+                        help="path and name of csv table with ranked marker genes for each cluster and resolution")
+    parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),
+                        help="directory to save the results files (default is the current directory)")
+    parser.add_argument('-v', '--version', action='version', version=VERSION)
+    args = parser.parse_args()
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 DEFINE SAMPLES AND MTX PATHS
+# --------------------------------------------------------------------------------------------------------------------
+
+    print("\n===== INPUT H5MU FILES =====")
+    input_h5mu_file = args.input_h5mu_files
+    output_csv= Path(args.csv_out)
+    output =args.out
+    
+
+    # print info on the available matrices
+    print("Reading combined matrix from the following file:")
+    print(f"-File {input_h5mu_file}")
+    
+# --------------------------------------------------------------------------------------------------------------------
+#                                 READ H5MU FILES
+# --------------------------------------------------------------------------------------------------------------------
+
+    # Read folders with the combined count matrice and store datasets in a dictionary
+    print("\n===== READING COMBINED MATRIX =====")
+    # read the count matrix for the combined samples and print some initial info
+    print(f"\nProcessing MuData object in folder {input_h5mu_file} ... ", end ='')
+
+    mdata= md.read(input_h5mu_file)
+    print("Done!")
+    print(f"MuData matrix for combined samples has {mdata.shape[0]} cells and {mdata.shape[1]} genes/ab")
+    print(mdata)
+# --------------------------------------------------------------------------------------------------------------------
+#                                 VDJ MODALITY DATA
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== VDJ MODALITY DATA =====")
+
+    if "airr" not in mdata.mod:
+        raise ValueError("No 'airr' modality found in MuData")
+
+    vdj = mdata.mod["airr"]
+    print(f"VDJ data found with {vdj.n_obs} cells and {vdj.n_vars} features.")
+    print(vdj.obsm)
+
+# --------------------------------------------------------------------------------------------------------------------
+#                                 GEX MODALITY DATA
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== GEX MODALITY DATA =====")
+    # Check if 'GEX' exists in mdata.mod
+    if "gex" not in mdata.mod:
+        raise ValueError("No 'gex' modality found in MuData")
+
+    gex = mdata.mod["gex"]
+    print(f"GEX data found with {gex.n_obs} cells and {gex.n_vars} features.")
+    print(gex.obs)
+    
+# --------------------------------------------------------------------------------------------------------------------
+#                           CREATING CHAIN INDICES
+# --------------------------------------------------------------------------------------------------------------------
+    print("\n===== CREATING CHAIN INDICES =====")
+    # Create chain indices
+    ir.pp.index_chains(vdj,filter = ["productive"])
+    print("Done!")
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           TCR QUALITY CONTROL
+# --------------------------------------------------------------------------------------------------------------------
+
+    print("\n===== TCR QUALITY CONTROL =====")
+    # Compute basic quality control metrics
+    ir.tl.chain_qc(vdj)
+    print("Done!")
+    print(vdj)
+    print(vdj.obs)
+    print(vdj.obsm)
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           GROUP ABUNDACE 
+# --------------------------------------------------------------------------------------------------------------------
+    
+    all_abundance = []
+    print("\n===== GROUP ABUNDACE =====")
+    for sample in vdj.obs["sample"].unique():
+        print(f"\nProcessing sample {sample}")
+        # Receptor type
+        df_type = ir.tl.group_abundance(
+            vdj[vdj.obs["sample"] == sample],
+            groupby="receptor_type",
+            target_col="sample",
+            fraction=False
+        ).reset_index()
+        df_type["sample"] = sample
+        df_type["groupby"] = "receptor_type"
+        all_abundance.append(df_type)
+
+        # Receptor subtype
+        df_subtype = ir.tl.group_abundance(
+            vdj[vdj.obs["sample"] == sample],
+            groupby="receptor_subtype",
+            target_col="sample",
+            fraction=False
+        ).reset_index()
+        df_subtype["sample"] = sample
+        df_subtype["groupby"] = "receptor_subtype"
+        all_abundance.append(df_subtype)
+
+        # Chain pairing
+        df_chain = ir.tl.group_abundance(
+            vdj[vdj.obs["sample"] == sample],
+            groupby="chain_pairing",
+            target_col="sample",
+            fraction=False
+        ).reset_index()
+        df_chain["sample"] = sample
+        df_chain["groupby"] = "chain_pairing"
+        all_abundance.append(df_chain)
+
+
+    combined_df = pd.concat(all_abundance, ignore_index=True)
+
+    output_file = output_csv.parent / "VDJ_abundance_all_samples.csv"
+    combined_df.to_csv(output_file, index=False)
+    print(f"\nSaved combined abundance table at {output_file}")
+        
+    
+# --------------------------------------------------------------------------------------------------------------------
+#                           STATISTICS ON THE NUMBER OF CHAINS PER CELL
+# --------------------------------------------------------------------------------------------------------------------
+    
+    types = ["single pair","extra VJ", "extra VDJ", "two full chains", "multichain"]
+
+    
+    rows = []
+
+    for sample in vdj.obs["sample"].unique():
+        n_total = (vdj.obs["sample"] == sample).sum()
+        n = np.sum(
+            (vdj.obs["sample"] == sample)
+            & (vdj.obs["chain_pairing"].isin(types))
+        )
+        fraction = n / n_total if n_total > 0 else 0
+
+        rows.append({
+            "sample": sample,
+            "n_total": n_total,
+            "n_extra": n,
+            "fraction": fraction
+        })
+
+    output_file = output_csv.parent / "chain_pairing_stats_all_samples.csv"
+    pd.DataFrame(rows).to_csv(output_file, index=False)
+    print(f"Saved chain pairing statistics for all samples at {output_file}")
+
+        
+# --------------------------------------------------------------------------------------------------------------------
+#                           GROUP ABUNDACE PLOTTING
+# --------------------------------------------------------------------------------------------------------------------
+    
+    print("\n===== GROUP ABUNDACE PLOTTING =====")
+    for sample in vdj.obs["sample"].unique():
+        print(f"\nProcessing sample {sample}")
+
+        # Receptor type
+        axs = ir.pl.group_abundance(
+                vdj[vdj.obs["sample"] == sample],
+                groupby="receptor_type",target_col="sample"
+            )
+        axs.get_figure().savefig(os.path.join(args.results, f'vdj_receptor_type_{sample}.png'), bbox_inches='tight')
+        print(f"Saved plot for sample {sample}")
+        
+        # Receptor subtype
+        axs = ir.pl.group_abundance(
+                vdj[vdj.obs["sample"] == sample],
+                groupby="receptor_subtype",target_col="sample"
+            )
+        axs.get_figure().savefig(os.path.join(args.results, f'vdj_receptor_subtype_{sample}.png'), bbox_inches='tight')
+        print(f"Saved plot for sample {sample}")
+
+        # Chain pairing
+        axs = ir.pl.group_abundance(
+                vdj[vdj.obs["sample"] == sample],
+                groupby="chain_pairing",target_col="sample"
+            )
+        axs.get_figure().savefig(os.path.join(args.results, f'vdj_chain_pairing_{sample}.png'), bbox_inches='tight')
+        print(f"Saved plot for sample {sample}")
+
+# --------------------------------------------------------------------------------------------------------------------
+#                          MATCH VDJ METRICS TO RNA MODALITY
+# --------------------------------------------------------------------------------------------------------------------
+    
+    print("\n===== MATCH VDJ METRICS TO RNA MODALITY =====")
+    # Match VDJ metrics to RNA modality based on cells with productive receptors
+
+    # Clean sample names and barcodes
+    vdj.obs["sample_clean"] = (
+        vdj.obs["sample"].astype(str)
+        .str.replace("_cellbender_filter", "", regex=False)
+        .str.replace("_filtered", "", regex=False)
+        .str.replace("_parse", "", regex=False)
+        .str.strip()
+    )
+
+    gex.obs["sample_clean"] = (
+        gex.obs["sample"].astype(str)
+        .str.replace("_cellbender_filter", "", regex=False)
+        .str.replace("_filtered", "", regex=False)
+        .str.replace("_parse", "", regex=False)
+        .str.strip()
+    )
+
+    gex.obs["sample_clean"] = (
+        gex.obs["sample"].astype(str)
+        .str.replace("_cellbender_filter", "", regex=False)
+        .str.replace("_filtered", "", regex=False)
+        .str.replace("_parse", "", regex=False)
+        .str.strip()
+    )
+
+    vdj.obs["barcode_clean"] = (
+        vdj.obs_names.astype(str)
+        .str.replace("_cellbender_filter", "", regex=False)
+        .str.replace("_filtered", "", regex=False)
+        .str.replace("_parse", "", regex=False)
+        .str.strip()
+    )
+
+    gex.obs["barcode_clean"] = (
+        gex.obs_names.astype(str)
+        .str.replace("_cellbender_filter", "", regex=False)
+        .str.replace("_filtered", "", regex=False)
+        .str.replace("_parse", "", regex=False)
+        .str.strip()
+    )
+
+    match_stats = []
+
+    types = ["single pair", "extra VJ", "extra VDJ", "two full chains", "multichain"]
+
+    vdj_samples = set(vdj.obs["sample_clean"].unique())
+    gex_samples = set(gex.obs["sample_clean"].unique())
+    common_samples = vdj_samples & gex_samples
+
+    print("Samples in VDJ:", vdj_samples)
+    print("Samples in GEX:", gex_samples)
+    print("Common samples:", common_samples)
+
+    for sample in common_samples:
+        vdj_cells = vdj.obs.loc[
+            (vdj.obs["sample_clean"] == sample) &
+            (vdj.obs["chain_pairing"].isin(types)),
+            "barcode_clean"
+        ]
+
+        gex_cells = gex.obs.loc[
+            gex.obs["sample_clean"] == sample,
+            "barcode_clean"
+        ]
+
+        n_vdj = len(vdj_cells)
+        n_gex = len(gex_cells)
+
+        matching_cells = np.intersect1d(vdj_cells, gex_cells)
+        n_match = len(matching_cells)
+
+        match_stats.append({
+            "sample": sample,
+            "vdj_cells": n_vdj,
+            "gex_cells": n_gex,
+            "matched_with_gex": n_match,
+            "fraction_matched_on_total_vdj_cells": n_match / n_vdj if n_vdj > 0 else 0
+        })
+
+        print(f"{sample}: {n_match}/{n_vdj} VDJ cells match GEX ({n_match/n_vdj:.2%})")
+
+    match_df = pd.DataFrame(match_stats)
+    output_file = output_csv.parent / "vdj_gex_match_all_samples.csv"
+    match_df.to_csv(output_file, index=False)
+
+    print(f"\nSaved VDJ-GEX match statistics at {output_file}")
+
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           GROUP ABUNDACE ON INFERRED DONORS
+# --------------------------------------------------------------------------------------------------------------------
+    
+    # productive_types = ["single pair", "extra VJ", "extra VDJ", "two full chains", "multichain"]
+    # vdj_productive = vdj[vdj.obs["chain_pairing"].isin(productive_types)]
+
+    # vdj_matched = vdj_productive[vdj_productive.obs_names.isin(gex.obs["barcode_clean"])]
+
+    # donor_map = gex.obs[["barcode_clean", "Inferred_donor"]].set_index("barcode_clean")
+    # vdj_matched.obs["Inferred_donor"] = vdj_matched.obs_names.map(donor_map["Inferred_donor"])
+
+
+    # for donor in vdj_matched.obs["Inferred_donor"].dropna().unique():
+    #     df = ir.tl.group_abundance(
+    #         vdj_matched[vdj_matched.obs["Inferred_donor"] == donor],
+    #         groupby="chain_pairing",
+    #         target_col="Inferred_donor",
+    #         fraction=False
+    #     )
+    #     output_file = output_csv.parent / f"ChainPairing_donor-{donor}.csv"
+    #     df.to_csv(output_file, index=True)
+    #     print(f"Saved table for donor {donor} at {output_file}")
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           SAVE OUTPUT FILE
+# --------------------------------------------------------------------------------------------------------------------
+        
+    mdata.mod["airr"] = vdj
+
+    print("\n===== SAVING OUTPUT FILE =====")
+    print(f"Saving h5mu data to file {output}")
+    mdata.write(output)
+    print("Done!")
+
+#####################################################################################################
+
+if __name__ == '__main__':
+    main()
