@@ -29,9 +29,9 @@ workflow KALLISTO_BUSTOOLS {
         KALLISTOBUSTOOLS_REF( genome_fasta, gtf, kb_workflow )
         txp2gene = KALLISTOBUSTOOLS_REF.out.t2g.collect()
         kallisto_index = KALLISTOBUSTOOLS_REF.out.index.collect()
+        ch_versions = ch_versions.mix(KALLISTOBUSTOOLS_REF.out.versions)
         t1c = KALLISTOBUSTOOLS_REF.out.cdna_t2c.ifEmpty{ [] }
         t2c = KALLISTOBUSTOOLS_REF.out.intron_t2c.ifEmpty{ [] }
-        ch_versions = ch_versions.mix(KALLISTOBUSTOOLS_REF.out.versions)
     }
 
     /*
@@ -46,7 +46,9 @@ workflow KALLISTO_BUSTOOLS {
         protocol,
         kb_workflow
     )
+
     ch_versions = ch_versions.mix(KALLISTOBUSTOOLS_COUNT.out.versions)
+
     // get raw/filtered counts
     ch_raw_counts = KALLISTOBUSTOOLS_COUNT.out.count.map{ meta, kb_dir ->
         if (file("${kb_dir.toUriString()}/counts_unfiltered").exists()) {
@@ -60,9 +62,10 @@ workflow KALLISTO_BUSTOOLS {
     }
 
     emit:
+    ch_versions
     counts          = KALLISTOBUSTOOLS_COUNT.out.count
     counts_raw      = ch_raw_counts
     counts_filtered = ch_filtered_counts
     txp2gene        = txp2gene
-    versions        = ch_versions
+
 }

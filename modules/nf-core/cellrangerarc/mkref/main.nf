@@ -25,8 +25,7 @@ process CELLRANGERARC_MKREF {
     def motifs_name = motifs.name
     def reference_config_name = reference_config.name
     def args = task.ext.args ?: ''
-
-    prefix = task.ext.prefix ?: "${meta.id}_reference"
+    prefix = task.ext.prefix ?: "${meta.id}"
 
     // unlike cellranger mkref and spaceranger mkref, cellranger-arc mkref is not *yet* implemented in the
     // 10x martian runtime. It is therefore not necessary to specify --localcores and --localmem
@@ -76,7 +75,7 @@ process CELLRANGERARC_MKREF {
     if (workflow.profile.tokenize(',').intersect(['conda', 'mamba']).size() >= 1) {
         exit 1, "CELLRANGERARC_MKREF module does not support Conda. Please use Docker / Singularity / Podman instead."
     }
-    prefix = task.ext.prefix ?: "${meta.id}_reference"
+    prefix = task.ext.prefix ?: "${meta.id}"
     """
     mkdir -p "${prefix}"/fasta "${prefix}"/genes "${prefix}"/regions "${prefix}"/star
     touch config
