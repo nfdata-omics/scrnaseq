@@ -20,7 +20,7 @@ process CONCATENATE_VDJ   {
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    concatenate_vdj.py -ai ${input_vdj.join(' ')} -id ${meta.collect{ m -> m.id }.join(' ')}
+    concatenate_vdj.py -ai ${input_vdj.join(' ')} -id ${meta.collect { it.id }.join(' ')}
 
 
     cat <<-END_VERSIONS >> versions.yml

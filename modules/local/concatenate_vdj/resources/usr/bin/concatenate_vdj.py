@@ -11,6 +11,7 @@ import glob
 import scanpy as sc                 # single-cell data processing
 import scirpy as ir                 # single-cell AIRR-data
 import anndata as ad                # store annotated matrix as anndata object
+import pandas as pd
 import os
 
 warnings.filterwarnings("ignore")
@@ -75,18 +76,27 @@ def main():
     for folder in glob.glob("*/filtered_contig_annotations.csv"):
         vdj_files.append(folder)
 
-    adata_vdj_list = []
-    if vdj_files:
+    for vdj in vdj_files:
+        df = pd.read_csv(vdj)
+        n_rows = df.shape[0]
+        print(f"{vdj} has {n_rows} rows")
 
-        for run, vdj in zip(input_run_id,vdj_files):
+    adata_vdj_list = []
+
+    vdj_files_sorted = sorted(vdj_files, key=lambda x: int(x.split("/")[0]))
+
+    if vdj_files_sorted:
+
+        for run, vdj in zip(input_run_id,vdj_files_sorted):
             # Read folders with the filtered contigue annotation and store datasets in a dictionary
             print("\n===== READING CONTIGUE ANNOTATION MATRIX =====")
             print("\nProcessing filtered contigue table in folder ... ", end ='')
             if os.path.getsize(vdj) == 0:
                 print(f"Warning: {vdj} is empty and will be skipped.")
             else:
-                adata_vdj= ir.io.read_10x_vdj(vdj)
-                print("Done!")
+                adata_vdj= ir.io.read_10x_vdj(vdj,filtered=False)
+                n_cells = adata_vdj.n_obs
+                print(f"Done! Number of cells for sample {run}: {n_cells}")
                 adata_vdj_list.append(adata_vdj)
     else:
         print("No valid input file provided. Skipping reading of the vdj annotation.")
@@ -102,13 +112,21 @@ def main():
     else:
         if len(adata_vdj_list) == 1:
             adata_vdj_concatenated = adata_vdj_list[0]
+
+            if "sample" not in adata_vdj_concatenated.obs.columns:
+                adata_vdj_concatenated.obs["sample"] = input_run_id[0]
             print("Only one non-empty file found. Saving the file as is without concatenation.")
         else:
             adata_vdj_concatenated = ad.concat(adata_vdj_list, join= "outer", merge ="same", label="sample",
                                         keys= input_run_id, index_unique="_")
+            
+            print(adata_vdj_concatenated.obs)
 
         print(f"Concatenated vdj table for {len(input_run_id)} batched has {adata_vdj_concatenated.shape[0]} cells")
         print("Done!")
+        print("Number of cells per sample after concatenation:")
+        counts_per_sample = adata_vdj_concatenated.obs['sample'].value_counts()
+        print(counts_per_sample)
 
         print("\n===== SAVING OUTPUT FILE =====")
 
