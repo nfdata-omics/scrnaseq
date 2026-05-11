@@ -256,13 +256,13 @@
                 "sjdbList.fromGTF.out.tab:md5,0a0674059c3be4ccf69d572c9560f5d7",
                 "sjdbList.out.tab:md5,be8b2978e8ac3a2c8266c798c7c34b90",
                 "transcriptInfo.tab:md5,5a6ee447f3efac16042d8c99f653747b",
-                "config:md5,fd2727410e4a33f071989e4db7da778e",
-                "10k_PBMC_filtered_matrix.h5ad:md5,9cf3e02bbeecf95eba83c739bb9a3cc5",
-                "10k_PBMC_filtered_matrix.sce.rds:md5,258e4ae682dc1e514341952c7ff7b348",
-                "10k_PBMC_filtered_matrix.seurat.rds:md5,d543268f7763327d6e8f94773b3e5f77",
-                "10k_PBMC_raw_matrix.h5ad:md5,e9d1509fdacc17acda6d5dfead4a44d4",
-                "10k_PBMC_raw_matrix.sce.rds:md5,f4c5f7210c0ee8d03b6f50d16b16d3e8",
-                "10k_PBMC_raw_matrix.seurat.rds:md5,d6104de0247067754d3db3e9ace15970",
+                "config:md5,12efb63fa9f2717c72aab792761d9eaf",
+                "10k_PBMC_filtered_matrix.h5ad:md5,60b9311d46f756cd2b9fb737628713b3",
+                "10k_PBMC_filtered_matrix.sce.rds:md5,359160d80821c5dbf1ebc7a88dbe8400",
+                "10k_PBMC_filtered_matrix.seurat.rds:md5,ca44f68f2ea255bfd556c71a6b91423e",
+                "10k_PBMC_raw_matrix.h5ad:md5,4ac50d4109bcccd1d82ed83fc00d7580",
+                "10k_PBMC_raw_matrix.sce.rds:md5,196adfcb230f9ba9bb7d0aba36e7e261",
+                "10k_PBMC_raw_matrix.seurat.rds:md5,8ff4d68d88a6a7e3528147e06aeaa4dd",
                 "fastqc-status-check-heatmap.txt:md5,55b658eef7b63c6f8e3d559be41f5df8",
                 "fastqc_adapter_content_plot.txt:md5,31ca16758049ac46cc84875ddc4ff6d3",
                 "fastqc_overrepresented_sequences_plot.txt:md5,314754adfcfa2977ee4f61c2ec5444f2",
@@ -278,7 +278,7 @@
                 "multiqc_general_stats.txt:md5,fd84f94100989affc666904a2f34c40c"
             ]
         ],
-        "timestamp": "2026-05-11T11:59:42.134212782",
+        "timestamp": "2026-05-11T17:17:15.428239868",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "26.04.0"
