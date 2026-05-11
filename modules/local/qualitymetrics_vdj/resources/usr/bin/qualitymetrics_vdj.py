@@ -124,27 +124,6 @@ def main():
     ir.pp.index_chains(vdj,filter = ["productive","require_junction_aa"])
     print("Done!")
 
-    chain_idx = vdj.obsm["chain_indices"]
-
-    n_after = sum(
-        (len(v["VJ"]) + len(v["VDJ"])) > 0
-        for v in chain_idx
-    )
-
-    print(n_after)
-
-    n_after = sum(
-        (len(v["VJ"]) + len(v["VDJ"])) > 0
-        for v in vdj.obsm["chain_indices"]
-    )
-
-    print("Before:", n_before)
-    print("After:", n_after)
-    print("Lost:", n_before - n_after)
-
-    print(vdj.obsm)
-
-
 # --------------------------------------------------------------------------------------------------------------------
 #                           TCR QUALITY CONTROL
 # --------------------------------------------------------------------------------------------------------------------
@@ -153,10 +132,6 @@ def main():
     # Compute basic quality control metrics
     ir.tl.chain_qc(vdj)
     print("Done!")
-    print(vdj)
-    print(vdj.obs)
-    print(vdj.obsm)
-    print(vdj.obs['chain_pairing'].unique())
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           GROUP ABUNDACE
