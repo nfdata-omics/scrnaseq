@@ -112,7 +112,7 @@ def main():
     gex = mdata.mod["gex"]
     print(f"GEX data found with {gex.n_obs} cells and {gex.n_vars} features.")
     print(gex.obs)
-    print(gex.obs['chain_pairing'].unique())
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           CREATING CHAIN INDICES
@@ -133,7 +133,6 @@ def main():
 
     print(n_after)
 
-    n_before = vdj.n_obs
     n_after = sum(
         (len(v["VJ"]) + len(v["VDJ"])) > 0
         for v in vdj.obsm["chain_indices"]
@@ -144,6 +143,7 @@ def main():
     print("Lost:", n_before - n_after)
 
     print(vdj.obsm)
+
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           TCR QUALITY CONTROL
@@ -156,6 +156,7 @@ def main():
     print(vdj)
     print(vdj.obs)
     print(vdj.obsm)
+    print(vdj.obs['chain_pairing'].unique())
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           GROUP ABUNDACE
