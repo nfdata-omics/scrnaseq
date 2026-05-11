@@ -17,13 +17,13 @@
                         },
                         [
                             [
-                                "cellrangerarc.fa.:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "cellrangerarc.fa.amb:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "cellrangerarc.fa.ann:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "cellrangerarc.fa.bwt:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "cellrangerarc.fa.fai:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "cellrangerarc.fa.pac:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "cellrangerarc.fa.sa:md5,d41d8cd98f00b204e9800998ecf8427e"
+                                "cellrangerarc_reference.fa.:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "cellrangerarc_reference.fa.amb:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "cellrangerarc_reference.fa.ann:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "cellrangerarc_reference.fa.bwt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "cellrangerarc_reference.fa.fai:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "cellrangerarc_reference.fa.pac:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "cellrangerarc_reference.fa.sa:md5,d41d8cd98f00b204e9800998ecf8427e"
                             ],
                             [
                                 "genes.gtf.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
