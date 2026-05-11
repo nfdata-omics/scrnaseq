@@ -150,6 +150,7 @@ workflow SCRNASEQ {
             ch_fastq,
             [] // for existing map dir; not applicable
         )
+        ch_versions = ch_versions.mix(SIMPLEAF.out.versions)
         ch_multiqc_files = ch_multiqc_files.mix(SIMPLEAF.out.quant.map{ _meta, it -> it })
         ch_mtx_matrices = ch_mtx_matrices.mix(
             SIMPLEAF.out.quant.map{
