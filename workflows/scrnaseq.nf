@@ -97,7 +97,6 @@ workflow SCRNASEQ {
     if (params.fasta) {
         if (params.fasta.endsWith('.gz')) {
             ch_genome_fasta    = GUNZIP_FASTA ( [ [:], ch_genome_fasta ] ).gunzip.map { it[1] }
-            ch_versions        = ch_versions.mix(GUNZIP_FASTA.out.versions)
         } else {
             ch_genome_fasta = channel.value( ch_genome_fasta )
         }
@@ -109,7 +108,6 @@ workflow SCRNASEQ {
     if (params.gtf) {
         if (params.gtf.endsWith('.gz')) {
             ch_gtf      = GUNZIP_GTF ( [ [:], ch_gtf ] ).gunzip.map { it[1] }
-            ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
         } else {
             ch_gtf = channel.value( ch_gtf )
         }
@@ -131,9 +129,9 @@ workflow SCRNASEQ {
             params.kb_workflow,
             ch_fastq
         )
-        ch_versions = ch_versions.mix(KALLISTO_BUSTOOLS.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix( KALLISTO_BUSTOOLS.out.counts_raw, KALLISTO_BUSTOOLS.out.counts_filtered )
         ch_txp2gene = KALLISTO_BUSTOOLS.out.txp2gene
+        ch_versions = ch_versions.mix(KALLISTO_BUSTOOLS.out.ch_versions)
     }
 
     // Run simpleaf pipeline
@@ -192,7 +190,6 @@ workflow SCRNASEQ {
             ch_fastq,
             protocol_config['protocol']
         )
-        ch_versions = ch_versions.mix(CELLRANGER_ALIGN.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix( CELLRANGER_ALIGN.out.cellranger_matrices_raw, CELLRANGER_ALIGN.out.cellranger_matrices_filtered )
         ch_multiqc_files = ch_multiqc_files.mix(CELLRANGER_ALIGN.out.cellranger_out.map {
             meta, outs -> outs.findAll{ it -> it.name == "web_summary.html"}
@@ -209,7 +206,6 @@ workflow SCRNASEQ {
             ch_fastq,
             ch_cellrangerarc_config
         )
-        ch_versions = ch_versions.mix(CELLRANGERARC_ALIGN.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix( CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_raw, CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_filtered )
     }
 
@@ -275,9 +271,8 @@ workflow SCRNASEQ {
             cellranger_vdj_index,
             ch_multi_samplesheet
         )
-        ch_versions = ch_versions.mix(CELLRANGER_MULTI_ALIGN.out.ch_versions)
         ch_multiqc_files = ch_multiqc_files.mix( CELLRANGER_MULTI_ALIGN.out.cellrangermulti_out.map{
-            meta, outs -> outs.findAll{ it -> it.name == "web_summary.html" }
+            _meta, outs -> outs.findAll{ it -> it.name == "web_summary.html" }
         })
         ch_mtx_matrices = ch_mtx_matrices.mix( CELLRANGER_MULTI_ALIGN.out.cellrangermulti_mtx_raw, CELLRANGER_MULTI_ALIGN.out.cellrangermulti_mtx_filtered )
 
@@ -289,7 +284,7 @@ workflow SCRNASEQ {
     MTX_TO_H5AD (
         ch_mtx_matrices,
         ch_txp2gene,
-        star_index ? ch_star_index.map{it[1]} : [],
+        star_index ? ch_star_index.map{index -> index[1]} : [],
         params.aligner
     )
     ch_versions = ch_versions.mix(MTX_TO_H5AD.out.versions.first())
@@ -302,7 +297,7 @@ workflow SCRNASEQ {
         // module should only run on the raw matrices thus, filter-out the filtered result of the aligners that can produce it
         H5AD_REMOVEBACKGROUND_BARCODES_CELLBENDER_ANNDATA (
             ch_h5ads
-                .filter { meta, mtx_files -> meta.input_type == 'raw' }
+                .filter { meta, _mtx_files -> meta.input_type == 'raw' }
                 .map { meta, mtx_files -> [ meta + [input_type: 'cellbender_filter'], mtx_files ]} // to avoid name collision
         )
         ch_h5ads = ch_h5ads.mix(
@@ -338,40 +333,33 @@ workflow SCRNASEQ {
             "${process}:\n${tool_versions.join('\n')}"
         }
 
-    softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
+    def ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
         .mix(topic_versions_string)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
             name: 'nf_core_'  +  'scrnaseq_software_'  + 'mqc_'  + 'versions.yml',
             sort: true,
             newLine: true
-        ).set { ch_collated_versions }
+        )
 
     if (!params.skip_multiqc) {
         //
         // MODULE: MultiQC
         //
-        ch_multiqc_config        = channel.fromPath(
-            "$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-        ch_multiqc_custom_config = params.multiqc_config ?
-            channel.fromPath(params.multiqc_config, checkIfExists: true) :
-            channel.empty()
-        ch_multiqc_logo          = params.multiqc_logo ?
-            channel.fromPath(params.multiqc_logo, checkIfExists: true) :
-            channel.empty()
+        ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
 
-        summary_params      = paramsSummaryMap(
+        def ch_summary_params = paramsSummaryMap(
             workflow, parameters_schema: "nextflow_schema.json")
-        ch_workflow_summary = channel.value(paramsSummaryMultiqc(summary_params))
+        def ch_workflow_summary = channel.value(paramsSummaryMultiqc(ch_summary_params))
         ch_multiqc_files = ch_multiqc_files.mix(
             ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-        ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
+
+        def ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
             file(params.multiqc_methods_description, checkIfExists: true) :
-            file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
-        ch_methods_description                = channel.value(
+            file("${projectDir}/assets/methods_description_template.yml", checkIfExists: true)
+        def ch_methods_description = channel.value(
             methodsDescriptionText(ch_multiqc_custom_methods_description))
 
-        ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
         ch_multiqc_files = ch_multiqc_files.mix(
             ch_methods_description.collectFile(
                 name: 'methods_description_mqc.yaml',
@@ -380,20 +368,30 @@ workflow SCRNASEQ {
         )
 
         MULTIQC (
-            ch_multiqc_files.collect(),
-            ch_multiqc_config.toList(),
-            ch_multiqc_custom_config.toList(),
-            ch_multiqc_logo.toList(),
-            [],
-            []
+            ch_multiqc_files.flatten().collect().map { files ->
+                def multiqc_cfg = params.multiqc_config ?
+                    [
+                        file("${projectDir}/assets/multiqc_config.yml", checkIfExists: true),
+                        file(params.multiqc_config, checkIfExists: true),
+                    ] :
+                    file("${projectDir}/assets/multiqc_config.yml", checkIfExists: true)
+                [
+                    [id: 'scrnaseq'],
+                    files,
+                    multiqc_cfg,
+                    params.multiqc_logo ? file(params.multiqc_logo, checkIfExists: true) : [],
+                    [],
+                    [],
+                ]
+            }
         )
-        ch_multiqc_report = MULTIQC.out.report
+        ch_multiqc_report = MULTIQC.out.report.map { _meta, report -> [report] }.toList()
     } else {
         ch_multiqc_report = channel.empty()
     }
 
     emit:
-    multiqc_report = ch_multiqc_report           // channel: /path/to/multiqc_report.html
+    multiqc_report = ch_multiqc_report           // channel: [ path(multiqc_report.html) ]
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
 }

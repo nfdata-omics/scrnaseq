@@ -1,5 +1,5 @@
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
-include { CONCAT_H5AD           } from '../../modules/local/concat_h5ad.nf'
+include { CONCAT_H5AD           } from '../../modules/local/concat_h5ad'
 include { ANNDATAR_CONVERT      } from '../../modules/local/anndatar_convert'
 
 workflow H5AD_CONVERSION {
@@ -10,7 +10,7 @@ workflow H5AD_CONVERSION {
 
     main:
 
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     //
     // Concat all raw and unfiltered h5ad files
