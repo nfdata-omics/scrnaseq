@@ -29,7 +29,7 @@ workflow CELLRANGER_MULTI_ALIGN {
         .flatten()
         .map{ meta ->
             def meta_clone = meta.clone()
-            def data_dict  = meta_clone.find{ it.key == "${meta_clone.feature_type}" }
+            def data_dict  = meta_clone.find{ entry -> entry.key == "${meta_clone.feature_type}" }
             def fastqs = data_dict?.value
             meta_clone.remove( data_dict?.key )
             [ meta_clone, fastqs ]
@@ -59,7 +59,6 @@ workflow CELLRANGER_MULTI_ALIGN {
         ch_gex_frna_probeset      = params.gex_frna_probe_set            ? file(params.gex_frna_probe_set)            : []
         ch_gex_target_panel       = params.gex_target_panel              ? file(params.gex_target_panel)              : []
         ch_gex_cmo_set            = params.gex_cmo_set                   ? file(params.gex_cmo_set)                   : []
-        ch_gex_barcodes           = params.gex_barcode_sample_assignment ? file(params.gex_barcode_sample_assignment) : []
         ch_fb_reference           = params.fb_reference                  ? file(params.fb_reference)                  : []
         ch_vdj_primer_index       = params.vdj_inner_enrichment_primers  ? file(params.vdj_inner_enrichment_primers)  : []
         ch_beam_antigen_panel_csv = [] // currently not implemented
@@ -90,26 +89,26 @@ workflow CELLRANGER_MULTI_ALIGN {
 
             // CMO
             ch_grouped_fastq.gex
-            .map{ [it[0].id] }
-            .concat( PARSE_CELLRANGERMULTI_SAMPLESHEET.out.cmo.flatten().map { [ "${it.baseName}" - "_cmo", it ] } )
+            .map{ pair -> [pair[0].id] }
+            .concat( PARSE_CELLRANGERMULTI_SAMPLESHEET.out.cmo.flatten().map { csv -> [ "${csv.baseName}" - "_cmo", csv ] } )
             .groupTuple()
-            .map { if ( it.size() == 2 ) { it[1] } else { [] } } // a correct tuple from snippet will have: [ sample, cmo.csv ]
+            .map { grp -> if ( grp.size() == 2 ) { grp[1] } else { [] } } // a correct tuple from snippet will have: [ sample, cmo.csv ]
             .set { ch_cmo_barcode_csv }
 
             // OCM
             ch_grouped_fastq.gex
-            .map{ [it[0].id] }
-            .concat( PARSE_CELLRANGERMULTI_SAMPLESHEET.out.ocm.flatten().map { [ "${it.baseName}" - "_ocm", it ] } )
+            .map{ pair -> [pair[0].id] }
+            .concat( PARSE_CELLRANGERMULTI_SAMPLESHEET.out.ocm.flatten().map { csv -> [ "${csv.baseName}" - "_ocm", csv ] } )
             .groupTuple()
-            .map { if ( it.size() == 2 ) { it[1] } else { [] } } // a correct tuple from snippet will have: [ sample, ocm.csv ]
+            .map { grp -> if ( grp.size() == 2 ) { grp[1] } else { [] } } // a correct tuple from snippet will have: [ sample, ocm.csv ]
             .set { ch_ocm_barcode_csv }
 
             // FRNA
             ch_grouped_fastq.gex
-            .map{ [it[0].id] }
-            .concat( PARSE_CELLRANGERMULTI_SAMPLESHEET.out.frna.flatten().map { [ "${it.baseName}" - "_frna", it ] } )
+            .map{ pair -> [pair[0].id] }
+            .concat( PARSE_CELLRANGERMULTI_SAMPLESHEET.out.frna.flatten().map { csv -> [ "${csv.baseName}" - "_frna", csv ] } )
             .groupTuple()
-            .map { if ( it.size() == 2 ) { it[1] } else { [] } } // a correct tuple from snippet will have: [ sample, frna.csv ]
+            .map { grp -> if ( grp.size() == 2 ) { grp[1] } else { [] } } // a correct tuple from snippet will have: [ sample, frna.csv ]
             .set { ch_frna_sample_csv }
 
         } else {
@@ -197,7 +196,7 @@ workflow CELLRANGER_MULTI_ALIGN {
         // MODULE: cellranger multi
         //
         CELLRANGER_MULTI(
-            ch_grouped_fastq.gex.map{ it[0] },
+            ch_grouped_fastq.gex.map{ pair -> pair[0] },
             ch_grouped_fastq.gex,
             ch_grouped_fastq.vdj,
             ch_grouped_fastq.ab,
@@ -244,7 +243,7 @@ def parse_demultiplexed_output_channels(in_ch, pattern) {
     def out_ch = in_ch
         .map { meta, mtx_files ->
             def desired_files = []
-            mtx_files.each{ if ( it.toString().contains("${pattern}") ) { desired_files.add( it ) } }
+            mtx_files.each{ path -> if ( path.toString().contains("${pattern}") ) { desired_files.add( path ) } }
             [ meta, desired_files ]
         }                    // separate only desired files
         .transpose()         // transpose for handling one meta/file pair at a time
@@ -260,7 +259,7 @@ def parse_demultiplexed_output_channels(in_ch, pattern) {
             }
             [ meta_clone, mtx_files ]
         }                    // check if output is from demultiplexed sample, if yes, correct meta.id for proper conversion naming
-        .filter{ it != null } // remove nulls from previous step
+        .filter{ item -> item != null } // remove nulls from previous step
         .groupTuple( by: 0 ) // group it back as one file collection per sample
 
     return out_ch

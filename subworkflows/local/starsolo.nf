@@ -69,5 +69,5 @@ workflow STARSOLO {
     star_counts     = STAR_ALIGN.out.counts
     raw_counts      = raw_counts
     filtered_counts = filtered_counts
-    for_multiqc     = STAR_ALIGN.out.log_final.map{ meta, it -> it }
+    for_multiqc     = STAR_ALIGN.out.log_final.map{ _meta, logFinal -> logFinal }
 }

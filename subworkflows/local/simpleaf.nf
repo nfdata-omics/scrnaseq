@@ -20,7 +20,7 @@ workflow SIMPLEAF {
     map_dir
 
     main:
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     /*
     * Build simpleaf index if needed
@@ -60,20 +60,20 @@ workflow SIMPLEAF {
             if (!txp2gene) {
                 txp2gene = SIMPLEAF_INDEX.out.t2g.collect().map { _meta, it -> it }
             } else {
-                txp2gene = Channel.of( txp2gene )
+                txp2gene = channel.of( txp2gene )
             }
         } else {
             // we have a map dir, so we do not need to build the index
-            simpleaf_index = Channel.of( [ [:], [] ] )
+            simpleaf_index = channel.of( [ [:], [] ] )
         }
     } else {
         // we have a simpleaf index, we use it directly
         // ensure simpleaf index and txp2gene are Channels
-        simpleaf_index = Channel.of( [ [ id: simpleaf_index.getName() ], simpleaf_index ] )
+        simpleaf_index = channel.of( [ [ id: simpleaf_index.getName() ], simpleaf_index ] )
 
         // channel or null
         if (txp2gene) {
-            txp2gene = Channel.of( txp2gene )
+            txp2gene = channel.of( txp2gene )
         }
     }
 
@@ -119,7 +119,7 @@ workflow SIMPLEAF {
     /*
     * Run qcatch QC (optional)
     */
-    ch_qcatch_report = Channel.empty()
+    ch_qcatch_report = channel.empty()
     if ( !skip_qcatch ) {
         // Map quant channel to include chemistry for qcatch: tuple(meta, chemistry, quant_dir)
         ch_qcatch_input = ch_af_quant.map { meta, quant_dir -> [meta, qcatch_chemistry, quant_dir] }
