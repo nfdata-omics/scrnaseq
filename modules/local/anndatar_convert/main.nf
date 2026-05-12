@@ -10,8 +10,8 @@ process ANNDATAR_CONVERT {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
-        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/7f/7f7e0e55a38db6b814fc1d86cca65fbfa60d6ce5e6b2ead0e5db49cd2d83b816/data' :
-        'community.wave.seqera.io/library/bioconductor-anndatar_bioconductor-singlecellexperiment_r-seuratobject:603afb8a5c60f65f' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/b6/b6f6a502639a53b3b7b078b1b250c0c4a953cfd5508feac34c4d8185e3b2de24/data' :
+        'community.wave.seqera.io/library/bioconductor-anndatar_bioconductor-singlecellexperiment_r-hdf5r_r-seurat:67d97559705c8ef0' }"
 
     input:
     tuple val(meta), path(h5ad)
