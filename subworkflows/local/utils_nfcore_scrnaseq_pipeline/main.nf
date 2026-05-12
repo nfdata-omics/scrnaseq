@@ -235,7 +235,7 @@ def validateInputParameters() {
 // Validate cellranger_multi_barcodes samplesheet for uniqueness and conditional requirements
 //
 def validateCellrangerMultiBarcodes() {
-    cellranger_multi_barcodes = file(params.cellranger_multi_barcodes).splitCsv(header: true)
+    def cellranger_multi_barcodes = file(params.cellranger_multi_barcodes).splitCsv(header: true)
 
     // Get unique samples from input samplesheet for cross-validation
     def inputSamples = file(params.input).splitCsv(header: true).collect { it.sample }.toSet()

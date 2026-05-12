@@ -5,7 +5,7 @@ include { CELLRANGER_MKGTF                  } from "../../modules/nf-core/cellra
 include { CELLRANGER_MKREF                  } from "../../modules/nf-core/cellranger/mkref/main.nf"
 include { CELLRANGER_MKVDJREF               } from "../../modules/nf-core/cellranger/mkvdjref/main.nf"
 include { CELLRANGER_MULTI                  } from "../../modules/nf-core/cellranger/multi/main.nf"
-include { PARSE_CELLRANGERMULTI_SAMPLESHEET } from "../../modules/local/parse_cellrangermulti_samplesheet.nf"
+include { PARSE_CELLRANGERMULTI_SAMPLESHEET } from "../../modules/local/parse_cellrangermulti_samplesheet"
 
 // Define workflow to subset and index a genome region fasta file
 workflow CELLRANGER_MULTI_ALIGN {
@@ -18,8 +18,6 @@ workflow CELLRANGER_MULTI_ALIGN {
         ch_multi_samplesheet
 
     main:
-        ch_versions    = Channel.empty()
-
         //
         // TODO: Include checkers for cellranger multi parameter combinations. For example, when VDJ data is given, require VDJ ref. If FFPE, require frna probe sets, etc.
         //
@@ -32,7 +30,7 @@ workflow CELLRANGER_MULTI_ALIGN {
         .map{ meta ->
             def meta_clone = meta.clone()
             def data_dict  = meta_clone.find{ it.key == "${meta_clone.feature_type}" }
-            fastqs = data_dict?.value
+            def fastqs = data_dict?.value
             meta_clone.remove( data_dict?.key )
             [ meta_clone, fastqs ]
         }
@@ -127,7 +125,6 @@ workflow CELLRANGER_MULTI_ALIGN {
 
             // Filter GTF based on gene biotypes passed in params.modules
             CELLRANGER_MKGTF ( ch_gtf )
-            ch_versions = ch_versions.mix(CELLRANGER_MKGTF.out.versions)
 
         }
 
@@ -145,15 +142,14 @@ workflow CELLRANGER_MULTI_ALIGN {
             if ( params.gex_frna_probe_set && params.gex_reference_version ) {
                 def probeset_file = file(params.gex_frna_probe_set)
                 def probeset_reference = null
-                probeset_file.withReader { reader ->
-                    String line
-                    while ((line = reader.readLine()) != null) {
-                        if (line.startsWith("#reference_genome=")) {
-                            ref_split = line.split("=")
-                            if (ref_split.size() > 1) {
-                                probeset_reference = ref_split[1].trim()
-                            }
-                            break
+                def done = false
+                probeset_file.eachLine { line ->
+                    if (done)
+                        return
+                    if (line.startsWith("#reference_genome=")) {
+                        def ref_split = line.split("=")
+                        if (ref_split.size() > 1) {
+                            probeset_reference = ref_split[1].trim()
                         }
                     }
                 }
@@ -169,7 +165,6 @@ workflow CELLRANGER_MULTI_ALIGN {
                 CELLRANGER_MKGTF.out.gtf,
                 reference_name
             )
-            ch_versions = ch_versions.mix(CELLRANGER_MKREF.out.versions)
             ch_cellranger_gex_index = CELLRANGER_MKREF.out.reference.ifEmpty { [] }
 
         } else {
@@ -189,7 +184,6 @@ workflow CELLRANGER_MULTI_ALIGN {
                     [], // currently ignoring the 'seqs' option
                     "vdj_reference"
                 )
-                ch_versions = ch_versions.mix(CELLRANGER_MKVDJREF.out.versions)
                 ch_cellranger_vdj_index = CELLRANGER_MKVDJREF.out.reference.ifEmpty { [] }
             } else {
                 ch_cellranger_vdj_index = []
@@ -225,7 +219,6 @@ workflow CELLRANGER_MULTI_ALIGN {
             ch_ocm_barcode_csv,
             params.skip_cellranger_renaming
         )
-        ch_versions = ch_versions.mix(CELLRANGER_MULTI.out.versions)
 
         //
         // Cellranger multi splits the results from each sample. So, a module execution will have: (1) a raw counts dir for all;
@@ -242,34 +235,33 @@ workflow CELLRANGER_MULTI_ALIGN {
         ch_matrices_raw      = parse_demultiplexed_output_channels( CELLRANGER_MULTI.out.outs, "raw_feature_bc_matrix"      )
 
     emit:
-        ch_versions
         cellrangermulti_out          = CELLRANGER_MULTI.out.outs
         cellrangermulti_mtx_raw      = ch_matrices_raw
         cellrangermulti_mtx_filtered = ch_matrices_filtered
 }
 
 def parse_demultiplexed_output_channels(in_ch, pattern) {
-    out_ch =
-    in_ch.map { meta, mtx_files ->
-        def desired_files = []
-        mtx_files.each{ if ( it.toString().contains("${pattern}") ) { desired_files.add( it ) } }
-        [ meta, desired_files ]
-    }                    // separate only desired files
-    .transpose()         // transpose for handling one meta/file pair at a time
-    .map { meta, mtx_files ->
-        def meta_clone = meta.clone()
-        meta_clone.input_type = pattern.contains('raw_') ? 'raw' : 'filtered' // add metadata for conversion workflow
-        if ( mtx_files.toString().contains("per_sample_outs") ) {
-            def demultiplexed_sample_id = mtx_files.toString().split('/per_sample_outs/')[1].split('/')[0]
-            if ( demultiplexed_sample_id.toString() == meta.id) {
-                return null
+    def out_ch = in_ch
+        .map { meta, mtx_files ->
+            def desired_files = []
+            mtx_files.each{ if ( it.toString().contains("${pattern}") ) { desired_files.add( it ) } }
+            [ meta, desired_files ]
+        }                    // separate only desired files
+        .transpose()         // transpose for handling one meta/file pair at a time
+        .map { meta, mtx_files ->
+            def meta_clone = meta.clone()
+            meta_clone.input_type = pattern.contains('raw_') ? 'raw' : 'filtered' // add metadata for conversion workflow
+            if ( mtx_files.toString().contains("per_sample_outs") ) {
+                def demultiplexed_sample_id = mtx_files.toString().split('/per_sample_outs/')[1].split('/')[0]
+                if ( demultiplexed_sample_id.toString() == meta.id) {
+                    return null
+                }
+                meta_clone.id = demultiplexed_sample_id.toString()
             }
-            meta_clone.id = demultiplexed_sample_id.toString()
-        }
-        [ meta_clone, mtx_files ]
-    }                    // check if output is from demultiplexed sample, if yes, correct meta.id for proper conversion naming
-    .filter{ it != null } // remove nulls from previous step
-    .groupTuple( by: 0 ) // group it back as one file collection per sample
+            [ meta_clone, mtx_files ]
+        }                    // check if output is from demultiplexed sample, if yes, correct meta.id for proper conversion naming
+        .filter{ it != null } // remove nulls from previous step
+        .groupTuple( by: 0 ) // group it back as one file collection per sample
 
     return out_ch
 }

@@ -2,10 +2,7 @@
 include {KALLISTOBUSTOOLS_COUNT }             from '../../modules/nf-core/kallistobustools/count/main'
 
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
-include { GUNZIP }                      from '../../modules/nf-core/gunzip/main'
 include { KALLISTOBUSTOOLS_REF }        from '../../modules/nf-core/kallistobustools/ref/main'
-
-def multiqc_report    = []
 
 workflow KALLISTO_BUSTOOLS {
     take:
