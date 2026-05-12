@@ -6,6 +6,7 @@ import os
 os.environ["NUMBA_CACHE_DIR"] = "."
 
 import platform
+import json
 
 import anndata
 import pandas as pd
@@ -74,6 +75,11 @@ def input_to_adata(
 
     # sort adata column- and row- wise to avoid positional differences
     adata = adata[adata.obs_names.sort_values(), adata.var_names.sort_values()].copy()
+
+    # Remove runtime to prevent hash changes
+    simpleaf_map_info = json.loads(adata.uns['simpleaf_map_info'])
+    simpleaf_map_info.pop('runtime_seconds')
+    adata.uns['simpleaf_map_info'] = json.dumps(simpleaf_map_info, sort_keys=True)
 
     # write results
     adata.write_h5ad(f"{output}")

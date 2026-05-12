@@ -27,7 +27,11 @@ include { H5AD_CONVERSION                                   } from '../subworkfl
 workflow SCRNASEQ {
 
     take:
-    ch_fastq
+    ch_fastq // channel: [ meta, fastq ] from samplesheet
+    multiqc_config
+    multiqc_logo
+    multiqc_methods_description
+    outdir
 
     main:
     ch_multiqc_files = channel.empty()
@@ -336,7 +340,7 @@ workflow SCRNASEQ {
     def ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
         .mix(topic_versions_string)
         .collectFile(
-            storeDir: "${params.outdir}/pipeline_info",
+            storeDir: "${outdir}/pipeline_info",
             name: 'nf_core_'  +  'scrnaseq_software_'  + 'mqc_'  + 'versions.yml',
             sort: true,
             newLine: true
@@ -347,39 +351,23 @@ workflow SCRNASEQ {
         // MODULE: MultiQC
         //
         ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
-
-        def ch_summary_params = paramsSummaryMap(
-            workflow, parameters_schema: "nextflow_schema.json")
+        def ch_summary_params = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
         def ch_workflow_summary = channel.value(paramsSummaryMultiqc(ch_summary_params))
-        ch_multiqc_files = ch_multiqc_files.mix(
-            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-
-        def ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
-            file(params.multiqc_methods_description, checkIfExists: true) :
-            file("${projectDir}/assets/methods_description_template.yml", checkIfExists: true)
-        def ch_methods_description = channel.value(
-            methodsDescriptionText(ch_multiqc_custom_methods_description))
-
-        ch_multiqc_files = ch_multiqc_files.mix(
-            ch_methods_description.collectFile(
-                name: 'methods_description_mqc.yaml',
-                sort: true
-            )
-        )
-
-        MULTIQC (
+        ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        def ch_multiqc_custom_methods_description = multiqc_methods_description
+            ? file(multiqc_methods_description, checkIfExists: true)
+            : file("${projectDir}/assets/methods_description_template.yml", checkIfExists: true)
+        def ch_methods_description = channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description))
+        ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: true))
+        MULTIQC(
             ch_multiqc_files.flatten().collect().map { files ->
-                def multiqc_cfg = params.multiqc_config ?
-                    [
-                        file("${projectDir}/assets/multiqc_config.yml", checkIfExists: true),
-                        file(params.multiqc_config, checkIfExists: true),
-                    ] :
-                    file("${projectDir}/assets/multiqc_config.yml", checkIfExists: true)
                 [
                     [id: 'scrnaseq'],
                     files,
-                    multiqc_cfg,
-                    params.multiqc_logo ? file(params.multiqc_logo, checkIfExists: true) : [],
+                    multiqc_config
+                        ? file(multiqc_config, checkIfExists: true)
+                        : file("${projectDir}/assets/multiqc_config.yml", checkIfExists: true),
+                    multiqc_logo ? file(multiqc_logo, checkIfExists: true) : [],
                     [],
                     [],
                 ]
@@ -393,5 +381,4 @@ workflow SCRNASEQ {
     emit:
     multiqc_report = ch_multiqc_report           // channel: [ path(multiqc_report.html) ]
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
-
 }
