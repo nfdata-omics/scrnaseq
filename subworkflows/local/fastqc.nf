@@ -28,11 +28,9 @@ workflow FASTQC_CHECK {
 
     fastqc_multiqc = Channel.empty()
     fastqc_multiqc = fastqc_multiqc.mix( fastqc_zip_only, fastqc_html_only )
-    fastqc_version = FASTQC.out.versions
 
     emit:
     fastqc_zip
     fastqc_html
-    fastqc_version
     fastqc_multiqc
 }

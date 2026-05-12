@@ -16,19 +16,15 @@ workflow CELLRANGER_ALIGN {
         protocol
 
     main:
-        ch_versions = Channel.empty()
-
         assert cellranger_index || (fasta && gtf):
             "Must provide either a cellranger index or both a fasta file ('--fasta') and a gtf file ('--gtf')."
 
         if (!cellranger_index) {
             // Filter GTF based on gene biotypes passed in params.modules
             CELLRANGER_MKGTF( gtf )
-            ch_versions = ch_versions.mix(CELLRANGER_MKGTF.out.versions)
 
             // Make reference genome
             CELLRANGER_MKREF( fasta, CELLRANGER_MKGTF.out.gtf, "cellranger_reference" )
-            ch_versions = ch_versions.mix(CELLRANGER_MKREF.out.versions)
             cellranger_index = CELLRANGER_MKREF.out.reference
         }
 
@@ -38,7 +34,6 @@ workflow CELLRANGER_ALIGN {
             ch_fastq.map{ meta, reads -> [meta + ["chemistry": protocol, "gem": meta.id, "samples": [meta.id]], reads] },
             cellranger_index
         )
-        ch_versions = ch_versions.mix(CELLRANGER_COUNT.out.versions)
 
         //
         // Split channels of raw and filtered to avoid file collision problems when loading the inputs in conversion modules.
@@ -62,7 +57,6 @@ workflow CELLRANGER_ALIGN {
         }
 
     emit:
-        ch_versions
         cellranger_out               = CELLRANGER_COUNT.out.outs
         cellranger_matrices_raw      = ch_matrices_raw
         cellranger_matrices_filtered = ch_matrices_filtered

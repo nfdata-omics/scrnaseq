@@ -13,11 +13,28 @@
             "whitelist": "assets/whitelist/10x_V3_barcode_whitelist.txt.gz"
         },
         "10XV4": {
-            "protocol": "10xv4",
+            "protocol": "10xv4-3p",
             "whitelist": "assets/whitelist/10x_V4_barcode_whitelist.txt.gz"
         },
         "dropseq": {
             "protocol": "dropseq"
+        }
+    },
+    "qcatch": {
+        "10XV1": {
+            "protocol": null
+        },
+        "10XV2": {
+            "protocol": "10X_3p_v2"
+        },
+        "10XV3": {
+            "protocol": "10X_3p_v3"
+        },
+        "10XV4": {
+            "protocol": "10X_3p_v4"
+        },
+        "dropseq": {
+            "protocol": null
         }
     },
     "cellranger": {

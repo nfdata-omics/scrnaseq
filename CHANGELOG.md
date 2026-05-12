@@ -3,6 +3,52 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Features
+
+- Fix [#375](https://github.com/nf-core/scrnaseq/issues/375): mismatch between index and probeset when cellranger multi is used without a prebuilt index and an FFPE probeset is passed ([#502](https://github.com/nf-core/scrnaseq/pull/502))
+- Fix [#510](https://github.com/nf-core/scrnaseq/issues/510): Handle files with BOMs. ([#511](https://github.com/nf-core/scrnaseq/pull/511))
+- Address [#512], adding early validation of the cellranger multi barcode sheet ([#513](https://github.com/nf-core/scrnaseq/pull/513))
+
+### Chore
+
+- Template update for nf-core/tools v3.5.1 ([#509](https://github.com/nf-core/scrnaseq/pull/509))
+- Template update for nf-core/tools v4.0.2 ([#541](https://github.com/nf-core/scrnaseq/pull/541))
+
+## Fixes
+
+- Fix `modules.config` structure to make sure all ways of providing the `aligner` param work ([514](https://github.com/nf-core/scrnaseq/pull/514))
+- Fix [515](https://github.com/nf-core/scrnaseq/issues/515), failure when running singleplex flex data by updating cellranger multi module ([517](https://github.com/nf-core/scrnaseq/pull/517))
+- Fix [522](https://github.com/nf-core/scrnaseq/issues/522), protocol not being passed correctly when running cellranger multi ([524](https://github.com/nf-core/scrnaseq/pull/524))
+- Fix [533](https://github.com/nf-core/scrnaseq/issues/533), FASTQC module results in naming collisions if files have same basename ([534](https://github.com/nf-core/scrnaseq/pull/534))
+
+## v4.1.0 - 2025-08-01
+
+### Features
+
+- Fix simpleaf protocol name for 10xv4 ([#452](https://github.com/nf-core/scrnaseq/pull/452))
+- Fix the workflow for cellranger-arc alignment and add new test with 10x multiome dataset ([#441](https://github.com/nf-core/scrnaseq/pull/441))
+- Update `nf-core/cellranger` modules to tool version `9.0.1` ([#467](https://github.com/nf-core/scrnaseq/pull/467))
+- Fix igenomes usage to correctly handle fasta and gtf files ([#469](https://github.com/nf-core/scrnaseq/pull/469))
+- Update `cellranger/multi` module to latest version with nf-core tools ([#482](https://github.com/nf-core/scrnaseq/pull/482))
+- Adapt pipeline to also parse `OCM` barcodes for `cellranger/multi` and update its documentation ([#482](https://github.com/nf-core/scrnaseq/pull/482))
+- Fix that skip_multiqc parameter did not work ([#479](https://github.com/nf-core/scrnaseq/pull/479))
+- Add the `accelerator` process directive to the `process_gpu` label ([#477](https://github.com/nf-core/scrnaseq/pull/477))
+- Refactor iGenomes handling to expose params object pipeline-wide ([#483](https://github.com/nf-core/scrnaseq/pull/483))
+
+### Documentation
+
+- Update nextflow_schema.json ([#453](https://github.com/nf-core/scrnaseq/pull/453))
+- Update `--cellranger_index` docs to point out that the base index directory is needed ([#458](https://github.com/nf-core/scrnaseq/pull/458))
+- Update protocol documentation ([#459](https://github.com/nf-core/scrnaseq/pull/459))
+
+### Chore
+
+- Add ruff pre-commit check as linter/autoformatter for python scripts ([#464](https://github.com/nf-core/scrnaseq/pull/464))
+- Template update for nf-core/tools v3.2.1 ([#466](https://github.com/nf-core/scrnaseq/pull/466))
+- Template update for nf-core/tools v3.3.2 ([#474](https://github.com/nf-core/scrnaseq/pull/474))
+
 ## v4.0.0 - 2025-03-10
 
 - Move `txp2gene` to `reference_genome_options` in schema as it is required by `kb_python` and `alevin` ([434](https://github.com/nf-core/scrnaseq/pull/434))
