@@ -11,12 +11,12 @@ process QUALITY_METRICS_VDJ   {
 
     output:
     tuple val(meta), path("*.qc_vdj.h5mu"),     emit: h5mu
-    path "VDJ_abundance_all_samples.csv",       emit: vdj_abundance, optional: true
-    path "vdj_receptor_type*.png",              emit: receptor_type, optional: true
-    path "vdj_receptor_subtype*.png",           emit: receptor_subtype, optional: true
-    path "vdj_chain_pairing*.png",              emit: chain, optional: true
+    path "VDJ_abundance_all_samples.csv",       emit: vdj_abundance,       optional: true
+    path "vdj_receptor_type.pdf",               emit: receptor_type,       optional: true
+    path "vdj_receptor_subtype.pdf",            emit: receptor_subtype,    optional: true
+    path "vdj_chain_pairing.pdf",               emit: chain,               optional: true
     path "chain_pairing_stats_all_samples.csv", emit: chain_pairing_stats, optional: true
-    path "vdj_gex_match_all_samples.csv",       emit: gex_match, optional: true
+    path "vdj_gex_match_all_samples.csv",       emit: gex_match,           optional: true
     path "ChainPairing_donor-*.csv",            emit: chain_pairing_donor, optional: true
     path "versions.yml",                        emit: versions
 
