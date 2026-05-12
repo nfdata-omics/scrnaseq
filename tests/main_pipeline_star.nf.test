@@ -1,14 +1,15 @@
 nextflow_pipeline {
 
-    name "Test pipeline"
-    script "../main.nf"
-    tag "pipeline"
+    name "Test Workflow main.nf"
+    script "main.nf"
 
-    test("-profile test") {
+    test("test-dataset_star_aligner") {
 
         when {
+            // the rest is taken from shared config
             params {
-                outdir = "$outputDir"
+                aligner    = 'star'
+                outdir     = "$outputDir"
             }
         }
 
@@ -21,7 +22,7 @@ nextflow_pipeline {
             assertAll(
                 { assert snapshot(
                     // pipeline versions.yml file for multiqc from which Nextflow version is removed because we test pipelines on multiple Nextflow versions
-                    removeNextflowVersion("$outputDir/pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml"),
+                    removeFromYamlMap("$params.outdir/pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml", "Workflow"),
                     // All stable path name, with a relative path
                     stable_path,
                     // All files with stable contents
@@ -30,4 +31,5 @@ nextflow_pipeline {
             )
         }
     }
+
 }
