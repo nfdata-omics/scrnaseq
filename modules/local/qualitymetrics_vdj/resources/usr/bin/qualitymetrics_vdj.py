@@ -260,37 +260,41 @@ def main():
 
     with PdfPages(pdf_type) as pdf_type_file, PdfPages(pdf_subtype) as pdf_subtype_file, PdfPages(pdf_chain) as pdf_chain_file:
         for sample in vdj.obs["sample"].unique():
+        
             print(f"\nProcessing sample {sample}")
             sample_data = vdj[vdj.obs["sample"] == sample]
 
-            fig = plt.figure(figsize=(10, 8))
+            # Receptor Type
             ir.pl.group_abundance(
                 sample_data,
                 groupby="receptor_type",
-                target_col="sample"
-            )
+                target_col="sample")
+            fig = plt.gcf()
+            fig.set_size_inches(10, 8)
             fig.suptitle(f"Receptor Type - Sample: {sample}", fontsize=16, fontweight='bold', y=1.02)
             pdf_type_file.savefig(fig, bbox_inches='tight')
             plt.close(fig)
             print(f"Added receptor type page for sample {sample}")
 
-            fig = plt.figure(figsize=(10, 8))
+            # Receptor Subtype
             ir.pl.group_abundance(
                 sample_data,
                 groupby="receptor_subtype",
-                target_col="sample"
-            )
+                target_col="sample")
+            fig = plt.gcf()
+            fig.set_size_inches(10, 8)
             fig.suptitle(f"Receptor Subtype - Sample: {sample}", fontsize=16, fontweight='bold', y=1.02)
             pdf_subtype_file.savefig(fig, bbox_inches='tight')
             plt.close(fig)
             print(f"Added receptor subtype page for sample {sample}")
 
-            fig = plt.figure(figsize=(10, 8))
+            # Chain Pairing
             ir.pl.group_abundance(
                 sample_data,
                 groupby="chain_pairing",
-                target_col="sample"
-            )
+                target_col="sample")
+            fig = plt.gcf()
+            fig.set_size_inches(10, 8)
             fig.suptitle(f"Chain Pairing - Sample: {sample}", fontsize=16, fontweight='bold', y=1.02)
             pdf_chain_file.savefig(fig, bbox_inches='tight')
             plt.close(fig)
@@ -300,6 +304,8 @@ def main():
     print(f"Saved receptor subtype PDF at {pdf_subtype}")
     print(f"Saved chain pairing PDF at {pdf_chain}")
 
+
+   
 # --------------------------------------------------------------------------------------------------------------------
 #                          MATCH VDJ METRICS TO RNA MODALITY
 # --------------------------------------------------------------------------------------------------------------------
