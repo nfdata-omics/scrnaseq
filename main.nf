@@ -17,9 +17,20 @@
 
 // Params cannot be changed if they have been set beforehand
 // Thus, manually provided files are not overwritten by the genome attributes
-params.fasta            = getGenomeAttribute('fasta')
-params.gtf              = getGenomeAttribute('gtf')
-params.star_index       = getGenomeAttribute('star')
+
+// As discussed in #371 it is desirable for users to be able to provide indices via
+// custom igenomes configs in addition to being able to provide them via params directly
+params.fasta                = getGenomeAttribute('fasta')
+params.gtf                  = getGenomeAttribute('gtf')
+params.star_index           = getGenomeAttribute('star')
+params.simpleaf_index       = getGenomeAttribute('simpleaf')
+params.star_index           = getGenomeAttribute('star')
+params.kallisto_index       = getGenomeAttribute('kallisto')
+params.cellranger_index     = getGenomeAttribute('cellranger')
+params.txp2gene             = getGenomeAttribute('txp2gene')
+params.transcript_fasta     = getGenomeAttribute('transcript_fasta')
+params.motifs               = getGenomeAttribute('motifs')
+params.cellranger_vdj_index = getGenomeAttribute('cellranger_vdj')
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,6 +63,16 @@ workflow NFCORE_SCRNASEQ {
     //
     SCRNASEQ (
         samplesheet,
+        params.fasta,
+        params.gtf,
+        params.star_index,
+        params.simpleaf_index,
+        params.kallisto_index,
+        params.cellranger_index,
+        params.txp2gene,
+        params.transcript_fasta,
+        params.motifs,
+        params.cellranger_vdj_index,
         params.multiqc_config,
         params.multiqc_logo,
         params.multiqc_methods_description,
