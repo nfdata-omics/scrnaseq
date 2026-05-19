@@ -260,7 +260,7 @@ def main():
 
     with PdfPages(pdf_type) as pdf_type_file, PdfPages(pdf_subtype) as pdf_subtype_file, PdfPages(pdf_chain) as pdf_chain_file:
         for sample in vdj.obs["sample"].unique():
-        
+
             print(f"\nProcessing sample {sample}")
             sample_data = vdj[vdj.obs["sample"] == sample]
 
@@ -305,7 +305,7 @@ def main():
     print(f"Saved chain pairing PDF at {pdf_chain}")
 
 
-   
+
 # --------------------------------------------------------------------------------------------------------------------
 #                          MATCH VDJ METRICS TO RNA MODALITY
 # --------------------------------------------------------------------------------------------------------------------
@@ -448,7 +448,7 @@ def main():
     #        if col in mdata.mod[mod].obs.columns:
     #            mdata.mod[mod].obs.drop(columns=[col], inplace=True)
 
-    
+
     print("\n===== SAVING OUTPUT FILE =====")
     print(f"Saving h5mu data to file {output}")
     mdata.write(output)
