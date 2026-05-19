@@ -304,28 +304,28 @@ def main():
         .str.strip()
     )
 
-    gex.obs["sample_clean"] = (
-        gex.obs["sample"].astype(str)
-        .str.replace("_cellbender_filter", "", regex=False)
-        .str.replace("_filtered", "", regex=False)
-        .str.replace("_parse", "", regex=False)
-        .str.strip()
-    )
 
     vdj.obs["barcode_clean"] = (
         vdj.obs_names.astype(str)
-        .str.replace("_cellbender_filter", "", regex=False)
-        .str.replace("_filtered", "", regex=False)
-        .str.replace("_parse", "", regex=False)
-        .str.strip()
+        .str.split("_")
+        .str[0]
     )
 
     gex.obs["barcode_clean"] = (
         gex.obs_names.astype(str)
-        .str.replace("_cellbender_filter", "", regex=False)
-        .str.replace("_filtered", "", regex=False)
-        .str.replace("_parse", "", regex=False)
-        .str.strip()
+        .str.split("_")
+        .str[0]
+    )
+
+    vdj.obs["match_key"] = (
+        vdj.obs["sample_clean"].astype(str)
+        + "_"
+        + vdj.obs["barcode_clean"].astype(str)
+    )
+    gex.obs["match_key"] = (
+        gex.obs["sample_clean"].astype(str)
+        + "_"
+        + gex.obs["barcode_clean"].astype(str)
     )
 
     match_stats = []
@@ -336,21 +336,32 @@ def main():
     gex_samples = set(gex.obs["sample_clean"].unique())
     common_samples = vdj_samples & gex_samples
 
-    print("Samples in VDJ:", vdj_samples)
-    print("Samples in GEX:", gex_samples)
-    print("Common samples:", common_samples)
+    print("Samples in VDJ:", sorted(vdj_samples))
+    print("Samples in GEX:", sorted(gex_samples))
+    print("Common samples:", sorted(common_samples))
+    print(f"VDJ sample count: {len(vdj_samples)}")
+    print(f"GEX sample count: {len(gex_samples)}")
+    print(f"Common sample count: {len(common_samples)}")
 
-    for sample in common_samples:
+    all_vdj_keys = vdj.obs.loc[
+        vdj.obs["chain_pairing"].isin(types),
+        "match_key"
+    ].astype(str)
+    all_gex_keys = gex.obs.loc[:, "match_key"].astype(str)
+    common_keys = np.intersect1d(all_vdj_keys, all_gex_keys)
+    print(f"Common sample+barcode keys between VDJ and GEX: {len(common_keys)}")
+
+    for sample in sorted(common_samples):
         vdj_cells = vdj.obs.loc[
             (vdj.obs["sample_clean"] == sample) &
             (vdj.obs["chain_pairing"].isin(types)),
-            "barcode_clean"
-        ]
+            "match_key"
+        ].astype(str)
 
         gex_cells = gex.obs.loc[
             gex.obs["sample_clean"] == sample,
-            "barcode_clean"
-        ]
+            "match_key"
+        ].astype(str)
 
         n_vdj = len(vdj_cells)
         n_gex = len(gex_cells)
@@ -404,7 +415,14 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
     mdata.mod["airr"] = vdj
+    #mdata.mod["gex"] = gex
 
+    #for mod in ["gex", "airr"]:
+    #    for col in ["barcode_clean", "sample_clean"]:
+    #        if col in mdata.mod[mod].obs.columns:
+    #            mdata.mod[mod].obs.drop(columns=[col], inplace=True)
+
+    
     print("\n===== SAVING OUTPUT FILE =====")
     print(f"Saving h5mu data to file {output}")
     mdata.write(output)
