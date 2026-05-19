@@ -19,6 +19,7 @@ import os                           # misc operating system interfaces
 import mudata as md
 import matplotlib.pyplot as plt     # plotting library
 import numpy as np                  # scientific computing with Python
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 
@@ -253,33 +254,58 @@ def main():
 # --------------------------------------------------------------------------------------------------------------------
 
     print("\n===== GROUP ABUNDACE PLOTTING =====")
-    for sample in vdj.obs["sample"].unique():
-        print(f"\nProcessing sample {sample}")
+    pdf_type = os.path.join(args.results, "vdj_receptor_type.pdf")
+    pdf_subtype = os.path.join(args.results, "vdj_receptor_subtype.pdf")
+    pdf_chain = os.path.join(args.results, "vdj_chain_pairing.pdf")
 
-        # Receptor type
-        axs = ir.pl.group_abundance(
-                vdj[vdj.obs["sample"] == sample],
-                groupby="receptor_type",target_col="sample"
-            )
-        axs.get_figure().savefig(os.path.join(args.results, f'vdj_receptor_type_{sample}.png'), bbox_inches='tight')
-        print(f"Saved plot for sample {sample}")
+    with PdfPages(pdf_type) as pdf_type_file, PdfPages(pdf_subtype) as pdf_subtype_file, PdfPages(pdf_chain) as pdf_chain_file:
+        for sample in vdj.obs["sample"].unique():
+        
+            print(f"\nProcessing sample {sample}")
+            sample_data = vdj[vdj.obs["sample"] == sample]
 
-        # Receptor subtype
-        axs = ir.pl.group_abundance(
-                vdj[vdj.obs["sample"] == sample],
-                groupby="receptor_subtype",target_col="sample"
-            )
-        axs.get_figure().savefig(os.path.join(args.results, f'vdj_receptor_subtype_{sample}.png'), bbox_inches='tight')
-        print(f"Saved plot for sample {sample}")
+            # Receptor Type
+            ir.pl.group_abundance(
+                sample_data,
+                groupby="receptor_type",
+                target_col="sample")
+            fig = plt.gcf()
+            fig.set_size_inches(10, 8)
+            fig.suptitle(f"Receptor Type - Sample: {sample}", fontsize=16, fontweight='bold', y=1.02)
+            pdf_type_file.savefig(fig, bbox_inches='tight')
+            plt.close(fig)
+            print(f"Added receptor type page for sample {sample}")
 
-        # Chain pairing
-        axs = ir.pl.group_abundance(
-                vdj[vdj.obs["sample"] == sample],
-                groupby="chain_pairing",target_col="sample"
-            )
-        axs.get_figure().savefig(os.path.join(args.results, f'vdj_chain_pairing_{sample}.png'), bbox_inches='tight')
-        print(f"Saved plot for sample {sample}")
+            # Receptor Subtype
+            ir.pl.group_abundance(
+                sample_data,
+                groupby="receptor_subtype",
+                target_col="sample")
+            fig = plt.gcf()
+            fig.set_size_inches(10, 8)
+            fig.suptitle(f"Receptor Subtype - Sample: {sample}", fontsize=16, fontweight='bold', y=1.02)
+            pdf_subtype_file.savefig(fig, bbox_inches='tight')
+            plt.close(fig)
+            print(f"Added receptor subtype page for sample {sample}")
 
+            # Chain Pairing
+            ir.pl.group_abundance(
+                sample_data,
+                groupby="chain_pairing",
+                target_col="sample")
+            fig = plt.gcf()
+            fig.set_size_inches(10, 8)
+            fig.suptitle(f"Chain Pairing - Sample: {sample}", fontsize=16, fontweight='bold', y=1.02)
+            pdf_chain_file.savefig(fig, bbox_inches='tight')
+            plt.close(fig)
+            print(f"Added chain pairing page for sample {sample}")
+
+    print(f"Saved receptor type PDF at {pdf_type}")
+    print(f"Saved receptor subtype PDF at {pdf_subtype}")
+    print(f"Saved chain pairing PDF at {pdf_chain}")
+
+
+   
 # --------------------------------------------------------------------------------------------------------------------
 #                          MATCH VDJ METRICS TO RNA MODALITY
 # --------------------------------------------------------------------------------------------------------------------
