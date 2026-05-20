@@ -8,7 +8,6 @@ include { paramsSummaryMap                                  } from 'plugin/nf-sc
 include { paramsSummaryMultiqc                              } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                            } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText                            } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
-include { getGenomeAttribute                                } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
 include { FASTQC_CHECK                                      } from '../subworkflows/local/fastqc'
 include { KALLISTO_BUSTOOLS                                 } from '../subworkflows/local/kallisto_bustools'
 include { SIMPLEAF                                          } from '../subworkflows/local/simpleaf'
@@ -27,11 +26,21 @@ include { H5AD_CONVERSION                                   } from '../subworkfl
 workflow SCRNASEQ {
 
     take:
-    ch_fastq // channel: [ meta, fastq ] from samplesheet
-    multiqc_config
-    multiqc_logo
-    multiqc_methods_description
-    outdir
+    ch_fastq                    // channel: [ meta, fastq ] from samplesheet
+    fasta                       // val: path-like string (or null)
+    gtf                         // val: path-like string (or null)
+    star_index                  // val: path-like string (or null)
+    simpleaf_index              // val: path-like string (or null)
+    kallisto_index              // val: path-like string (or null)
+    cellranger_index            // val: path-like string (or null)
+    txp2gene                    // val: path-like string (or null)
+    transcript_fasta            // val: path-like string (or null)
+    motifs                      // val: path-like string (or null)
+    cellranger_vdj_index        // val: path-like string (or null)
+    multiqc_config              // val: path-like string (or null)
+    multiqc_logo                // val: path-like string (or null)
+    multiqc_methods_description // val: path-like string (or null)
+    outdir                      // val: string
 
     main:
     ch_multiqc_files = channel.empty()
@@ -48,11 +57,11 @@ workflow SCRNASEQ {
     qcatch_chemistry = qcatch_config.containsKey('protocol') ? qcatch_config['protocol'] : null
 
     // general input and params
-    ch_genome_fasta         = params.fasta                ? file(params.fasta, checkIfExists: true)    : []
-    ch_gtf                  = params.gtf                  ? file(params.gtf, checkIfExists: true)      : []
-    ch_transcript_fasta     = params.transcript_fasta     ? file(params.transcript_fasta)              : []
-    ch_motifs               = params.motifs               ? file(params.motifs)                        : []
-    ch_txp2gene             = params.txp2gene             ? file(params.txp2gene, checkIfExists: true) : []
+    ch_genome_fasta         = fasta            ? file(fasta, checkIfExists: true)            : []
+    ch_gtf                  = gtf              ? file(gtf, checkIfExists: true)              : []
+    ch_transcript_fasta     = transcript_fasta ? file(transcript_fasta, checkIfExists: true) : []
+    ch_motifs               = motifs           ? file(motifs, checkIfExists: true)           : []
+    ch_txp2gene             = txp2gene         ? file(txp2gene, checkIfExists: true)         : []
 
     if (params.barcode_whitelist) {
         ch_barcode_whitelist = file(params.barcode_whitelist, checkIfExists: true)
@@ -67,22 +76,22 @@ workflow SCRNASEQ {
     ch_input = file(params.input)
 
     //kallisto params
-    ch_kallisto_index = params.kallisto_index ? file(params.kallisto_index, checkIfExists: true) : []
-    kb_t1c            = params.kb_t1c         ? file(params.kb_t1c, checkIfExists: true) : []
-    kb_t2c            = params.kb_t2c         ? file(params.kb_t2c, checkIfExists: true) : []
+    ch_kallisto_index = kallisto_index ? file(kallisto_index, checkIfExists: true) : []
+    kb_t1c            = params.kb_t1c  ? file(params.kb_t1c, checkIfExists: true)  : []
+    kb_t2c            = params.kb_t2c  ? file(params.kb_t2c, checkIfExists: true)  : []
 
     //simpleaf params
-    ch_simpleaf_index   = params.simpleaf_index ? file(params.simpleaf_index, checkIfExists: true) : []
+    ch_simpleaf_index   = simpleaf_index ? file(simpleaf_index, checkIfExists: true) : []
 
     //star params
-    star_index        = params.star_index ? file(params.star_index, checkIfExists: true) : null
+    star_index        = star_index ? file(star_index, checkIfExists: true) : null
     ch_star_index     = star_index ? channel.value( [[id: star_index.baseName], star_index] ) : []
 
     //cellranger params
-    ch_cellranger_index = params.cellranger_index ? file(params.cellranger_index, checkIfExists: true) : []
+    ch_cellranger_index = cellranger_index ? file(cellranger_index, checkIfExists: true) : []
 
     //cellrangermulti params
-    cellranger_vdj_index = params.cellranger_vdj_index      ? file(params.cellranger_vdj_index, checkIfExists: true)      : []
+    cellranger_vdj_index = cellranger_vdj_index             ? file(cellranger_vdj_index, checkIfExists: true)             : []
     ch_multi_samplesheet = params.cellranger_multi_barcodes ? file(params.cellranger_multi_barcodes, checkIfExists: true) : []
     empty_file           = file("$projectDir/assets/EMPTY", checkIfExists: true)
 
@@ -98,8 +107,8 @@ workflow SCRNASEQ {
     //
     // Uncompress genome fasta file if required
     //
-    if (params.fasta) {
-        if (params.fasta.endsWith('.gz')) {
+    if (fasta) {
+        if (fasta.endsWith('.gz')) {
             ch_genome_fasta    = GUNZIP_FASTA ( [ [:], ch_genome_fasta ] ).gunzip.map { it[1] }
         } else {
             ch_genome_fasta = channel.value( ch_genome_fasta )
@@ -109,8 +118,8 @@ workflow SCRNASEQ {
     //
     // Uncompress GTF annotation file or create from GFF3 if required
     //
-    if (params.gtf) {
-        if (params.gtf.endsWith('.gz')) {
+    if (gtf) {
+        if (gtf.endsWith('.gz')) {
             ch_gtf      = GUNZIP_GTF ( [ [:], ch_gtf ] ).gunzip.map { it[1] }
         } else {
             ch_gtf = channel.value( ch_gtf )

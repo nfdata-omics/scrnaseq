@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixes
 
+- Fix [#539](https://github.com/nf-core/scrnaseq/issues/539) and [#393](https://github.com/nf-core/scrnaseq/issues/393): genome and aligner index parameter handling by resolving iGenomes attributes in the entry workflow and passing reference paths explicitly into `SCRNASEQ`, restoring configurable pre-built indexes via custom `igenomes` configs (reverts [#483](https://github.com/nf-core/scrnaseq/pull/483) pipeline-wide params approach) ([#545](https://github.com/nf-core/scrnaseq/pull/545))
 - Fix `modules.config` structure to make sure all ways of providing the `aligner` param work ([514](https://github.com/nf-core/scrnaseq/pull/514))
 - Fix [515](https://github.com/nf-core/scrnaseq/issues/515), failure when running singleplex flex data by updating cellranger multi module ([517](https://github.com/nf-core/scrnaseq/pull/517))
 - Fix [522](https://github.com/nf-core/scrnaseq/issues/522), protocol not being passed correctly when running cellranger multi ([524](https://github.com/nf-core/scrnaseq/pull/524))
