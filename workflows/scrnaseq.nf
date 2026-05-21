@@ -659,7 +659,9 @@ workflow SCRNASEQ {
         atac_out_h5ad,
         params.n_neighbors_harmony,
         params.min_dist_harmony,
-        params.integration_var
+        params.skip_harmony,
+        params.integration_var,
+        params.skip_integration
     )
     ch_versions = ch_versions.mix(INTEGRATION_MODALITIES.out.ch_versions)
 

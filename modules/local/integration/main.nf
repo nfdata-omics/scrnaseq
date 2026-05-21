@@ -8,6 +8,7 @@ process INTEGRATION {
     tuple val(meta), path(input_h5mu)
     val n_neighbors_harmony
     val min_dist_harmony
+    val skip_harmony
     val integration_var
 
     output:
@@ -24,12 +25,13 @@ process INTEGRATION {
     task.ext.when == null || task.ext.when
 
     script:
+    def skip_harmony_flag = skip_harmony ? "-skip" : ""
     """
     export NUMBA_CACHE_DIR=/tmp
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
 
-    integration.py -ad $input_h5mu -nnh $n_neighbors_harmony -mdh $min_dist_harmony -var $integration_var
+    integration.py -ad $input_h5mu -nnh $n_neighbors_harmony -mdh $min_dist_harmony -var $integration_var $skip_harmony_flag
 
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
