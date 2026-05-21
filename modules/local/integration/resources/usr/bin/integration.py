@@ -70,6 +70,7 @@ def main():
                         help="path and name of csv table with UMAP coordinates for each cell")
     parser.add_argument('-nnh', '--n_neighbors_harmony', dest='n_neighbors_harmony', type=int, default=20, help="Size of local neighborhood used for manifold approximation. Larger values result in more global views of the manifold, while smaller values result in more local data being preserved. Values should be in the range 2 to 100")
     parser.add_argument('-mdh', '--min_dist_harmony', dest='min_dist_harmony', type=float, default=0.1, help="minimum distance between embedded points. Smaller values will result in a more clustered/clumped embedding where nearby points on the manifold are drawn closer together")
+    parser.add_argument('-skip', '--skip_harmony', dest='skip_harmony', action='store_true', help="if set, skip Harmony integration and reuse existing UMAP from dimensionality reduction step (default is False)")
     parser.add_argument('-var','--integration_var', type=str, default='sample', help="variable in .obs to use for integration (default is 'sample')")
     parser.add_argument('-r','--results', type=pathlib.Path, default=pathlib.Path('./'),help="directory to save the results files (default is the current directory)")
     parser.add_argument('-v', '--version', action='version', version=VERSION)
@@ -88,6 +89,7 @@ def main():
     n_neighbors_harmony = args.n_neighbors_harmony
     min_dist_harmony = args.min_dist_harmony
     integration_var = args.integration_var
+    skip_harmony = args.skip_harmony
 
 
     # print info on the available matrices
@@ -122,41 +124,55 @@ def main():
 
 
     print("\n===== DATA INTEGRATION =====")
-    # Check if integration_var is in obs; try meta_ prefix as fallback
-    if integration_var not in gex.obs.columns:
-        if f"meta_{integration_var}" in gex.obs.columns:
-            print(f"Variable '{integration_var}' not found in .obs. Using 'meta_{integration_var}' instead.")
-            integration_var = f"meta_{integration_var}"
+    if not skip_harmony:
+        # Check if integration_var is in obs; try meta_ prefix as fallback
+        if integration_var not in gex.obs.columns:
+            if f"meta_{integration_var}" in gex.obs.columns:
+                print(f"Variable '{integration_var}' not found in .obs. Using 'meta_{integration_var}' instead.")
+                integration_var = f"meta_{integration_var}"
+            else:
+                print(f"Error: Variable '{integration_var}' not found in .obs columns.")
+                print(f"Available columns: {list(gex.obs.columns)}")
+                raise ValueError(f"Integration variable '{integration_var}' not found in .obs")
+
+        # Check how many unique levels the integration variable has
+        n_levels = gex.obs[integration_var].nunique()
+        print(f"Integration variable '{integration_var}' has {n_levels} unique level(s): "
+            f"{sorted(gex.obs[integration_var].unique().tolist())}")
+
+        if n_levels > 1:
+            # ------------------------------------------------------------------
+            # MULTI-LEVEL: run Harmony integration and recompute neighbors/UMAP
+            # ------------------------------------------------------------------
+            print("\nMultiple levels detected — performing Harmony integration.")
+            sce.pp.harmony_integrate(gex, integration_var)
+
+            print("\n===== BATCH-CORRECTED UMAP =====")
+            print("\nConstruction of the nearest neighbor graph (Harmony embedding)")
+            sc.pp.neighbors(gex, n_neighbors=n_neighbors_harmony, use_rep="X_pca_harmony")
+
+            print("\nPerforming UMAP on Harmony-corrected embedding")
+            sc.tl.umap(gex, min_dist=min_dist_harmony, random_state=42)
+
         else:
-            print(f"Error: Variable '{integration_var}' not found in .obs columns.")
-            print(f"Available columns: {list(gex.obs.columns)}")
-            raise ValueError(f"Integration variable '{integration_var}' not found in .obs")
+            # ------------------------------------------------------------------
+            # SINGLE-LEVEL: skip Harmony, reuse the UMAP from the dim-red step
+            # ------------------------------------------------------------------
+            print(f"\nOnly one unique level found in '{integration_var}' — "
+                "skipping Harmony integration.")
+            print("Reusing UMAP coordinates computed during dimensionality reduction.")
 
-    # Check how many unique levels the integration variable has
-    n_levels = gex.obs[integration_var].nunique()
-    print(f"Integration variable '{integration_var}' has {n_levels} unique level(s): "
-          f"{sorted(gex.obs[integration_var].unique().tolist())}")
-
-    if n_levels > 1:
-        # ------------------------------------------------------------------
-        # MULTI-LEVEL: run Harmony integration and recompute neighbors/UMAP
-        # ------------------------------------------------------------------
-        print("\nMultiple levels detected — performing Harmony integration.")
-        sce.pp.harmony_integrate(gex, integration_var)
-
-        print("\n===== BATCH-CORRECTED UMAP =====")
-        print("\nConstruction of the nearest neighbor graph (Harmony embedding)")
-        sc.pp.neighbors(gex, n_neighbors=n_neighbors_harmony, use_rep="X_pca_harmony")
-
-        print("\nPerforming UMAP on Harmony-corrected embedding")
-        sc.tl.umap(gex, min_dist=min_dist_harmony, random_state=42)
-
+            # Sanity check: make sure the UMAP was already computed upstream
+            if "X_umap" not in gex.obsm:
+                raise RuntimeError(
+                    "X_umap not found in gex.obsm. "
+                    "Run the dimensionality reduction module before the integration module."
+                )
     else:
-        # ------------------------------------------------------------------
-        # SINGLE-LEVEL: skip Harmony, reuse the UMAP from the dim-red step
-        # ------------------------------------------------------------------
-        print(f"\nOnly one unique level found in '{integration_var}' — "
-              "skipping Harmony integration.")
+        # -----------------------------------------------------------------------
+        # SKIP_HARMONY OPTION: skip Harmony, reuse the UMAP from the dim-red step
+        # -----------------------------------------------------------------------
+        print("\nSkipping Harmony integration as per user request.")
         print("Reusing UMAP coordinates computed during dimensionality reduction.")
 
         # Sanity check: make sure the UMAP was already computed upstream

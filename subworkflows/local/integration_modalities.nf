@@ -9,7 +9,9 @@ workflow INTEGRATION_MODALITIES {
     h5ad
     n_neighbors_harmony
     min_dist_harmony
+    skip_harmony
     integration_var
+    skip_integration
 
 
     main:
@@ -22,6 +24,7 @@ workflow INTEGRATION_MODALITIES {
             h5mu,
             n_neighbors_harmony,
             min_dist_harmony,
+            skip_harmony,
 			integration_var
         )
         ch_versions = ch_versions.mix(INTEGRATION.out.versions.first())
@@ -29,7 +32,7 @@ workflow INTEGRATION_MODALITIES {
         //
         // MODULE: Compute WNN graph for each modality
         //
-        if (!params.skip_integration){
+        if (!skip_integration){
             MOFA_INTEGRATION (
                 INTEGRATION.out.h5mu,
                 h5ad
