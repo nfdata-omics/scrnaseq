@@ -56,6 +56,8 @@ def main():
                         help="maximum number of fragments per cell to keep (default is 100000)")
     parser.add_argument('-b', '--blacklist', metavar='BLACKLIST_FILE', type=pathlib.Path, default=None,
                         help="path to the blacklist file in bed format (default is None, no blacklist will be applied)")
+    parser.add_argument('-g', '--genome-annotation', metavar='GENOME_ANNOTATION_FILE', type=pathlib.Path, default=None,
+                        help="path to the genome annotation file in gff3 format (default is None, no genome annotation will be applied)")
     parser.add_argument('-o', '--out', metavar='H5AD_OUTPUT_FILE', type=pathlib.Path, default="matrix.filtered_atac.h5ad",
                         help="path and name of the output h5ad file")
     parser.add_argument('-csv_count', '--csv_out_count', metavar='CSV_Count', default="cell_counts.csv",
@@ -79,6 +81,7 @@ def main():
     min_fragments_counts = args.min_fragments_counts
     max_fragments_counts = args.max_fragments_counts
     blacklist_path = args.blacklist
+    genome_annotation_path = args.genome_annotation
 
 
     print("\n===== INPUT FRAGMENT FILES =====")
@@ -136,7 +139,7 @@ def main():
 
     print(f"\n# Calculate the tss enrichment for {input_fragment_files}")
     # Compute the TSS score for each sample
-    snap.metrics.tsse(adatas_atac, snap.genome.hg38,inplace = True)
+    snap.metrics.tsse(adatas_atac, genome_annotation_path,inplace = True)
     for i, adata in enumerate(adatas_atac):
         fig2 = snap.pl.tsse(adata, show=False)
         fig2.show()

@@ -114,10 +114,6 @@ def main():
         print("No valid input file provided. Skipping reading of the vdj annotation.")
 
 
-
-    adata_vdj = None
-
-
 # --------------------------------------------------------------------------------------------------------------------
 #                                 READ CSV FILES
 # --------------------------------------------------------------------------------------------------------------------
@@ -189,6 +185,7 @@ def main():
     if 'airr' in mdata.mod:
         mdata.obs['airr:sample'] = mdata.obs['airr:sample'].astype(str)
     mdata.update()
+    print(mdata.mod)
 
 # --------------------------------------------------------------------------------------------------------------------
 #                                 ADD METADATA TO MUDATA
@@ -205,6 +202,7 @@ def main():
                 adata_mod.obs['sample'] = (
                     adata_mod.obs['sample']
                     .astype(str)
+                    .str.replace('_cellbender_filter', '', regex=False)
                     .str.replace('_filtered', '', regex=False)
                     .str.replace('_parse', '', regex=False)
                     .str.strip()
