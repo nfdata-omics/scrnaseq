@@ -1,11 +1,11 @@
 //
 // Include modules
 //
-include { CELLRANGER_MKGTF                  } from "../../modules/nf-core/cellranger/mkgtf/main.nf"
-include { CELLRANGER_MKREF                  } from "../../modules/nf-core/cellranger/mkref/main.nf"
-include { CELLRANGER_MKVDJREF               } from "../../modules/nf-core/cellranger/mkvdjref/main.nf"
-include { CELLRANGER_MULTI                  } from "../../modules/nf-core/cellranger/multi/main.nf"
-include { PARSE_CELLRANGERMULTI_SAMPLESHEET } from "../../modules/local/parse_cellrangermulti_samplesheet"
+include { CELLRANGER_MKGTF                  } from "../../../modules/nf-core/cellranger/mkgtf/main.nf"
+include { CELLRANGER_MKREF                  } from "../../../modules/nf-core/cellranger/mkref/main.nf"
+include { CELLRANGER_MKVDJREF               } from "../../../modules/nf-core/cellranger/mkvdjref/main.nf"
+include { CELLRANGER_MULTI                  } from "../../../modules/nf-core/cellranger/multi/main.nf"
+include { PARSE_CELLRANGERMULTI_SAMPLESHEET } from "../../../modules/local/parse_cellrangermulti_samplesheet"
 
 // Define workflow to subset and index a genome region fasta file
 workflow CELLRANGER_MULTI_ALIGN {
