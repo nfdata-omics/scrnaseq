@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## v4.2.0 - 2026-06-05
+
 ### Features
 
 - Address [#512](https://github.com/nf-core/scrnaseq/issues/512), adding early validation of the cellranger multi barcode sheet ([#513](https://github.com/nf-core/scrnaseq/pull/513))
