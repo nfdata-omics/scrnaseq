@@ -10,8 +10,8 @@ workflow STARSOLO {
     take:
     genome_fasta
     gtf
-    star_index
-    star_index_legacy
+    star_index               // path: /path/to/star/index/ (or null)
+    star_index_legacy        // boolean: upgrade STAR 2.6.x genomeParameters.txt to 2.7.4a schema
     protocol
     barcode_whitelist
     ch_fastq
@@ -34,12 +34,23 @@ workflow STARSOLO {
             genome_fasta.map{ f -> [[id: f.baseName], f]},
             gtf.map{ g -> [[id: g.baseName], g]}
         )
-        star_index = STAR_GENOMEGENERATE.out.index.collect()
+        ch_star_index = STAR_GENOMEGENERATE.out.index.collect()
     }
-    else if (star_index_legacy) {
-        STAR_GENOMEPARAMS_UPGRADE(star_index)
-        ch_versions = ch_versions.mix(STAR_GENOMEPARAMS_UPGRADE.out.versions_gawk)
-        star_index = STAR_GENOMEPARAMS_UPGRADE.out.index.collect()
+    else {
+        // Pre-built STAR index supplied by the user. When star_index_legacy is set
+        // (genomes-map opt-in for indices built with STAR 2.6.x, e.g. AWS iGenomes),
+        // route through STAR_GENOMEPARAMS_UPGRADE to rewrite `versionGenome 20201` and
+        // add the genomeType / genomeTransformType / genomeTransformVCF fields that
+        // STAR 2.7.4a+ requires. Modern indices skip the adapter entirely.
+        def ch_star_raw = channel.value([ [:], file(star_index, checkIfExists: true) ])
+        if (star_index_legacy) {
+            STAR_GENOMEPARAMS_UPGRADE(ch_star_raw)
+            ch_versions = ch_versions.mix(STAR_GENOMEPARAMS_UPGRADE.out.versions_gawk)
+            ch_star_index = STAR_GENOMEPARAMS_UPGRADE.out.index
+        }
+        else {
+            ch_star_index = ch_star_raw
+        }
     }
 
     /*
@@ -47,7 +58,7 @@ workflow STARSOLO {
     */
     STAR_ALIGN(
         ch_fastq,
-        star_index,
+        ch_star_index,
         gtf,
         barcode_whitelist,
         protocol,

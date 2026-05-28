@@ -361,12 +361,16 @@ def getGenomeAttribute(attribute) {
 }
 
 //
-// Whether the configured STAR index is a legacy AWS iGenomes build (STAR 2.6.x metadata)
+// Decide whether the supplied STAR index needs to be routed through the
+// STAR_GENOMEPARAMS_UPGRADE adapter. Fires when the active genomes-map entry
+// has `star_legacy = true` (set on every iGenomes entry that ships a
+// `star` directory) and the user has not overridden the resolved index with
+// their own --star_index.
 //
 def isStarIndexLegacy() {
     def genome_entry = params.genomes && params.genome ? params.genomes[params.genome] : null
-    return genome_entry?.star_legacy &&
-        params.star_index == genome_entry.star
+    return  genome_entry?.star_legacy &&
+            params.star_index == genome_entry.star
 }
 
 //
