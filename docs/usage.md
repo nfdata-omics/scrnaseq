@@ -47,7 +47,7 @@ Note that since cellranger v7, it is **not recommended** anymore to supply the `
 
 ## Aligning options
 
-By default (i.e. `--aligner simpleaf`), the pipeline uses [piscem](https://github.com/COMBINE-lab/piscem) to perform pseudo-alignment of reads to the reference genome and [Alevin-fry](https://alevin-fry.readthedocs.io/en/latest/) to perform the downstream BAM-level quantification. Then QC reports are generated with [AlevinQC](https://github.com/csoneson/alevinQC).
+By default (i.e. `--aligner simpleaf`), the pipeline uses [piscem](https://github.com/COMBINE-lab/piscem) to perform pseudo-alignment of reads to the reference genome and [Alevin-fry](https://alevin-fry.readthedocs.io/en/latest/) to perform the downstream BAM-level quantification. Then QC reports are generated with [qcatch](https://github.com/COMBINE-lab/qcatch). You can disable qcatch QC with `--skip_qcatch`.
 
 Other aligner options for running the pipeline are:
 
@@ -117,6 +117,8 @@ For more details, please refer to the [Kallisto/bustools documentation](https://
 #### Simpleaf
 
 Simpleaf has the ability to pass custom chemistries to Alevin-fry, in a slightly different format, e.g. `1{b[16]u[12]x:}2{r:}`.
+
+When using simpleaf, the same `--protocol` value is also used to select the qcatch chemistry for QC. Set `--skip_qcatch` to skip qcatch report generation.
 
 For more details, see Simpleaf's paper, [He _et al._ 2023](https://doi.org/10.1093/bioinformatics/btad614) and the [detailed description](https://hackmd.io/@PI7Og0l1ReeBZu_pjQGUQQ/rJMgmvr13).
 
@@ -271,6 +273,14 @@ If you are using cellranger-multi you have to add the column _feature_type_ to i
 - It is important that you give the same sample name for the different feature barcode technologies data that correspond to the same and should be analysed together.
 - The pipeline will **automatically** generate the cellranger multi config file based on the given data.
 - When working with multiplexed data (FFPE/CMO/OCM), you'll need a **second samplesheet** relating the multiplexed samples to the corresponding "physical" sample (details below). The `sample` column in the main samplesheet refers to the "physical" sample that may contain multiple multiplexed samples.
+
+The `--cellranger_multi_barcodes` samplesheet is validated before Cell Ranger runs. It must follow these rules:
+
+- `sample`, `multiplexed_sample_id`, and `description` are required.
+- `sample` values must match samples in the main input samplesheet.
+- `multiplexed_sample_id` values must be unique.
+- Each row must define exactly one barcode ID field: `probe_barcode_ids`, `cmo_ids`, or `ocm_ids`.
+- Sample names and multiplexed sample IDs cannot contain whitespace.
 
 > Please note that FFPE; CMO and OCM are mutually exclusive in the `cellranger/multi` module. Using more than one for a single sample will cause the module to fail.
 
