@@ -8,6 +8,8 @@ include { paramsSummaryMap                                  } from 'plugin/nf-sc
 include { paramsSummaryMultiqc                              } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                            } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText                            } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
+include { gtfSourceFixNeeded                                  } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
+include { PREPARE_GENOME                                      } from '../subworkflows/local/prepare_genome/main'
 include { FASTQC_CHECK                                      } from '../subworkflows/local/fastqc'
 include { KALLISTO_BUSTOOLS                                 } from '../subworkflows/local/kallisto_bustools'
 include { SIMPLEAF                                          } from '../subworkflows/local/simpleaf'
@@ -17,9 +19,6 @@ include { CELLRANGER_MULTI_ALIGN                            } from "../subworkfl
 include { CELLRANGERARC_ALIGN                               } from "../subworkflows/local/align_cellrangerarc"
 include { MTX_TO_H5AD                                       } from '../modules/local/mtx_to_h5ad'
 include { H5AD_REMOVEBACKGROUND_BARCODES_CELLBENDER_ANNDATA } from '../subworkflows/nf-core/h5ad_removebackground_barcodes_cellbender_anndata'
-include { GTF_GENE_FILTER                                   } from '../modules/local/gtf_gene_filter'
-include { GUNZIP as GUNZIP_FASTA                            } from '../modules/nf-core/gunzip/main'
-include { GUNZIP as GUNZIP_GTF                              } from '../modules/nf-core/gunzip/main'
 include { H5AD_CONVERSION                                   } from '../subworkflows/local/h5ad_conversion'
 
 
@@ -57,8 +56,6 @@ workflow SCRNASEQ {
     qcatch_chemistry = qcatch_config.containsKey('protocol') ? qcatch_config['protocol'] : null
 
     // general input and params
-    ch_genome_fasta         = fasta            ? file(fasta, checkIfExists: true)            : []
-    ch_gtf                  = gtf              ? file(gtf, checkIfExists: true)              : []
     ch_transcript_fasta     = transcript_fasta ? file(transcript_fasta, checkIfExists: true) : []
     ch_motifs               = motifs           ? file(motifs, checkIfExists: true)           : []
     ch_txp2gene             = txp2gene         ? file(txp2gene, checkIfExists: true)         : []
@@ -105,29 +102,16 @@ workflow SCRNASEQ {
     }
 
     //
-    // Uncompress genome fasta file if required
+    // Prepare reference FASTA and GTF (gunzip, filter, optional Cell Ranger GTF source fix)
     //
-    if (fasta) {
-        if (fasta.endsWith('.gz')) {
-            ch_genome_fasta    = GUNZIP_FASTA ( [ [:], ch_genome_fasta ] ).gunzip.map { it[1] }
-        } else {
-            ch_genome_fasta = channel.value( ch_genome_fasta )
-        }
-    }
-
-    //
-    // Uncompress GTF annotation file or create from GFF3 if required
-    //
-    if (gtf) {
-        if (gtf.endsWith('.gz')) {
-            ch_gtf      = GUNZIP_GTF ( [ [:], ch_gtf ] ).gunzip.map { it[1] }
-        } else {
-            ch_gtf = channel.value( ch_gtf )
-        }
-    }
-
-    // filter gtf
-    ch_filter_gtf = ch_gtf ? GTF_GENE_FILTER ( ch_genome_fasta, ch_gtf ).gtf : []
+    PREPARE_GENOME(
+        fasta,
+        gtf,
+        gtfSourceFixNeeded()
+    )
+    ch_genome_fasta = PREPARE_GENOME.out.fasta
+    ch_filter_gtf   = PREPARE_GENOME.out.gtf
+    ch_versions     = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     // Run kallisto bustools pipeline
     if (params.aligner == "kallisto") {

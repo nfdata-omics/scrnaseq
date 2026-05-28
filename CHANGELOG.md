@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+- Add `PREPARE_GENOME` subworkflow to bundle reference FASTA/GTF preparation (gunzip, gene filter, optional GTF source-column fix for Cell Ranger 10)
 - Address [#512](https://github.com/nf-core/scrnaseq/issues/512), adding early validation of the cellranger multi barcode sheet ([#513](https://github.com/nf-core/scrnaseq/pull/513))
 - Update `nf-core/cellranger` modules to Cell Ranger `10.0.0`, including output channel handling for multiplexed experiments ([#508](https://github.com/nf-core/scrnaseq/pull/508))
 - Replace **alevinqc** with **qcatch** for simpleaf QC; add `--skip_qcatch` parameter ([#520](https://github.com/nf-core/scrnaseq/pull/520))
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixes
 
+- Fix Cell Ranger `mkref` failure with NCBI iGenomes `GRCh38` GTF (`Curated Genomic` in the GTF source column) by replacing spaces in column 2 when using Cell Ranger aligners
 - Fix [#375](https://github.com/nf-core/scrnaseq/issues/375): mismatch between index and probeset when cellranger multi is used without a prebuilt index and an FFPE probeset is passed ([#502](https://github.com/nf-core/scrnaseq/pull/502))
 - Fix [#510](https://github.com/nf-core/scrnaseq/issues/510): Handle files with BOMs. ([#511](https://github.com/nf-core/scrnaseq/pull/511))
 - Fix [#539](https://github.com/nf-core/scrnaseq/issues/539) and [#393](https://github.com/nf-core/scrnaseq/issues/393): genome and aligner index parameter handling by resolving iGenomes attributes in the entry workflow and passing reference paths explicitly into `SCRNASEQ`, restoring configurable pre-built indexes via custom `igenomes` configs (reverts [#483](https://github.com/nf-core/scrnaseq/pull/483) pipeline-wide params approach) ([#545](https://github.com/nf-core/scrnaseq/pull/545))

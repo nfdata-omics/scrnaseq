@@ -361,6 +361,17 @@ def getGenomeAttribute(attribute) {
 }
 
 //
+// iGenomes GTF annotations with spaces in the GTF source column (e.g. NCBI RefSeq "Curated Genomic")
+// are incompatible with Cell Ranger 10 mkref; opt-in per genome via gtf_source_has_spaces.
+//
+def gtfSourceFixNeeded() {
+    def genome_entry = params.genomes && params.genome ? params.genomes[params.genome] : null
+    return params.aligner in ['cellranger', 'cellrangerarc', 'cellrangermulti'] &&
+        genome_entry?.gtf_source_has_spaces &&
+        params.gtf == genome_entry.gtf
+}
+
+//
 // Exit pipeline if incorrect --genome key provided
 //
 def genomeExistsError() {
