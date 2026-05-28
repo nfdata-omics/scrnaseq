@@ -8,6 +8,7 @@ include { paramsSummaryMap                                  } from 'plugin/nf-sc
 include { paramsSummaryMultiqc                              } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                            } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText                            } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
+include { isStarIndexLegacy                                 } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
 include { FASTQC_CHECK                                      } from '../subworkflows/local/fastqc'
 include { KALLISTO_BUSTOOLS                                 } from '../subworkflows/local/kallisto_bustools'
 include { SIMPLEAF                                          } from '../subworkflows/local/simpleaf'
@@ -183,6 +184,7 @@ workflow SCRNASEQ {
             ch_genome_fasta,
             ch_filter_gtf,
             ch_star_index,
+            isStarIndexLegacy() ?: false,
             protocol_config['protocol'],
             ch_barcode_whitelist,
             ch_fastq,

@@ -361,6 +361,15 @@ def getGenomeAttribute(attribute) {
 }
 
 //
+// Whether the configured STAR index is a legacy AWS iGenomes build (STAR 2.6.x metadata)
+//
+def isStarIndexLegacy() {
+    def genome_entry = params.genomes && params.genome ? params.genomes[params.genome] : null
+    return genome_entry?.star_legacy &&
+        params.star_index == genome_entry.star
+}
+
+//
 // Exit pipeline if incorrect --genome key provided
 //
 def genomeExistsError() {

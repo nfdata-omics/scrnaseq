@@ -1,5 +1,6 @@
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
-include { STAR_ALIGN  } from '../../modules/local/star_align'
+include { STAR_ALIGN                  } from '../../modules/local/star_align'
+include { STAR_GENOMEPARAMS_UPGRADE   } from '../../modules/local/star_genomeparams_upgrade'
 
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
 include { STAR_GENOMEGENERATE }         from '../../modules/nf-core/star/genomegenerate/main'
@@ -10,6 +11,7 @@ workflow STARSOLO {
     genome_fasta
     gtf
     star_index
+    star_index_legacy
     protocol
     barcode_whitelist
     ch_fastq
@@ -25,7 +27,7 @@ workflow STARSOLO {
     assert gtf: "Must provide a gtf file ('--gtf') for STARSOLO"
 
     /*
-    * Build STAR index if not supplied
+    * Build STAR index if not supplied, or upgrade legacy iGenomes metadata when requested
     */
     if (!star_index) {
         STAR_GENOMEGENERATE(
@@ -33,6 +35,11 @@ workflow STARSOLO {
             gtf.map{ g -> [[id: g.baseName], g]}
         )
         star_index = STAR_GENOMEGENERATE.out.index.collect()
+    }
+    else if (star_index_legacy) {
+        STAR_GENOMEPARAMS_UPGRADE(star_index)
+        ch_versions = ch_versions.mix(STAR_GENOMEPARAMS_UPGRADE.out.versions_gawk)
+        star_index = STAR_GENOMEPARAMS_UPGRADE.out.index.collect()
     }
 
     /*
