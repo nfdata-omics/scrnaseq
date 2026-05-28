@@ -27,7 +27,7 @@
 
 This is a community effort in building a pipeline capable to support:
 
-- SimpleAF(Alevin-Fry) + AlevinQC
+- SimpleAF(Alevin-Fry) + qcatch
 - STARSolo
 - Kallisto + BUStools
 - Cellranger
