@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Address [#512](https://github.com/nf-core/scrnaseq/issues/512), adding early validation of the cellranger multi barcode sheet ([#513](https://github.com/nf-core/scrnaseq/pull/513))
 - Update `nf-core/cellranger` modules to Cell Ranger `10.0.0`, including output channel handling for multiplexed experiments ([#508](https://github.com/nf-core/scrnaseq/pull/508))
 - Replace **alevinqc** with **qcatch** for simpleaf QC; add `--skip_qcatch` parameter ([#520](https://github.com/nf-core/scrnaseq/pull/520))
+- Add legacy STAR iGenomes index compatibility (rnaseq-style `star_legacy` handling and `STAR_GENOMEPARAMS_UPGRADE` to rewrite STAR 2.6.x `genomeParameters.txt` metadata for modern STAR) ([#552](https://github.com/nf-core/scrnaseq/pull/552))
 
 ### Chore
 
