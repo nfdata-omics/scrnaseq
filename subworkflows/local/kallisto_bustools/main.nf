@@ -1,8 +1,8 @@
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
-include {KALLISTOBUSTOOLS_COUNT }             from '../../modules/nf-core/kallistobustools/count/main'
+include {KALLISTOBUSTOOLS_COUNT }             from '../../../modules/nf-core/kallistobustools/count/main'
 
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
-include { KALLISTOBUSTOOLS_REF }        from '../../modules/nf-core/kallistobustools/ref/main'
+include { KALLISTOBUSTOOLS_REF }        from '../../../modules/nf-core/kallistobustools/ref/main'
 
 workflow KALLISTO_BUSTOOLS {
     take:

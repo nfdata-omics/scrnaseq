@@ -1,9 +1,9 @@
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
-include { STAR_ALIGN                  } from '../../modules/local/star_align'
-include { STAR_GENOMEPARAMS_UPGRADE   } from '../../modules/local/star_genomeparams_upgrade'
+include { STAR_ALIGN  } from '../../../modules/local/star_align'
+include { STAR_GENOMEPARAMS_UPGRADE } from '../../../modules/local/star_genomeparams_upgrade'
 
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
-include { STAR_GENOMEGENERATE }         from '../../modules/nf-core/star/genomegenerate/main'
+include { STAR_GENOMEGENERATE }         from '../../../modules/nf-core/star/genomegenerate/main'
 
 
 workflow STARSOLO {
