@@ -1,6 +1,6 @@
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
-include { CONCAT_H5AD           } from '../../modules/local/concat_h5ad'
-include { ANNDATAR_CONVERT      } from '../../modules/local/anndatar_convert'
+include { CONCAT_H5AD           } from '../../../modules/local/concat_h5ad'
+include { ANNDATAR_CONVERT      } from '../../../modules/local/anndatar_convert'
 
 workflow H5AD_CONVERSION {
 
