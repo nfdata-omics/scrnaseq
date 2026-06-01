@@ -67,7 +67,7 @@ def parse_demultiplexed_output_channels(in_ch, pattern) {
         meta_clone.input_type = pattern.contains('raw_') ? 'raw' : 'filtered'
         // Iterate over the matrix files and add the ones matching the pattern to the desired files list
         def desired_files = []
-        mtx_files.each{ if ( it.toString().contains("${pattern}") ) { desired_files.add( it ) } }
+        mtx_files.each{ path -> if ( path.toString().contains("${pattern}") ) { desired_files.add( path ) } }
         [ meta_clone, desired_files ]
     }
 

@@ -26,7 +26,7 @@ workflow FASTQC_CHECK {
         .map { it -> [ it[1] ] }
         .set { fastqc_html_only }
 
-    fastqc_multiqc = Channel.empty()
+    fastqc_multiqc = channel.empty()
     fastqc_multiqc = fastqc_multiqc.mix( fastqc_zip_only, fastqc_html_only )
 
     emit:

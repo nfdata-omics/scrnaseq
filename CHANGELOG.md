@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Chore
 
+- Clear all `nextflow lint` warnings (use `channel` factory API, explicit closure parameters, unused-parameter prefixes). ([#542](https://github.com/nf-core/scrnaseq/pull/542))
 - Migrate local subworkflows to directory-based layout with `main.nf`, matching the new nf-core standard structure for modules and subworkflows ([#553](https://github.com/nf-core/scrnaseq/pull/553))
 - Template update for nf-core/tools v3.5.1 ([#509](https://github.com/nf-core/scrnaseq/pull/509))
 - Template update for nf-core/tools v4.0.2 ([#541](https://github.com/nf-core/scrnaseq/pull/541))

@@ -31,7 +31,7 @@ workflow PIPELINE_INITIALISATION {
     monochrome_logs   // boolean: Do not use coloured log outputs
     nextflow_cli_args //   array: List of positional nextflow CLI args
     outdir            //  string: The output directory where the results will be saved
-    input             //  string: Path to input samplesheet
+    _input            //  string: Path to input samplesheet
     help              // boolean: Display help message and exit
     help_full         // boolean: Show the full help message
     show_hidden       // boolean: Show hidden parameters in the help message
@@ -107,7 +107,7 @@ workflow PIPELINE_INITIALISATION {
     // Create channel from input file provided through params.input
     //
     if (params.aligner == 'cellrangermulti') { // the cellrangermulti sub-workflow logic needs that channels have reads separated by feature_type. Cannot merge all.
-        Channel
+        channel
             .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
             .map {
                 meta, fastq_1, fastq_2 ->
@@ -118,9 +118,9 @@ workflow PIPELINE_INITIALISATION {
                     }
             }
             .groupTuple( by: [0,1] )
-            .map{ id, type, meta, reads -> [ id, meta, reads ] }
-            .map {
-                validateInputSamplesheet(it)
+            .map{ id, _type, meta, reads -> [ id, meta, reads ] }
+            .map { sheet_row ->
+                validateInputSamplesheet(sheet_row)
             }
             .map {
                 meta, fastqs ->
@@ -128,7 +128,7 @@ workflow PIPELINE_INITIALISATION {
             }
             .set { ch_samplesheet }
     } else if (params.aligner == 'cellrangerarc') { // the cellrangerarc sub-workflow logic needs that channels have a meta, type, subsample, fastqs structure.
-        Channel
+        channel
             .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
             .map { meta, fastq_1, fastq_2 ->
                 if (!fastq_2 || (meta.sample_type == "atac" && !meta.fastq_barcode)) {
@@ -141,12 +141,12 @@ workflow PIPELINE_INITIALISATION {
                 }
             }
             .groupTuple()
-            .map {
-                cellrangerarcStructure(it)
+            .map { structure_input ->
+                cellrangerarcStructure(structure_input)
             }
             .set { ch_samplesheet }
     } else {
-        Channel
+        channel
             .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
             .map {
                 meta, fastq_1, fastq_2 ->
@@ -157,8 +157,8 @@ workflow PIPELINE_INITIALISATION {
                     }
             }
             .groupTuple()
-            .map {
-                validateInputSamplesheet(it)
+            .map { sheet_row ->
+                validateInputSamplesheet(sheet_row)
             }
             .map {
                 meta, fastqs ->
@@ -241,7 +241,7 @@ def validateCellrangerMultiBarcodes() {
     def cellranger_multi_barcodes = file(params.cellranger_multi_barcodes).splitCsv(header: true)
 
     // Get unique samples from input samplesheet for cross-validation
-    def inputSamples = file(params.input).splitCsv(header: true).collect { it.sample }.toSet()
+    def inputSamples = file(params.input).splitCsv(header: true).collect { row -> row.sample }.toSet()
 
     // Check that at least one barcode column is provided for each row
     // and that each sample uses only one type of barcode
@@ -268,14 +268,14 @@ def validateCellrangerMultiBarcodes() {
 
     // Validate that at least one barcode identifier is populated in each row
     if (rowsWithoutBarcodes) {
-        def errorDetails = rowsWithoutBarcodes.collect { "row ${it.row} (${it.multiplexed_sample_id})" }.join(', ')
+        def errorDetails = rowsWithoutBarcodes.collect { missing -> "row ${missing.row} (${missing.multiplexed_sample_id})" }.join(', ')
         error("Please check cellranger_multi_barcodes samplesheet -> " +
               "The following rows have no barcode identifiers: ${errorDetails}. " +
               "Each row must have exactly one of: 'probe_barcode_ids', 'cmo_ids', or 'ocm_ids'.")
     }
 
     // Validate that no more than one barcode identifier is populated in each row
-    def samplesWithMixedBarcodes = sampleBarcodeTypes.findAll { multiplexed_sample_id, info -> info.types.size() > 1 }
+    def samplesWithMixedBarcodes = sampleBarcodeTypes.findAll { _multiplexed_sample_id, info -> info.types.size() > 1 }
     if (samplesWithMixedBarcodes) {
         def errorMsg = samplesWithMixedBarcodes.collect { multiplexed_sample_id, info ->
             "'${multiplexed_sample_id}' (row ${info.row}) uses multiple barcode types: ${info.types.join(', ')}"
@@ -321,7 +321,7 @@ def cellrangerarcStructure(input) {
 
     // Validate that the property "sample_type" is present and has valid values
     def valid_sample_types = ["gex", "atac"]
-    def sample_type_ok = metas.collect { meta -> meta.sample_type }.unique().every { it in valid_sample_types }
+    def sample_type_ok = metas.collect { meta -> meta.sample_type }.unique().every { st -> st in valid_sample_types }
     if (!sample_type_ok) {
         error("Please check input samplesheet -> The property 'sample_type' is required and can only be 'gex' or 'atac'.")
     }

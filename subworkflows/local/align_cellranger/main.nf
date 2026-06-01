@@ -41,8 +41,8 @@ workflow CELLRANGER_ALIGN {
         ch_matrices_raw =
         CELLRANGER_COUNT.out.outs.map { meta, mtx_files ->
             def desired_files = []
-            mtx_files.each{
-                if ( it.toString().contains("raw_feature_bc_matrix") ) { desired_files.add( it ) }
+            mtx_files.each{ path ->
+                if ( path.toString().contains("raw_feature_bc_matrix") ) { desired_files.add( path ) }
             }
             [ meta + [input_type: 'raw'], desired_files ]
         }
@@ -50,8 +50,8 @@ workflow CELLRANGER_ALIGN {
         ch_matrices_filtered =
         CELLRANGER_COUNT.out.outs.map { meta, mtx_files ->
             def desired_files = []
-            mtx_files.each{
-                if ( it.toString().contains("filtered_feature_bc_matrix") ) { desired_files.add( it ) }
+            mtx_files.each{ path ->
+                if ( path.toString().contains("filtered_feature_bc_matrix") ) { desired_files.add( path ) }
             }
             [ meta + [input_type: 'filtered'], desired_files ]
         }
