@@ -378,6 +378,28 @@ sample,multiplexed_sample_id,probe_barcode_ids,cmo_ids,ocm_ids,description
 
 > You must provide the barcodes CSV with the `--cellranger_multi_barcodes` parameter.
 
+## Reference genome options
+
+The pipeline can resolve reference files from `conf/igenomes.config` when you provide `--genome`, for example `--genome GRCh38`. These entries may include pre-built aligner indices such as STAR indices, depending on the selected genome.
+
+Some AWS iGenomes STAR indices were generated with older STAR versions and contain legacy metadata. nf-core/scrnaseq includes a compatibility step for these configured iGenomes entries so that legacy STAR indices can run with the STAR version shipped by the pipeline. This support is intended to keep existing iGenomes usage working, not to make legacy indices the preferred reference for new analyses.
+
+> [!WARNING]
+> For production runs, we recommend building fresh indices from current reference files instead of relying on legacy AWS iGenomes indices. The nf-core [reference genome documentation](https://nf-co.re/docs/running/reference-genomes) warns that AWS iGenomes annotations are significantly outdated, for example human annotations from Ensembl release 75, and that GRCh38 iGenomes uses the NCBI assembly rather than the masked Ensembl assembly.
+
+To generate and keep a STAR index for future runs, provide current FASTA and GTF files and set `--save_reference`:
+
+```bash
+nextflow run nf-core/scrnaseq \
+    --input samplesheet.csv \
+    --outdir results \
+    --aligner star \
+    --fasta reference.fa.gz \
+    --gtf annotation.gtf.gz \
+    --save_reference \
+    -profile docker
+```
+
 ## Running the pipeline
 
 The minimum typical command for running the pipeline is as follows:

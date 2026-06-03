@@ -44,6 +44,11 @@ workflow STARSOLO {
         // STAR 2.7.4a+ requires. Modern indices skip the adapter entirely.
         def ch_star_raw = channel.value([ [:], file(star_index, checkIfExists: true) ])
         if (star_index_legacy) {
+            log.warn(
+                "Using a legacy AWS iGenomes STAR index. nf-core/scrnaseq will update the STAR metadata for " +
+                "compatibility, but we recommend regenerating the index for production runs. See " +
+                "https://nf-co.re/scrnaseq/dev/docs/usage#reference-genome-options"
+            )
             STAR_GENOMEPARAMS_UPGRADE(ch_star_raw)
             ch_versions = ch_versions.mix(STAR_GENOMEPARAMS_UPGRADE.out.versions_gawk)
             ch_star_index = STAR_GENOMEPARAMS_UPGRADE.out.index
