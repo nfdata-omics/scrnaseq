@@ -1,0 +1,56 @@
+name: deseq2_fit
+description: Fit a differential gene expression (DGE) model using DESeq2
+keywords:
+  - deseq2
+  - dge
+  - differential analysis
+tools:
+  - "deseq2":
+      description: "Differential gene expression analysis based on the negative binomial
+        distribution"
+      homepage: "https://bioconductor.org/packages/release/bioc/html/DESeq2.html"
+      documentation: "https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html"
+      tool_dev_url: "https://github.com/mikelove/DESeq2"
+      doi: "10.1186/s13059-014-0550-8"
+      licence: ["LGPL >=3"]
+      identifier: biotools:deseq2
+
+input:
+  - - meta1:
+        type: map
+        description: |
+          Groovy Map containing count file information
+          e.g. [ id:'count' ]
+    - counts:
+        type: file
+        description: Input count file
+        pattern: "*.{tsv}"
+        ontologies: []
+
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing metadata information
+          e.g. [ id:'metadata' ]
+    - metadata:
+        type: file
+        description: Input metadata file
+        pattern: "*.{tsv}"
+        ontologies: []
+  - model_formula:
+      type: string
+      description: The model formula to fit the DGE model, e.g. "~ condition"
+output:
+  rds:
+    - - "deseq2_obj":
+        type: string
+        description: Name of the output RDS file containing the fitted DESeq2 object
+      - "deseq2_obj.rds":
+        type: file
+        description: Output RDS file containing the fitted DESeq2 object
+        pattern: "*.{rds}"
+  versions:
+    - versions.yml:
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"

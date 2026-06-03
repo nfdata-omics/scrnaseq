@@ -1,7 +1,7 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/nf-core/scrnaseq/master/nextflow_schema.json",
-    "title": "nf-core/scrnaseq pipeline parameters",
+    "$id": "https://raw.githubusercontent.com/nfdata-omics/scrnaseq/master/nextflow_schema.json",
+    "title": "nfdata-omics/scrnaseq pipeline parameters",
     "description": "Pipeline for processing 10x Genomics single cell rnaseq data",
     "type": "object",
     "$defs": {
@@ -10,7 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": ["outdir"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -20,7 +20,8 @@
                     "mimetype": "text/csv",
                     "pattern": "^\\S+\\.csv$",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row. See [usage docs](https://nf-co.re/rnaseq/usage#samplesheet-input)."
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row.",
+                    "fa_icon": "fas fa-file-csv"
                 },
                 "outdir": {
                     "type": "string",
@@ -39,6 +40,15 @@
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
                     "fa_icon": "fas fa-file-signature"
+                },
+                "counts": {
+                    "type": "string",
+                    "description": "Path to a counts matrix in MTX format.",
+                    "fa_icon": "far fa-file-excel"
+                },
+                "metadata": {
+                    "type": "string",
+                    "description": "Path to metadata file containing sample annotations."
                 }
             }
         },
@@ -92,10 +102,17 @@
                     "type": "boolean",
                     "description": "Skip cellbender empty drops filter subworkflow"
                 },
-                "skip_emptydrops": {
+                "skip_integration": {
                     "type": "boolean",
-                    "deprecated": true,
-                    "errorMessage": "Parameter has been deprecated in favour of --skip_cellbender to properly match name of workflow."
+                    "description": "Skip integration subworkflow"
+                },
+                "skip_doublets": {
+                    "type": "boolean",
+                    "description": "Skip doublet detection subworkflow"
+                },
+                "skip_qcfilters": {
+                    "type": "boolean",
+                    "description": "Skip qc filtering subworkflow"
                 }
             }
         },
@@ -330,6 +347,10 @@
                     "exists": true,
                     "description": "Provide a probe set for fixed RNA-seq profiling (used with FFPE samples). Please refer to the [10x documentation about probesets](https://www.10xgenomics.com/support/single-cell-gene-expression-flex/documentation/steps/probe-sets/chromium-frp-probe-set-files) for more details."
                 },
+                "gex_reference_version": {
+                    "type": "string",
+                    "description": "Reference version (e.g. GRCh38, GRCm39). Required if `gex_frna_probe_set` is used and `cellranger_index` is not set. Must match the genome version in the `gex_frna_probe_set` file."
+                },
                 "gex_target_panel": {
                     "type": "string",
                     "description": "Provide a panel description for targeted sequencing.",
@@ -365,8 +386,155 @@
                     "type": "string",
                     "format": "file-path",
                     "exists": true,
+                    "schema": "assets/schema_cellranger_multi_barcodes.json",
                     "mimetype": "text/csv",
                     "description": "Additional samplesheet to provide information about multiplexed samples. See the 'Usage' section for more details."
+                }
+            }
+        },
+        "downstream_analysis_options": {
+            "title": "Downstream Analysis options",
+            "type": "object",
+            "description": "Parameters for downstream analysis of single cell data including quality control, normalization, dimensionality reduction, and clustering.",
+            "default": "",
+            "properties": {
+                "demultiplexing_doublets": {
+                    "type": "string",
+                    "description": "Path to demultiplexing doublets file."
+                },
+                "cell_cycle_file": {
+                    "type": "string",
+                    "description": "Path to cell cycle markers file for cell cycle scoring."
+                },
+                "blacklist_path": {
+                    "type": "string",
+                    "description": "Path to blacklist file containing regions to exclude from peak calling."
+                },
+                "mt_threshold": {
+                    "type": "integer",
+                    "default": 15,
+                    "description": "Mitochondrial content threshold (%) for quality control filtering."
+                },
+                "tss_threshold": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Transcription start site (TSS) enrichment threshold for ATAC-seq quality control."
+                },
+                "min_fragments_counts": {
+                    "type": "integer",
+                    "default": 1000,
+                    "description": "Minimum number of fragments per cell for ATAC-seq."
+                },
+                "max_fragments_counts": {
+                    "type": "integer",
+                    "default": 100000,
+                    "description": "Maximum number of fragments per cell for ATAC-seq."
+                },
+                "min_umi_gex": {
+                    "type": "integer",
+                    "default": 1400,
+                    "description": "Minimum number of UMIs per cell for gene expression data."
+                },
+                "max_umi_gex": {
+                    "type": "integer",
+                    "default": 50000,
+                    "description": "Maximum number of UMIs per cell for gene expression data."
+                },
+                "min_genes_gex": {
+                    "type": "integer",
+                    "default": 200,
+                    "description": "Minimum number of genes detected per cell for gene expression data."
+                },
+                "max_genes_gex": {
+                    "type": "integer",
+                    "default": 8000,
+                    "description": "Maximum number of genes detected per cell for gene expression data."
+                },
+                "min_cells_gex": {
+                    "type": "integer",
+                    "default": 100,
+                    "description": "Minimum number of cells expressed for genes that are kept in the gene expression data."
+                },
+                "min_features_adt": {
+                    "type": "integer",
+                    "default": 3,
+                    "description": "Minimum number of antibody-derived tag (ADT) features per cell."
+                },
+                "min_counts_adt": {
+                    "type": "integer",
+                    "default": 500,
+                    "description": "Minimum number of antibody-derived tag (ADT) counts per cell."
+                },
+                "n_pcs": {
+                    "type": "integer",
+                    "default": 30,
+                    "description": "Number of principal components to use  for UMAP calculation."
+                },
+                "n_neighbors": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Number of neighbors for UMAP calculation."
+                },
+                "min_dist": {
+                    "type": "number",
+                    "default": 0.1,
+                    "description": "Minimum distance for UMAP layout."
+                },
+                "n_neighbors_harmony": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Number of neighbors for Harmony integration."
+                },
+                "min_dist_harmony": {
+                    "type": "number",
+                    "default": 0.1,
+                    "description": "Minimum distance for Harmony UMAP layout."
+                },
+                "n_features_atac": {
+                    "type": "integer",
+                    "default": 500000,
+                    "description": "Number of features to select for ATAC-seq analysis."
+                },
+                "resolution": {
+                    "type": "string",
+                    "description": "Resolution parameter for clustering (Leiden)."
+                },
+                "enrich_collection": {
+                    "type": "string",
+                    "description": "Gene set collection file to use for enrichment analysis."
+                },
+                "input_model": {
+                    "type": "string",
+                    "description": "Path to pre-trained celltypist model for cell type annotation."
+                },
+                "diff_abundance_comparisons": {
+                    "type": "string",
+                    "description": "Comparisons to be done during differential abundance analysis (e.g., variable1:condition1:condition2,variable2:condition3:condition4))"
+                },
+                "pseudobulk_group": {
+                    "type": "string",
+                    "description": "Metadata column to perform pseudobulking on"
+                },
+                "pseudobulk_comparisons": {
+                    "type": "string",
+                    "description": "Comparisons to be done during pseudobulk analysis (e.g., variable1:condition1:condition2,variable2:condition3:condition4))"
+                },
+                "pseudobulk_formula": {
+                    "type": "string",
+                    "description": "Formula to be provided for DESeq2 analysis of pseudobulk data"
+                },
+                "pseudobulk_fdr": {
+                    "type": "number",
+                    "description": "FDR value to be used during differential analysis of pseudobulk",
+                    "default": 0.05
+                },
+                "liana_resource": {
+                    "type": "string",
+                    "description": "Resource from Liana to be used when performing cell-cell interaction. Valid resources are: consensus (human) and mouseconsensus (mouse)"
+                },
+                "liana_method": {
+                    "type": "string",
+                    "description": "Method from Liana to be used when performing cell-cell interaction. Valid methods are: singlecellsignalr, connectome, cellphonedb, natmi, logfc, cellchat, geometric_mean, scseqcomm."
                 }
             }
         },
@@ -561,10 +729,57 @@
             "$ref": "#/$defs/cellranger_multi_options"
         },
         {
+            "$ref": "#/$defs/downstream_analysis_options"
+        },
+        {
             "$ref": "#/$defs/institutional_config_options"
         },
         {
             "$ref": "#/$defs/generic_options"
         }
-    ]
+    ],
+    "properties": {
+        "h5ad_matrix": {
+            "type": "string"
+        },
+        "frac_dup": {
+            "type": "number",
+            "default": 0.4
+        },
+        "peaks_frac": {
+            "type": "number",
+            "default": 0.2
+        },
+        "n_comps_atac": {
+            "type": "integer",
+            "default": 30
+        },
+        "n_neighbors_atac": {
+            "type": "integer",
+            "default": 15
+        },
+        "n_clusters_atac": {
+            "type": "integer",
+            "default": 20
+        },
+        "resolution_min": {
+            "type": "number",
+            "default": 0.1
+        },
+        "resolution_max": {
+            "type": "number",
+            "default": 1.1
+        },
+        "top_n_markers": {
+            "type": "integer",
+            "default": 10
+        },
+        "custom_geneset": {
+            "type": "string"
+        },
+        "integration_var": {
+            "type": "string",
+            "default": "sample"
+        }
+    }
 }

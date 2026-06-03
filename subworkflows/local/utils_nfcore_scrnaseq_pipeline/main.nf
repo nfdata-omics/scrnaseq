@@ -1,5 +1,5 @@
 //
-// Subworkflow with functionality specific to the nf-core/scrnaseq pipeline
+// Subworkflow with functionality specific to the nfdata-omics/scrnaseq pipeline
 //
 
 /*
@@ -33,13 +33,15 @@ workflow PIPELINE_INITIALISATION {
     nextflow_cli_args //   array: List of positional nextflow CLI args
     outdir            //  string: The output directory where the results will be saved
     input             //  string: Path to input samplesheet
+    counts            //  string: Path to input counts matrix file
+    h5ad_matrix       //  string: Path to input h5ad matrix file
     help              // boolean: Display help message and exit
     help_full         // boolean: Show the full help message
     show_hidden       // boolean: Show hidden parameters in the help message
 
     main:
 
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     //
     // Print version and exit if required and dump pipeline parameters to JSON file
@@ -54,23 +56,6 @@ workflow PIPELINE_INITIALISATION {
     //
     // Validate parameters and generate parameter summary to stdout
     //
-    before_text = """
--\033[2m----------------------------------------------------\033[0m-
-                                        \033[0;32m,--.\033[0;30m/\033[0;32m,-.\033[0m
-\033[0;34m        ___     __   __   __   ___     \033[0;32m/,-._.--~\'\033[0m
-\033[0;34m  |\\ | |__  __ /  ` /  \\ |__) |__         \033[0;33m}  {\033[0m
-\033[0;34m  | \\| |       \\__, \\__/ |  \\ |___     \033[0;32m\\`-._,-`-,\033[0m
-                                        \033[0;32m`._,._,\'\033[0m
-\033[0;35m  nf-core/scrnaseq ${workflow.manifest.version}\033[0m
--\033[2m----------------------------------------------------\033[0m-
-"""
-    after_text = """${workflow.manifest.doi ? "\n* The pipeline\n" : ""}${workflow.manifest.doi.tokenize(",").collect { "    https://doi.org/${it.trim().replace('https://doi.org/','')}"}.join("\n")}${workflow.manifest.doi ? "\n" : ""}
-* The nf-core framework
-    https://doi.org/10.1038/s41587-020-0439-x
-
-* Software dependencies
-    https://github.com/nf-core/scrnaseq/blob/master/CITATIONS.md
-"""
     command = "nextflow run ${workflow.manifest.name} -profile <docker/singularity/.../institute> --input samplesheet.csv --outdir <OUTDIR>"
 
     UTILS_NFSCHEMA_PLUGIN (
@@ -80,8 +65,8 @@ workflow PIPELINE_INITIALISATION {
         help,
         help_full,
         show_hidden,
-        before_text,
-        after_text,
+        "",
+        "",
         command
     )
 
@@ -97,73 +82,89 @@ workflow PIPELINE_INITIALISATION {
     //
     validateInputParameters()
 
-    //
-    // Create channel from input file provided through params.input
-    //
-    if (params.aligner == 'cellrangermulti') { // the cellrangermulti sub-workflow logic needs that channels have reads separated by feature_type. Cannot merge all.
-        Channel
-            .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
-            .map {
-                meta, fastq_1, fastq_2 ->
-                    if (!fastq_2) {
-                        return [ meta.id, meta.feature_type, meta + [ single_end:true ], [ fastq_1 ] ]
-                    } else {
-                        return [ meta.id, meta.feature_type, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+    if (counts) {
+        ch_counts = counts ? Channel.fromPath( counts, checkIfExists: true ) : Channel.empty()
+        ch_samplesheet = Channel.empty()
+        ch_h5ad_matrix = Channel.empty()
+    }
+    else if (h5ad_matrix) {
+        ch_h5ad_matrix = h5ad_matrix ? Channel.fromPath( h5ad_matrix, checkIfExists: true ) : Channel.empty()
+        ch_counts = Channel.empty()
+        ch_samplesheet = Channel.empty()
+    }
+    else {
+        //
+        // Create channel from input file provided through params.input
+        //
+        if (params.aligner == 'cellrangermulti') { // the cellrangermulti sub-workflow logic needs that channels have reads separated by feature_type. Cannot merge all.
+            Channel
+                .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+                .map {
+                    meta, fastq_1, fastq_2 ->
+                        if (!fastq_2) {
+                            return [ meta.id, meta.feature_type, meta + [ single_end:true ], [ fastq_1 ] ]
+                        } else {
+                            return [ meta.id, meta.feature_type, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+                        }
+                }
+                .groupTuple( by: [0,1] )
+                .map{ id, type, meta, reads -> [ id, meta, reads ] }
+                .map {
+                    validateInputSamplesheet(it)
+                }
+                .map {
+                    meta, fastqs ->
+                        return [ meta, fastqs.flatten() ]
+                }
+                .set { ch_samplesheet }
+        } else if (params.aligner == 'cellrangerarc') { // the cellrangerarc sub-workflow logic needs that channels have a meta, type, subsample, fastqs structure.
+            Channel
+                .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+                .map { meta, fastq_1, fastq_2 ->
+                    if (!fastq_2 || (meta.sample_type == "atac" && !meta.fastq_barcode)) {
+                        error("Please check input samplesheet -> cellrangerarc requires both paired-end reads and barcode fastq files: ${meta.id}")
                     }
-            }
-            .groupTuple( by: [0,1] )
-            .map{ id, type, meta, reads -> [ id, meta, reads ] }
-            .map {
-                validateInputSamplesheet(it)
-            }
-            .map {
-                meta, fastqs ->
-                    return [ meta, fastqs.flatten() ]
-            }
-            .set { ch_samplesheet }
-    } else if (params.aligner == 'cellrangerarc') { // the cellrangerarc sub-workflow logic needs that channels have a meta, type, subsample, fastqs structure.
-        Channel
-            .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
-            .map { meta, fastq_1, fastq_2 ->
-                if (!fastq_2 || (meta.sample_type == "atac" && !meta.fastq_barcode)) {
-                    error("Please check input samplesheet -> cellrangerarc requires both paired-end reads and barcode fastq files: ${meta.id}")
-                }
-                if (meta.sample_type == "atac") {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2, file(meta.fastq_barcode, checkIfExists: true) ] ]
-                } else {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
-                }
-            }
-            .groupTuple()
-            .map {
-                cellrangerarcStructure(it)
-            }
-            .set { ch_samplesheet }
-    } else {
-        Channel
-            .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
-            .map {
-                meta, fastq_1, fastq_2 ->
-                    if (!fastq_2) {
-                        return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
+                    if (meta.sample_type == "atac") {
+                        return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2, file(meta.fastq_barcode, checkIfExists: true) ] ]
                     } else {
                         return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
                     }
-            }
-            .groupTuple()
-            .map {
-                validateInputSamplesheet(it)
-            }
-            .map {
-                meta, fastqs ->
-                    return [ meta, fastqs.flatten() ]
-            }
-            .set { ch_samplesheet }
+                }
+                .groupTuple()
+                .map {
+                    cellrangerarcStructure(it)
+                }
+                .set { ch_samplesheet }
+        } else {
+            Channel
+                .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+                .map {
+                    meta, fastq_1, fastq_2 ->
+                        if (!fastq_2) {
+                            return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
+                        } else {
+                            return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+                        }
+                }
+                .groupTuple()
+                .map {
+                    validateInputSamplesheet(it)
+                }
+                .map {
+                    meta, fastqs ->
+                        return [ meta, fastqs.flatten() ]
+                }
+                .set { ch_samplesheet }
+        }
+        ch_counts = Channel.empty()
+        ch_h5ad_matrix = Channel.empty()
     }
 
     emit:
     samplesheet = ch_samplesheet
     versions    = ch_versions
+    counts      = ch_counts
+    h5ad_matrix = ch_h5ad_matrix
 }
 
 /*
@@ -224,6 +225,70 @@ workflow PIPELINE_COMPLETION {
 //
 def validateInputParameters() {
     genomeExistsError()
+
+    // Validate cellranger_multi_barcodes if provided and aligner is cellrangermulti
+    if (params.aligner == 'cellrangermulti' && params.cellranger_multi_barcodes  && params.input) {
+        validateCellrangerMultiBarcodes()
+    }
+}
+
+//
+// Validate cellranger_multi_barcodes samplesheet for uniqueness and conditional requirements
+//
+def validateCellrangerMultiBarcodes() {
+    cellranger_multi_barcodes = file(params.cellranger_multi_barcodes).splitCsv(header: true)
+
+    // Get unique samples from input samplesheet for cross-validation
+    def inputSamples = file(params.input).splitCsv(header: true).collect { it.sample }.toSet()
+
+    // Check that at least one barcode column is provided for each row
+    // and that each sample uses only one type of barcode
+    def rowsWithoutBarcodes = []
+    def sampleBarcodeTypes = [:]
+    def barcodeSamples = [] as Set
+    cellranger_multi_barcodes.eachWithIndex { row, idx ->
+        def multiplexed_sample_id = row.multiplexed_sample_id
+        def rowNum = idx + 2 // +2 for 1-based indexing and header row
+
+        // Collect unique sample names for cross-validation
+        barcodeSamples << row.sample
+
+        def barcodeTypes = []
+        if (row.probe_barcode_ids) barcodeTypes << 'probe_barcode_ids'
+        if (row.cmo_ids)           barcodeTypes << 'cmo_ids'
+        if (row.ocm_ids)           barcodeTypes << 'ocm_ids'
+
+        if (barcodeTypes.isEmpty()) {
+            rowsWithoutBarcodes << [row: rowNum, multiplexed_sample_id: multiplexed_sample_id]
+        }
+        sampleBarcodeTypes[multiplexed_sample_id] = [types: barcodeTypes.toSet(), row: rowNum]
+    }
+
+    // Validate that at least one barcode identifier is populated in each row
+    if (rowsWithoutBarcodes) {
+        def errorDetails = rowsWithoutBarcodes.collect { "row ${it.row} (${it.multiplexed_sample_id})" }.join(', ')
+        error("Please check cellranger_multi_barcodes samplesheet -> " +
+              "The following rows have no barcode identifiers: ${errorDetails}. " +
+              "Each row must have exactly one of: 'probe_barcode_ids', 'cmo_ids', or 'ocm_ids'.")
+    }
+
+    // Validate that no more than one barcode identifier is populated in each row
+    def samplesWithMixedBarcodes = sampleBarcodeTypes.findAll { multiplexed_sample_id, info -> info.types.size() > 1 }
+    if (samplesWithMixedBarcodes) {
+        def errorMsg = samplesWithMixedBarcodes.collect { multiplexed_sample_id, info ->
+            "'${multiplexed_sample_id}' (row ${info.row}) uses multiple barcode types: ${info.types.join(', ')}"
+        }.join('; ')
+        error("Please check cellranger_multi_barcodes samplesheet -> " +
+              "Each multiplexed_sample_id should use only one type of barcode identifier. ${errorMsg}")
+    }
+
+    // Validate that samples in cellranger_multi_barcodes exist in the input samplesheet
+    def unknownSamples = barcodeSamples - inputSamples
+    if (unknownSamples) {
+        error("Please check cellranger_multi_barcodes samplesheet -> " +
+              "The following sample(s) do not exist in the input samplesheet: ${unknownSamples.join(', ')}. " +
+              "The 'sample' column in cellranger_multi_barcodes must match 'sample' values in the input samplesheet.")
+    }
 }
 
 //

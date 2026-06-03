@@ -10,6 +10,14 @@ nextflow_pipeline {
             params {
                 aligner    = 'cellranger'
                 outdir     = "$outputDir"
+                // Disable quality filters to keep cells in downstream processing
+                mt_threshold = 100
+                min_umi_gex = 0
+                max_umi_gex = 300000
+                min_genes_gex = 0
+                max_genes_gex = 30000
+                min_cells_gex = 0
+                n_pcs = 10
             }
         }
 
@@ -24,7 +32,7 @@ nextflow_pipeline {
                     // Number of successful tasks
                     workflow.trace.succeeded().size(),
                     // pipeline versions.yml file for multiqc from which Nextflow version is removed because we test pipelines on multiple Nextflow versions
-                    removeFromYamlMap("$params.outdir/pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml", "Workflow"),
+                    removeFromYamlMap("$params.outdir/pipeline_info/scrnaseq_software_mqc_versions.yml", "Workflow"),
                     // All stable path name, with a relative path
                     stable_name,
                     // All files with stable contents

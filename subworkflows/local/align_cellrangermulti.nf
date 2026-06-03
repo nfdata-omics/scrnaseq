@@ -120,6 +120,10 @@ workflow CELLRANGER_MULTI_ALIGN {
             .map { if ( it.size() == 2 ) { it[1] } else { [] } } // a correct tuple from snippet will have: [ sample, frna.csv ]
             .set { ch_frna_sample_csv }
 
+            ch_grouped_fastq.gex.view()
+            PARSE_CELLRANGERMULTI_SAMPLESHEET.out.frna.flatten().view()
+            ch_frna_sample_csv.view()
+
         } else {
             ch_cmo_barcode_csv = []
             ch_ocm_barcode_csv = []
@@ -142,11 +146,38 @@ workflow CELLRANGER_MULTI_ALIGN {
         //
         if ( !cellranger_gex_index ) {
 
+            // Validate that gex_reference_version is provided when required
+            if ( params.gex_frna_probe_set && !params.gex_reference_version ) {
+                error "Parameter 'gex_reference_version' is required when 'gex_frna_probe_set' is provided and 'cellranger_index' is not provided. The reference genome version must match the probeset reference."
+            }
+
+            // Validate that gex_reference_version matches the probeset reference genome
+            if ( params.gex_frna_probe_set && params.gex_reference_version ) {
+                def probeset_file = file(params.gex_frna_probe_set)
+                def probeset_reference = null
+                probeset_file.withReader { reader ->
+                    String line
+                    while ((line = reader.readLine()) != null) {
+                        if (line.startsWith("#reference_genome=")) {
+                            ref_split = line.split("=")
+                            if (ref_split.size() > 1) {
+                                probeset_reference = ref_split[1].trim()
+                            }
+                            break
+                        }
+                    }
+                }
+                if ( probeset_reference != params.gex_reference_version ) {
+                    error "Parameter 'gex_reference_version' (${params.gex_reference_version}) does not match the probeset reference genome (${probeset_reference}). Please ensure the reference genome version matches the probeset file."
+                }
+            }
+
             // Make reference genome
+            def reference_name = params.gex_reference_version ?: "gex_reference_version"
             CELLRANGER_MKREF(
                 ch_fasta,
                 CELLRANGER_MKGTF.out.gtf,
-                "gex_reference"
+                reference_name
             )
             ch_versions = ch_versions.mix(CELLRANGER_MKREF.out.versions)
             ch_cellranger_gex_index = CELLRANGER_MKREF.out.reference.ifEmpty { [] }
@@ -223,11 +254,37 @@ workflow CELLRANGER_MULTI_ALIGN {
         ch_matrices_filtered = parse_demultiplexed_output_channels( CELLRANGER_MULTI.out.outs, "filtered_feature_bc_matrix" )
         ch_matrices_raw      = parse_demultiplexed_output_channels( CELLRANGER_MULTI.out.outs, "raw_feature_bc_matrix"      )
 
+        // Extract filtered_contig_annotation file for each sample to compute the concatenation.
+        ch_vdj_files =
+            CELLRANGER_MULTI.out.outs.map { meta, outs ->
+            def desired_files = outs.findAll { it.name == "filtered_contig_annotations.csv" }
+            if (desired_files.size() > 0) {
+                [ meta, desired_files ]
+            }
+            else {
+            }
+        }
+
+        ch_vdj_files_collect =  ch_vdj_files.collect()
+
+
+        ch_transformed_channel = ch_vdj_files_collect.map { list ->
+        def meta = []
+        def files = []
+
+        list.collate(2).each { pair ->
+            meta << pair[0]
+            files << pair[1]
+        }
+        return [meta, files.flatten()]
+        }
+
     emit:
         ch_versions
         cellrangermulti_out          = CELLRANGER_MULTI.out.outs
         cellrangermulti_mtx_raw      = ch_matrices_raw
         cellrangermulti_mtx_filtered = ch_matrices_filtered
+        vdj                          = ch_transformed_channel
 }
 
 def parse_demultiplexed_output_channels(in_ch, pattern) {
@@ -243,10 +300,14 @@ def parse_demultiplexed_output_channels(in_ch, pattern) {
         meta_clone.input_type = pattern.contains('raw_') ? 'raw' : 'filtered' // add metadata for conversion workflow
         if ( mtx_files.toString().contains("per_sample_outs") ) {
             def demultiplexed_sample_id = mtx_files.toString().split('/per_sample_outs/')[1].split('/')[0]
+            if ( demultiplexed_sample_id.toString() == meta.id) {
+                return null
+            }
             meta_clone.id = demultiplexed_sample_id.toString()
         }
         [ meta_clone, mtx_files ]
     }                    // check if output is from demultiplexed sample, if yes, correct meta.id for proper conversion naming
+    .filter{ it != null } // remove nulls from previous step
     .groupTuple( by: 0 ) // group it back as one file collection per sample
 
     return out_ch

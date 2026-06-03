@@ -1,4 +1,4 @@
-# nf-core/scrnaseq: Usage
+# nfdata-omics/scrnaseq: Usage
 
 > _Documentation of pipeline parameters is generated automatically from the pipeline schema and can no longer be found in markdown files._
 
@@ -282,8 +282,10 @@ If you are using cellranger-multi you have to add the column _feature_type_ to i
 
   > When running cellranger multi, without any VDJ data, users can also skip VDJ automated ref building with: `--skip_cellrangermulti_vdjref`.
 
-- When working with **FFPE data**, a prob set needs to be specified via `--gex_frna_probe_set`. This file is typically
-  [provided by 10x](https://www.10xgenomics.com/support/software/cell-ranger/downloads#probe-set-downloads). E.g. [testing ffpe probe set](../assets/frna_probeset_subset.csv).
+- When working with **FFPE data**:
+  - a probe set needs to be specified via `--gex_frna_probe_set`. This file is typically
+    [provided by 10x](https://www.10xgenomics.com/support/software/cell-ranger/downloads#probe-set-downloads). E.g. [testing ffpe probe set](../assets/frna_probeset_subset.csv).
+  - a GEX reference genome version (e.g. GRCh38, GRCm39) via `--gex_reference_version` must be specified unless a pre-built index is provided via `--cellranger_index`. This **must** match the reference in the probe set, which can be found in the header.
 
 - When working with **Cell Multiplexing Oligos (CMOs)**, a reference file can to be provided via `--gex_cmo_set`. The
   default reference file, as well as a description how to write a custom one, are [available from the 10x documentation](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-3p-multi#cmo-ref). By default, the Cell Ranger's default CMO-set.
@@ -395,7 +397,7 @@ Pipeline settings can be provided in a `yaml` or `json` file via `-params-file <
 The above pipeline run specified with a params file in yaml format:
 
 ```bash
-nextflow run nf-core/scrnaseq -profile docker -params-file params.yaml
+nextflow run nfdata-omics/scrnaseq -profile docker -params-file params.yaml
 ```
 
 with:
@@ -414,14 +416,14 @@ You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-c
 When you run the above command, Nextflow automatically pulls the pipeline code from GitHub and stores it as a cached version. When running the pipeline after this, it will always use the cached version if available - even if the pipeline has been updated since. To make sure that you're running the latest version of the pipeline, make sure that you regularly update the cached version of the pipeline:
 
 ```bash
-nextflow pull nf-core/scrnaseq
+nextflow pull nfdata-omics/scrnaseq
 ```
 
 ### Reproducibility
 
 It is a good idea to specify the pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
 
-First, go to the [nf-core/scrnaseq releases page](https://github.com/nf-core/scrnaseq/releases) and find the latest version number - numeric only (eg. `1.0.0`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.0.0`.
+First, go to the [nfdata-omics/scrnaseq releases page](https://github.com/nfdata-omics/scrnaseq/releases) and find the latest pipeline version - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`. Of course, you can switch to another version by changing the number after the `-r` flag.
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future. For example, at the bottom of the MultiQC reports.
 

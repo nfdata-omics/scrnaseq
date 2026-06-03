@@ -1,6 +1,6 @@
 {
-    "name": "nf-core/scrnaseq",
-    "homePage": "https://github.com/nf-core/scrnaseq",
+    "name": "nfdata-omics/scrnaseq",
+    "homePage": "https://github.com/nfdata-omics/scrnaseq",
     "repos": {
         "https://github.com/nf-core/modules.git": {
             "modules": {
@@ -13,26 +13,27 @@
                     "cellbender/removebackground": {
                         "branch": "master",
                         "git_sha": "e01435f46b46adff59546d6a4b4002e31f6c4457",
-                        "installed_by": ["h5ad_removebackground_barcodes_cellbender_anndata", "modules"]
+                        "installed_by": ["h5ad_removebackground_barcodes_cellbender_anndata", "modules"],
+                        "patch": "modules/nf-core/cellbender/removebackground/cellbender-removebackground.diff"
                     },
                     "cellranger/count": {
                         "branch": "master",
-                        "git_sha": "c93c5a87d7ea1aef0b81a64d6e6b00bdb79d52c2",
+                        "git_sha": "a772a68aab0866ed10a020443beaedd987d8d690",
                         "installed_by": ["modules"]
                     },
                     "cellranger/mkgtf": {
                         "branch": "master",
-                        "git_sha": "c93c5a87d7ea1aef0b81a64d6e6b00bdb79d52c2",
+                        "git_sha": "a772a68aab0866ed10a020443beaedd987d8d690",
                         "installed_by": ["modules"]
                     },
                     "cellranger/mkref": {
                         "branch": "master",
-                        "git_sha": "c93c5a87d7ea1aef0b81a64d6e6b00bdb79d52c2",
+                        "git_sha": "a772a68aab0866ed10a020443beaedd987d8d690",
                         "installed_by": ["modules"]
                     },
                     "cellranger/mkvdjref": {
                         "branch": "master",
-                        "git_sha": "c93c5a87d7ea1aef0b81a64d6e6b00bdb79d52c2",
+                        "git_sha": "a772a68aab0866ed10a020443beaedd987d8d690",
                         "installed_by": ["modules"]
                     },
                     "cellranger/multi": {
@@ -83,7 +84,7 @@
                     },
                     "multiqc": {
                         "branch": "master",
-                        "git_sha": "e10b76ca0c66213581bec2833e30d31f239dec0b",
+                        "git_sha": "af27af1be706e6a2bb8fe454175b0cdf77f47b49",
                         "installed_by": ["modules"]
                     },
                     "simpleaf/index": {
@@ -122,12 +123,37 @@
                     },
                     "utils_nfcore_pipeline": {
                         "branch": "master",
-                        "git_sha": "05954dab2ff481bcb999f24455da29a5828af08d",
+                        "git_sha": "271e7fc14eb1320364416d996fb077421f3faed2",
                         "installed_by": ["subworkflows"]
                     },
                     "utils_nfschema_plugin": {
                         "branch": "master",
                         "git_sha": "4b406a74dc0449c0401ed87d5bfff4252fd277fd",
+                        "installed_by": ["subworkflows"]
+                    }
+                }
+            }
+        },
+        "https://github.com/nfdata-omics/modules.git": {
+            "modules": {
+                "nfdata-omics": {
+                    "deseq2/compare": {
+                        "branch": "main",
+                        "git_sha": "52eb7383389f162cc4983d4e5c21f9e6ecc848d2",
+                        "installed_by": ["deseq2_analysis"]
+                    },
+                    "deseq2/fit": {
+                        "branch": "main",
+                        "git_sha": "52eb7383389f162cc4983d4e5c21f9e6ecc848d2",
+                        "installed_by": ["deseq2_analysis"]
+                    }
+                }
+            },
+            "subworkflows": {
+                "nfdata-omics": {
+                    "deseq2_analysis": {
+                        "branch": "main",
+                        "git_sha": "7ee1c02b7a3ec4718fefb57f813fb2871753f4b4",
                         "installed_by": ["subworkflows"]
                     }
                 }

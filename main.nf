@@ -1,11 +1,9 @@
 #!/usr/bin/env nextflow
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    nf-core/scrnaseq
+    nfdata-omics/scrnaseq
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Github : https://github.com/nf-core/scrnaseq
-    Website: https://nf-co.re/scrnaseq
-    Slack  : https://nfcore.slack.com/channels/scrnaseq
+    Github : https://github.com/nfdata-omics/scrnaseq
 ----------------------------------------------------------------------------------------
 */
 
@@ -20,6 +18,11 @@
 params.fasta            = getGenomeAttribute('fasta')
 params.gtf              = getGenomeAttribute('gtf')
 params.star_index       = getGenomeAttribute('star')
+params.cellranger_index = getGenomeAttribute(
+    params.aligner == 'cellrangerarc' ? 'cellranger_atac' : 'cellranger'
+)
+params.cellranger_vdj_index = getGenomeAttribute('cellranger_vdj')
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -40,10 +43,12 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_scrn
 //
 // WORKFLOW: Run main analysis pipeline depending on type of input
 //
-workflow NFCORE_SCRNASEQ {
+workflow NFDATAOMICS_SCRNASEQ {
 
     take:
     samplesheet // channel: samplesheet read in from --input
+    counts      // channel: count matrix file read as --counts
+    h5ad_matrix // channel: h5ad matrix file read as --h5ad_matrix
 
     main:
 
@@ -51,7 +56,9 @@ workflow NFCORE_SCRNASEQ {
     // WORKFLOW: Run pipeline
     //
     SCRNASEQ (
-        samplesheet
+        samplesheet,
+        counts,
+        h5ad_matrix
     )
     emit:
     multiqc_report = SCRNASEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
@@ -75,6 +82,8 @@ workflow {
         args,
         params.outdir,
         params.input,
+        params.counts,
+        params.h5ad_matrix,
         params.help,
         params.help_full,
         params.show_hidden
@@ -83,8 +92,10 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    NFCORE_SCRNASEQ (
+    NFDATAOMICS_SCRNASEQ (
         PIPELINE_INITIALISATION.out.samplesheet,
+        PIPELINE_INITIALISATION.out.counts,
+        PIPELINE_INITIALISATION.out.h5ad_matrix
     )
     //
     // SUBWORKFLOW: Run completion tasks
@@ -96,7 +107,7 @@ workflow {
         params.outdir,
         params.monochrome_logs,
         params.hook_url,
-        NFCORE_SCRNASEQ.out.multiqc_report
+        NFDATAOMICS_SCRNASEQ.out.multiqc_report
     )
 }
 
