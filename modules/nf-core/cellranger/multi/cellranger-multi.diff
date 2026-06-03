@@ -3,7 +3,14 @@ Changes in component 'nf-core/cellranger/multi'
 Changes in 'cellranger/multi/main.nf':
 --- modules/nf-core/cellranger/multi/main.nf
 +++ modules/nf-core/cellranger/multi/main.nf
-@@ -8,6 +8,9 @@
+@@ -2,12 +2,15 @@
+     tag "$meta.id"
+     label 'process_high'
+ 
+-    container "nf-core/cellranger:9.0.1"
++    container "nf-core/cellranger:10.0.0"
+ 
+     input:
      val meta
      tuple val(meta_gex)        , path (gex_fastqs   , stageAs: "fastqs/gex/fastq_???/*")
      tuple val(meta_vdj)        , path (vdj_fastqs   , stageAs: "fastqs/vdj/fastq_???/*")
@@ -26,7 +33,17 @@ Changes in 'cellranger/multi/main.nf':
      include_beam = beam_fastqs.first().getName() != 'fastqs' && beam_control_panel     ? '[antigen-specificity]' : ''
      include_cmo  = cmo_fastqs.first().getName() != 'fastqs' && cmo_barcodes            ? '[samples]'             : ''
      include_fb = (ab_fastqs.first().getName() != 'fastqs' || crispr_fastqs.first().getName() != 'fastqs') && fb_reference ? '[feature]' : ''
-@@ -130,6 +137,9 @@
+@@ -76,7 +83,7 @@
+     target_panel = gex_targetpanel_name != '' ? "target-panel,./$gex_targetpanel_name" : ''
+ 
+     // fixed RNA reference (not sample info!) also goes under GEX section
+-    frna_probeset = include_frna && gex_frna_probeset_name != '' ? "probe-set,./$gex_frna_probeset_name" : ''
++    frna_probeset = gex_frna_probeset_name != '' ? "probe-set,./$gex_frna_probeset_name" : ''
+ 
+     // VDJ inner primer set
+     primer_index = vdj_primer_index ? "inner-enrichment-primers,./references/primers/${vdj_primer_index.getName()}" : ''
+@@ -129,7 +136,10 @@
+     // point config to FASTQs
      // After renaming it gets in 'fastq_all' folder
      fastq_gex      = include_gex                      ? "${meta_gex.id},./fastq_all/gex,,Gene Expression"            : ''
 -    fastq_vdj      = include_vdj                      ? "${meta_vdj.id},./fastq_all/vdj,,VDJ"                        : ''
@@ -38,9 +55,330 @@ Changes in 'cellranger/multi/main.nf':
      fastq_beam     = include_beam                     ? "${meta_beam.id},./fastq_all/beam,,Antigen Capture"         : ''
      fastq_crispr   = include_fb && crispr_options_use ? "${meta_crispr.id},./fastq_all/crispr,,CRISPR Guide Capture" : ''
 
-'modules/nf-core/cellranger/multi/tests/main.nf.test.snap' is unchanged
+Changes in 'cellranger/multi/tests/main.nf.test.snap':
+--- modules/nf-core/cellranger/multi/tests/main.nf.test.snap
++++ modules/nf-core/cellranger/multi/tests/main.nf.test.snap
+@@ -1,4 +1,16 @@
+ {
++    "versions-flex-singleplex": {
++        "content": [
++            [
++                "versions.yml:md5,1e16f7d40ef563f7d0a24f8944374d4d"
++            ]
++        ],
++        "meta": {
++            "nf-test": "0.9.3",
++            "nextflow": "25.04.8"
++        },
++        "timestamp": "2026-01-14T17:24:23.520285805"
++    },
+     "cellranger - multi - 10k - PBMC": {
+         "content": [
+             [
+@@ -17,28 +29,28 @@
+                 "regions.fa:md5,1953406d913fb0fd753c6b56e847da83"
+             ],
+             [
+-                "all_contig_annotations.json:md5,16ad7120f003d05883a29214377efa6b",
+                 "cell_barcodes.json:md5,d751713988987e9331980363e24189ce",
++                "all_contig_annotations.json:md5,cf33174fc4dbbadc5e74051bc13a5bd2",
+                 "reference.json:md5,384f6efabad59f6da5c89b862aee71a8"
+             ]
+         ],
+         "meta": {
+-            "nf-test": "0.9.2",
+-            "nextflow": "24.10.1"
++            "nf-test": "0.9.3",
++            "nextflow": "25.04.0"
+         },
+-        "timestamp": "2025-04-28T10:09:47.792282434"
++        "timestamp": "2025-11-17T16:05:50.574012495"
+     },
+     "versions-PBMC": {
+         "content": [
+             [
+-                "versions.yml:md5,3d75b44017b2d623dfb9aa8b89538b4d"
++                "versions.yml:md5,1e16f7d40ef563f7d0a24f8944374d4d"
+             ]
+         ],
+         "meta": {
+-            "nf-test": "0.9.2",
+-            "nextflow": "24.10.1"
++            "nf-test": "0.9.3",
++            "nextflow": "25.04.0"
+         },
+-        "timestamp": "2025-04-28T10:09:47.86424328"
++        "timestamp": "2025-11-17T16:05:50.585897865"
+     },
+     "cellranger - multi - 10k - PBMC - with cmo": {
+         "content": [
+@@ -58,76 +70,100 @@
+                 "regions.fa:md5,1953406d913fb0fd753c6b56e847da83"
+             ],
+             [
+-                "all_contig_annotations.json:md5,474e6ca846176111c8003ec7cedc299e",
+                 "cell_barcodes.json:md5,d751713988987e9331980363e24189ce",
++                "all_contig_annotations.json:md5,7cc7d06c7650d20c7330513ae2e383bf",
+                 "reference.json:md5,384f6efabad59f6da5c89b862aee71a8"
+             ]
+         ],
+         "meta": {
+-            "nf-test": "0.9.2",
+-            "nextflow": "24.10.1"
++            "nf-test": "0.9.3",
++            "nextflow": "25.04.0"
+         },
+-        "timestamp": "2025-04-28T10:18:16.990217751"
++        "timestamp": "2025-11-17T16:09:13.334801399"
++    },
++    "cellranger - multi - 10k - kidney - flex - singleplex": {
++        "content": [
++            [
++                "metrics_summary.csv:md5,065d5fa688d8a27d2fa25a8e0f03670d"
++            ],
++            [
++                "filtered_feature_bc_matrix.h5:md5,9dd51a9b7bcbed4e33fca2fd912894b1"
++            ],
++            [
++                "raw_feature_bc_matrix.h5:md5,3a9537d19966914ed90da35c9c5fe455"
++            ],
++            [
++                "sample_filtered_feature_bc_matrix.h5:md5,12f93947e14929d7a5c4ba340e4aa81c"
++            ],
++            [
++                "sample_raw_feature_bc_matrix.h5:md5,45c0a4f2907c78b3aca295d0623e2163"
++            ]
++        ],
++        "meta": {
++            "nf-test": "0.9.3",
++            "nextflow": "25.04.8"
++        },
++        "timestamp": "2026-01-20T15:47:56.204324736"
+     },
+     "versions-with-cmo": {
+         "content": [
+             [
+-                "versions.yml:md5,3d75b44017b2d623dfb9aa8b89538b4d"
++                "versions.yml:md5,1e16f7d40ef563f7d0a24f8944374d4d"
+             ]
+         ],
+         "meta": {
+-            "nf-test": "0.9.2",
+-            "nextflow": "24.10.1"
++            "nf-test": "0.9.3",
++            "nextflow": "25.04.0"
+         },
+-        "timestamp": "2025-04-28T10:18:17.058412204"
++        "timestamp": "2025-11-17T16:09:13.35185767"
+     },
+     "cellranger - multi - 5k - a549 - sc3 v3 - gex + crispr": {
+         "content": [
+             [
+-                "metrics_summary.csv:md5,9c9749b6b5c5e17acb23405f1a33a53b"
++                "metrics_summary.csv:md5,a51dcadefdd5b76cee5c3d4340181a5a"
+             ],
+             [
+-                "raw_feature_bc_matrix.h5:md5,fc98a3d47af1091763e94ed4a79f8f15"
++                "raw_feature_bc_matrix.h5:md5,01c558f6a5b96cd40b1ed41217164460"
+             ],
+             [
+-                "sample_filtered_feature_bc_matrix.h5:md5,63cb76a43b82c4e0083c4db9e8f5c980"
++                "sample_filtered_feature_bc_matrix.h5:md5,8903d36c96c4de869eba434c4722817d"
+             ],
+             [
+-                "protospacer_calls_per_cell.csv:md5,a94184bddcd8107421f62986b9e0984a"
++                
+             ],
+             [
+-                "perturbation_efficiencies_by_feature.csv:md5,bdf16f59c33b5f061e87b4f3ed74e809"
++                
+             ]
+         ],
+         "meta": {
+-            "nf-test": "0.9.2",
+-            "nextflow": "24.10.1"
++            "nf-test": "0.9.3",
++            "nextflow": "25.04.0"
+         },
+-        "timestamp": "2025-04-28T10:28:49.150344674"
++        "timestamp": "2025-11-17T16:15:30.316175106"
+     },
+     "versions-a549-crispr": {
+         "content": [
+             [
+-                "versions.yml:md5,3d75b44017b2d623dfb9aa8b89538b4d"
++                "versions.yml:md5,1e16f7d40ef563f7d0a24f8944374d4d"
+             ]
+         ],
+         "meta": {
+-            "nf-test": "0.9.2",
+-            "nextflow": "24.10.1"
++            "nf-test": "0.9.3",
++            "nextflow": "25.04.0"
+         },
+-        "timestamp": "2025-04-28T10:28:49.23707814"
++        "timestamp": "2025-11-17T16:15:30.339721973"
+     },
+     "versions-with-vdj": {
+         "content": [
+             [
+-                "versions.yml:md5,3d75b44017b2d623dfb9aa8b89538b4d"
++                "versions.yml:md5,1e16f7d40ef563f7d0a24f8944374d4d"
+             ]
+         ],
+         "meta": {
+-            "nf-test": "0.9.2",
+-            "nextflow": "24.10.1"
++            "nf-test": "0.9.3",
++            "nextflow": "25.04.0"
+         },
+-        "timestamp": "2025-04-28T10:23:10.585307273"
++        "timestamp": "2025-11-17T16:12:35.380645061"
+     },
+     "cellranger - multi - 10k - PBMC - with vdj": {
+         "content": [
+@@ -147,15 +183,15 @@
+                 "regions.fa:md5,1953406d913fb0fd753c6b56e847da83"
+             ],
+             [
+-                "all_contig_annotations.json:md5,e4e09b4368470f55da786e424ae2fdd8",
+                 "cell_barcodes.json:md5,d751713988987e9331980363e24189ce",
++                "all_contig_annotations.json:md5,dadfaf5ce1daff9f2454d012837bd58b",
+                 "reference.json:md5,384f6efabad59f6da5c89b862aee71a8"
+             ]
+         ],
+         "meta": {
+-            "nf-test": "0.9.2",
+-            "nextflow": "24.10.1"
++            "nf-test": "0.9.3",
++            "nextflow": "25.04.0"
+         },
+-        "timestamp": "2025-04-28T10:23:10.520491466"
++        "timestamp": "2025-11-17T16:12:35.359552127"
+     }
+ }
 'modules/nf-core/cellranger/multi/tests/nextflow.config' is unchanged
-'modules/nf-core/cellranger/multi/tests/main.nf.test' is unchanged
+Changes in 'cellranger/multi/tests/main.nf.test':
+--- modules/nf-core/cellranger/multi/tests/main.nf.test
++++ modules/nf-core/cellranger/multi/tests/main.nf.test
+@@ -877,5 +877,115 @@
+         }
+ 
+     }
+-
++    test("cellranger - multi - 10k - kidney - flex - singleplex") {
++
++        when {
++            process {
++                """
++                //
++                // preparation: unfortunately have to repeat data load
++                //
++
++                /***************************/
++                /*** stage 10k Kidney data ***/
++                /***************************/
++
++                // stage FASTQ test data
++                fastqs = [
++                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/10xgenomics/cellranger/singleplex_flex/Human_Kidney_GEM-X_Flex_S1_L001_R1_001.subsampled.fastq.gz', checkIfExists: true),
++                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/10xgenomics/cellranger/singleplex_flex/Human_Kidney_GEM-X_Flex_S1_L001_R2_001.subsampled.fastq.gz', checkIfExists: true)
++                ]
++                def fastq_samplename_10k_kidney = "subsampled_10k_human_kidney_gemx_flex"
++
++                /*******************************/
++                /*** end stage 10k Kidney data ***/
++                /*******************************/
++
++                /***************************/
++                /*** stage GEX reference ***/
++                /***************************/
++
++                // will build this as done in cellranger count test
++                gex_ref_fasta    = file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.fasta', checkIfExists: true)
++                gex_ref_gtf      = file(params.modules_testdata_base_path + 'genomics/homo_sapiens/genome/genome.gtf', checkIfExists: true)
++                def gex_ref_name = "homo_sapiens_chr22_reference"
++
++                /*******************************/
++                /*** end stage GEX reference ***/
++                /*******************************/
++
++                probeset = file(params.modules_testdata_base_path + 'genomics/homo_sapiens/10xgenomics/cellranger/references/flex/Chromium_Human_Transcriptome_Probe_Set_v1.1.0_GRCh38-2024-A.chr22.csv', checkIfExists: true)
++
++                // make an empty dummy file, for FASTQs
++                empty_file = file("$workDir/EMPTY")
++                empty_file.append("")
++
++
++                // create empty channels to fill unused cellranger multi arguments
++                // fastqs need a [ meta, ref ] structure
++                // references just need a path
++                ch_gex_fastqs            = Channel.value( [ [ id:"EMPTY", options:[] ], empty_file ] )
++                ch_vdj_fastqs            = Channel.value( [ [ id:"EMPTY", options:[] ], empty_file ] )
++                ch_ab_fastqs             = Channel.value( [ [ id:"EMPTY", options:[] ], empty_file ] )
++                ch_beam_fastqs           = Channel.value( [ [ id:"EMPTY", options:[] ], empty_file ] )
++                ch_cmo_fastqs            = Channel.value( [ [ id:"EMPTY", options:[] ], empty_file ] )
++                ch_crispr_fastqs         = Channel.value( [ [ id:"EMPTY", options:[] ], empty_file ] )
++                ch_gex_frna_probeset     = []
++                ch_gex_targetpanel       = []
++                ch_vdj_reference         = []
++                ch_vdj_primer_index      = []
++                ch_fb_reference          = []
++                ch_beam_antigen_panel    = []
++                ch_beam_control_panel    = []
++                ch_cmo_reference         = []
++                ch_cmo_barcodes          = []
++                ch_ocm_barcodes          = []
++                ch_cmo_sample_assignment = []
++                ch_frna_sampleinfo       = []
++
++                // collect references and fastq files for staging
++                ch_gex_fastqs_10k_kidney = Channel.of( fastqs )
++                    .collect()
++                    .map { reads -> [ [ id:fastq_samplename_10k_kidney , options:[ "create-bam":false ] ], reads ] }
++
++                input[0]  = [ id:'subsampled_10k_human_kidney_gemx_flex', single_end:false ]
++                input[1]  = ch_gex_fastqs_10k_kidney
++                input[2]  = ch_vdj_fastqs
++                input[3]  = ch_ab_fastqs
++                input[4]  = ch_beam_fastqs
++                input[5]  = ch_cmo_fastqs
++                input[6]  = ch_crispr_fastqs
++                input[7]  = CELLRANGER_MKREF.out.reference
++                input[8]  = probeset
++                input[9]  = ch_gex_targetpanel
++                input[10] = ch_vdj_reference
++                input[11] = ch_vdj_primer_index
++                input[12] = ch_fb_reference
++                input[13] = ch_beam_antigen_panel
++                input[14] = ch_beam_control_panel
++                input[15] = ch_cmo_reference
++                input[16] = ch_cmo_barcodes
++                input[17] = ch_cmo_sample_assignment
++                input[18] = ch_frna_sampleinfo
++                input[19] = ch_ocm_barcodes
++                input[20] = false // default to false to guarantee renaming during test
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(
++                    process.out.outs[0][1].findAll {  file(it).name == 'metrics_summary.csv'  },
++                    process.out.outs[0][1].findAll {  file(it).name == 'filtered_feature_bc_matrix.h5'  },
++                    process.out.outs[0][1].findAll {  file(it).name == 'raw_feature_bc_matrix.h5' },
++                    process.out.outs[0][1].findAll {  file(it).name == 'sample_filtered_feature_bc_matrix.h5' },
++                    process.out.outs[0][1].findAll {  file(it).name == 'sample_raw_feature_bc_matrix.h5' }
++                ).match() },
++                { assert snapshot(process.out.versions).match("versions-flex-singleplex") }
++            )
++        }
++
++    }
+ }
+
 Changes in 'cellranger/multi/templates/cellranger_multi.py':
 --- modules/nf-core/cellranger/multi/templates/cellranger_multi.py
 +++ modules/nf-core/cellranger/multi/templates/cellranger_multi.py
