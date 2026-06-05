@@ -8,6 +8,7 @@ include { paramsSummaryMap                                  } from 'plugin/nf-sc
 include { paramsSummaryMultiqc                              } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                            } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText                            } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
+include { isStarIndexLegacy                                 } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
 include { FASTQC_CHECK                                      } from '../subworkflows/local/fastqc'
 include { KALLISTO_BUSTOOLS                                 } from '../subworkflows/local/kallisto_bustools'
 include { SIMPLEAF                                          } from '../subworkflows/local/simpleaf'
@@ -85,7 +86,6 @@ workflow SCRNASEQ {
 
     //star params
     star_index        = star_index ? file(star_index, checkIfExists: true) : null
-    ch_star_index     = star_index ? channel.value( [[id: star_index.baseName], star_index] ) : []
 
     //cellranger params
     ch_cellranger_index = cellranger_index ? file(cellranger_index, checkIfExists: true) : []
@@ -182,7 +182,8 @@ workflow SCRNASEQ {
         STARSOLO(
             ch_genome_fasta,
             ch_filter_gtf,
-            ch_star_index,
+            star_index,
+            isStarIndexLegacy() ?: false,
             protocol_config['protocol'],
             ch_barcode_whitelist,
             ch_fastq,
@@ -297,7 +298,7 @@ workflow SCRNASEQ {
     MTX_TO_H5AD (
         ch_mtx_matrices,
         ch_txp2gene,
-        star_index ? ch_star_index.map{index -> index[1]} : [],
+        star_index ?: [],
         params.aligner
     )
     ch_versions = ch_versions.mix(MTX_TO_H5AD.out.versions.first())
