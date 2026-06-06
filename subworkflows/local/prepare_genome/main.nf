@@ -46,6 +46,14 @@ workflow PREPARE_GENOME {
     ch_versions = ch_versions.mix(GTF_GENE_FILTER.out.versions)
 
     if (gtf_source_fix) {
+        // iGenomes GTF annotations with spaces in the source column (e.g. NCBI GRCh38
+        // "Curated Genomic") fail Cell Ranger 10 mkref. Opt-in per genome via
+        // gtf_source_has_spaces in the genomes map; see usage docs.
+        log.warn(
+            "Using an iGenomes GTF with spaces in the source column. nf-core/scrnaseq will rewrite the GTF source field for " +
+            "Cell Ranger compatibility, but we recommend current reference annotations for production runs. See " +
+            "https://nf-co.re/scrnaseq/dev/docs/usage#reference-genome-options"
+        )
         ch_gtf_meta = ch_gtf.map { reference_gtf ->
             [[id: "${reference_gtf.baseName}.source_fixed"], reference_gtf]
         }
