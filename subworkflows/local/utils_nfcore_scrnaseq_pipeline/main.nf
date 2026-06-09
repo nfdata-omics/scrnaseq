@@ -364,11 +364,11 @@ def getGenomeAttribute(attribute) {
 // iGenomes GTF annotations with spaces in the GTF source column (e.g. NCBI RefSeq "Curated Genomic")
 // are incompatible with Cell Ranger 10 mkref; opt-in per genome via gtf_source_has_spaces.
 //
-def gtfSourceFixNeeded() {
-    def genome_entry = params.genomes && params.genome ? params.genomes[params.genome] : null
-    return params.aligner in ['cellranger', 'cellrangerarc', 'cellrangermulti'] &&
+def gtfSourceFixNeeded(aligner, genome, genomes, gtf) {
+    def genome_entry = genomes && genome ? genomes[genome] : null
+    return aligner in ['cellranger', 'cellrangerarc', 'cellrangermulti'] &&
         genome_entry?.gtf_source_has_spaces &&
-        params.gtf == genome_entry.gtf
+        gtf == genome_entry.gtf
 }
 
 //
@@ -378,10 +378,10 @@ def gtfSourceFixNeeded() {
 // `star` directory) and the user has not overridden the resolved index with
 // their own --star_index.
 //
-def isStarIndexLegacy() {
-    def genome_entry = params.genomes && params.genome ? params.genomes[params.genome] : null
+def isStarIndexLegacy(genome, genomes, star_index) {
+    def genome_entry = genomes && genome ? genomes[genome] : null
     return  genome_entry?.star_legacy &&
-            params.star_index == genome_entry.star
+            star_index == genome_entry.star
 }
 
 //

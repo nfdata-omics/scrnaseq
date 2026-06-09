@@ -107,7 +107,7 @@ workflow SCRNASEQ {
     PREPARE_GENOME(
         fasta,
         gtf,
-        gtfSourceFixNeeded()
+        gtfSourceFixNeeded(params.aligner, params.genome, params.genomes, gtf)
     )
     ch_genome_fasta = PREPARE_GENOME.out.fasta
     ch_filter_gtf   = PREPARE_GENOME.out.gtf
@@ -167,7 +167,7 @@ workflow SCRNASEQ {
             ch_genome_fasta,
             ch_filter_gtf,
             star_index,
-            isStarIndexLegacy() ?: false,
+            isStarIndexLegacy(params.genome, params.genomes, star_index) ?: false,
             protocol_config['protocol'],
             ch_barcode_whitelist,
             ch_fastq,
