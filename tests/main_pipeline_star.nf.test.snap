@@ -5,6 +5,9 @@
                 "FASTQC": {
                     "fastqc": "0.12.1"
                 },
+                "GTF_GENE_FILTER": {
+                    "python": "3.9.5"
+                },
                 "MTX_TO_H5AD": {
                     "anndata": "0.10.8",
                     "pandas": "2.2.2",
@@ -228,7 +231,7 @@
                 "Sample_Y_raw_matrix.seurat.rds:md5,1e366fa8c2ae00e91dc5b1f5101414ce"
             ]
         ],
-        "timestamp": "2026-05-12T17:20:00.200180498",
+        "timestamp": "2026-05-29T08:11:18.253843062",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "26.04.0"

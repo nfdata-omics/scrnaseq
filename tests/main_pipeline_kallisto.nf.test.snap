@@ -6,6 +6,9 @@
                 "FASTQC": {
                     "fastqc": "0.12.1"
                 },
+                "GTF_GENE_FILTER": {
+                    "python": "3.9.5"
+                },
                 "KALLISTOBUSTOOLS_COUNT": {
                     "kallistobustools": "0.28.2"
                 },
@@ -208,7 +211,7 @@
                 "multiqc_general_stats.txt:md5,dac8af62b04fd0880801f5d5c503c472"
             ]
         ],
-        "timestamp": "2026-05-12T17:14:06.244757369",
+        "timestamp": "2026-05-29T08:47:13.634285305",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "26.04.0"

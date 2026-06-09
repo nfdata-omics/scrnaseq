@@ -15,6 +15,9 @@
                 "FASTQC": {
                     "fastqc": "0.12.1"
                 },
+                "GTF_GENE_FILTER": {
+                    "python": "3.9.5"
+                },
                 "MTX_TO_H5AD": {
                     "anndata": "0.10.8",
                     "pandas": "2.2.2",
@@ -379,7 +382,7 @@
                 "multiqc_general_stats.txt:md5,92a7a66e313e6ce2d13da53b501b5c0c"
             ]
         ],
-        "timestamp": "2026-05-12T17:24:09.68258612",
+        "timestamp": "2026-05-29T08:58:41.232483981",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "26.04.0"

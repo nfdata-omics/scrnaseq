@@ -384,6 +384,8 @@ The pipeline can resolve reference files from `conf/igenomes.config` when you pr
 
 Some AWS iGenomes STAR indices were generated with older STAR versions and contain legacy metadata. nf-core/scrnaseq includes a compatibility step for these configured iGenomes entries so that legacy STAR indices can run with the STAR version shipped by the pipeline. This support is intended to keep existing iGenomes usage working, not to make legacy indices the preferred reference for new analyses.
 
+Some AWS iGenomes GTF files, such as the NCBI `GRCh38` annotation, contain spaces in the GTF source column (for example `Curated Genomic`). Cell Ranger 10 `mkref` rejects spaces in that field. When using Cell Ranger aligners (`cellranger`, `cellrangerarc`, or `cellrangermulti`) with a configured iGenomes entry flagged for this issue, nf-core/scrnaseq automatically replaces spaces in the source column before reference building. This keeps existing iGenomes usage working with Cell Ranger 10, but is not intended as the preferred reference for new analyses.
+
 > [!WARNING]
 > For production runs, we recommend building fresh indices from current reference files instead of relying on legacy AWS iGenomes indices. The nf-core [reference genome documentation](https://nf-co.re/docs/running/reference-genomes) warns that AWS iGenomes annotations are significantly outdated, for example human annotations from Ensembl release 75, and that GRCh38 iGenomes uses the NCBI assembly rather than the masked Ensembl assembly.
 
@@ -397,6 +399,18 @@ nextflow run nf-core/scrnaseq \
     --fasta reference.fa.gz \
     --gtf annotation.gtf.gz \
     --save_reference \
+    -profile docker
+```
+
+To build a Cell Ranger reference from current annotation files instead of iGenomes, provide FASTA and GTF files directly:
+
+```bash
+nextflow run nf-core/scrnaseq \
+    --input samplesheet.csv \
+    --outdir results \
+    --aligner cellranger \
+    --fasta reference.fa.gz \
+    --gtf annotation.gtf.gz \
     -profile docker
 ```
 

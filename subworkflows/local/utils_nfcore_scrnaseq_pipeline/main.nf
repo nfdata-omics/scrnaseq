@@ -361,6 +361,17 @@ def getGenomeAttribute(attribute) {
 }
 
 //
+// iGenomes GTF annotations with spaces in the GTF source column (e.g. NCBI RefSeq "Curated Genomic")
+// are incompatible with Cell Ranger 10 mkref; opt-in per genome via gtf_source_has_spaces.
+//
+def gtfSourceFixNeeded() {
+    def genome_entry = params.genomes && params.genome ? params.genomes[params.genome] : null
+    return params.aligner in ['cellranger', 'cellrangerarc', 'cellrangermulti'] &&
+        genome_entry?.gtf_source_has_spaces &&
+        params.gtf == genome_entry.gtf
+}
+
+//
 // Decide whether the supplied STAR index needs to be routed through the
 // STAR_GENOMEPARAMS_UPGRADE adapter. Fires when the active genomes-map entry
 // has `star_legacy = true` (set on every iGenomes entry that ships a
