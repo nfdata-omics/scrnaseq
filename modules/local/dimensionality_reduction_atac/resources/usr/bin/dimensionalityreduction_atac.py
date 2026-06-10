@@ -6,10 +6,12 @@
 # MODULE IMPORT
 
 import argparse                     # command line arguments parser
+import re
 import warnings
 import pathlib                      # library for handle filesystem paths
 import numpy as np
 import pandas as pd                 # library for data analysis and manipulation
+# import scanpy as sc
 import snapatac2 as snap
 import os
 import anndata as ad
@@ -166,18 +168,59 @@ def main():
     print("\nNormalizing data using TF-IDF normalization ... ", end='')
     snap.pp.select_features(adata_atac, n_features=n_features_atac, blacklist=blacklist_path, inplace=True)
     print(adata_atac)
-    snap.tl.spectral(adata_atac,n_comps=30,features="selected",weighted_by_sd=True, random_state=0,inplace=True)
+    snap.tl.spectral(adata_atac,n_comps=n_comps_atac,features="selected",weighted_by_sd=True, random_state=0,inplace=True)
+    print("Done!")
+
+# --------------------------------------------------------------------------------------------------------------------
+#                           VISUALIZE UMAP PLOT (before Harmony integration)
+# --------------------------------------------------------------------------------------------------------------------
+
+    print("\n===== COMPUTE UMAP BEFORE HARMONY =====")
+    print("Computing UMAP before Harmony ... ", end="")
+    snap.pp.knn(adata_atac, use_rep="X_spectral")
+    snap.tl.umap(adata_atac)
+    print("Done!")
+        
+    print("\n===== PLOT UMAP BEFORE HARMONY =====")
+    snap.pl.umap(
+        adata_atac,
+        color="sample",
+        interactive=False,
+        show=False,
+        out_file=os.path.join(results_dir, "umap_ATAC_sample_before_Harmony.pdf")
+    )
+    print("Done!")
+
+    # UMAP plot highlighting metadata features (if present)
+    # Metadata features have been renamed as meta_* in the convert_mudata step
+    pattern = re.compile(r"meta_.*")
+    meta_cols = [col for col in adata_atac.obs.columns if pattern.match(col)]
+    if len(meta_cols) > 0:
+        with PdfPages(os.path.join(args.results, "umap_plot_ATAC_metadata.pdf")) as pdf:
+            for col in meta_cols:
+                plt.figure(figsize=(45, 35))
+                adata_atac.pl.umap(adata_atac, color=col, show=False)
+                pdf.savefig(bbox_inches="tight", dpi=300)
+                plt.close()
     print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
 #                           BATCH CORRECTION
 # --------------------------------------------------------------------------------------------------------------------
 
-    # Perform batch correction
-    # Importantly set groupby='variable to preserve' parameter if you want to preserve that difference in the batch correction
     print("\n===== PERFORM BATCH CORRECTION =====")
-    print("Performing batch correction ... ", end='')
-    snap.tl.spectral(adata_atac,n_comps=n_comps_atac,features="selected",weighted_by_sd=True, random_state=0,inplace=True)
+    print("Performing batch correction with Harmony... ", end='')
+    X_harmony = snap.pp.harmony(
+        adata_atac,
+        batch="sample",
+        use_rep="X_spectral",
+        inplace=False,
+    )
+    X_harmony = np.asarray(X_harmony)
+    if X_harmony.shape[0] != adata_atac.n_obs and X_harmony.shape[1] == adata_atac.n_obs:
+        X_harmony = X_harmony.T
+    assert X_harmony.shape[0] == adata_atac.n_obs, X_harmony.shape
+    adata_atac.obsm["X_spectral_harmony"] = X_harmony
     print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -187,7 +230,7 @@ def main():
     # Perform clustering
     print("\n===== PERFORM CLUSTERING =====")
     print(f"Performing clustering ... \n", end='')
-    snap.pp.knn(adata_atac)
+    snap.pp.knn(adata_atac, use_rep="X_spectral_harmony")
     resolutions = np.round(np.arange(0.1, 1.1, 0.1), 2)
     clustering_labels = []
     for res in resolutions:
@@ -197,72 +240,89 @@ def main():
     print("Done!")
 
     print(adata_atac)
+    
 # --------------------------------------------------------------------------------------------------------------------
-#                           COMPUTE AND VISUALIZE UMAP PLOT
+#                           COMPUTE AND VISUALIZE UMAP PLOT (after Harmony integration)
 # --------------------------------------------------------------------------------------------------------------------
 
     # Compute UMAP for visualization
     print("\n===== COMPUTE UMAP =====")
     print("Computing UMAP ... ", end='')
-    snap.tl.umap(adata_atac)  # Saves to default 'X_umap'
+    snap.tl.umap(adata_atac, min_dist=0, use_rep="X_spectral_harmony")
+
     print("Done!")
 
+    print("\nVisualize UMAP plots after integration")
+    snap.pl.umap( adata_atac, color="sample", interactive=False, show=False, out_file=os.path.join(results_dir, "umap_ATAC_sample_Harmony.pdf"))
+    
     # Visualize UMAP for all Leiden resolutions
     print("\n===== VISUALIZE UMAP FOR ALL RESOLUTIONS =====")
     for res in resolutions:
         leiden_key = f"leiden_tile_{res}"
         print(f"Visualizing {leiden_key}")
-
         print(f"\n      Visualizing UMAP colored by {leiden_key}")
         snap.pl.umap(
             adata_atac,
             color=leiden_key,
             interactive=False,
             show=False,
-            out_file=os.path.join(results_dir, f"UMAP_ATAC_res_{res}.png")
+            out_file=os.path.join(results_dir, f"umap_ATAC_res_{res}_Harmony.png")
         )
     print("Done!")
 
     print("\n===== PRINT ALL UMAPS TOGETHER =====")
-
     image_files = [
-        os.path.join(results_dir, f"UMAP_ATAC_res_{res}.png")
+        os.path.join(results_dir, f"umap_ATAC_res_{res}_Harmony.png")
         for res in resolutions
     ]
-
     n_images = len(image_files)
     n_cols = 4
     n_rows = int(np.ceil(n_images / n_cols))
-
     fig, axes = plt.subplots(
         n_rows,
         n_cols,
         figsize=(5 * n_cols, 5 * n_rows),
         squeeze=False
     )
-
     axes = axes.flatten()
-
     for i, img_path in enumerate(image_files):
         ax = axes[i]
-
         img = plt.imread(img_path)
         ax.imshow(img)
         ax.axis("off")
-
     # Remove unused axes
     for j in range(i + 1, len(axes)):
         fig.delaxes(axes[j])
-
     plt.tight_layout()
     plt.savefig(
-        os.path.join(results_dir, "UMAP_ATAC_all_res.pdf"),
+        os.path.join(results_dir, "umap_ATAC_all_res_Harmony.pdf"),
         bbox_inches="tight",
         dpi=300
     )
     plt.close()
-
     print("Done!")
+    
+    print("\n===== PRINT UMAPS BY METADATA =====")
+    # UMAP plot highlighting metadata features (if present)
+    # Metadata features have been renamed as meta_* in the convert_mudata step
+    pattern = re.compile(r"^meta_.*")
+    meta_cols = [col for col in adata_atac.obs.columns if pattern.match(col)]
+    print(f"Saving umaps for metadata{meta_cols}")
+    if len(meta_cols) > 0:
+        with PdfPages(os.path.join(results_dir, "umap_ATAC_meta_Harmony.pdf")) as pdf:
+            for col in meta_cols:
+                if col in adata_atac.obs.columns:
+                    print(f"Visualizing UMAP colored by {col}")
+                    snap.pl.umap(
+                        adata_atac,
+                        color=col,
+                        interactive=False,
+                        show=False,
+                        out_file=os.path.join(results_dir, f"umap_ATAC_meta_{col}_Harmony.pdf")
+                    )
+                    plt.close()
+    print("Done!")
+    
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
