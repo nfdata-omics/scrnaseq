@@ -366,9 +366,17 @@ def getGenomeAttribute(attribute) {
 //
 def gtfSourceFixNeeded(aligner, genome, genomes, gtf) {
     def genome_entry = genomes && genome ? genomes[genome] : null
-    return aligner in ['cellranger', 'cellrangerarc', 'cellrangermulti'] &&
-        genome_entry?.gtf_source_has_spaces &&
-        gtf == genome_entry.gtf
+    def cellranger_aligner = aligner in ['cellranger', 'cellrangerarc', 'cellrangermulti']
+    def gtf_flagged = genome_entry?.gtf_source_has_spaces as Boolean
+    def gtf_from_genome = gtf == genome_entry?.gtf
+    def needed = cellranger_aligner && gtf_flagged && gtf_from_genome
+    log.info(
+        "GTF source fix check: aligner=${aligner}, genome=${genome}, " +
+        "cellranger_aligner=${cellranger_aligner}, gtf_source_has_spaces=${gtf_flagged}, " +
+        "gtf_matches_genome_entry=${gtf_from_genome}, gtf=${gtf}, genome_gtf=${genome_entry?.gtf} " +
+        "=> gtf_source_fix=${needed}"
+    )
+    return needed
 }
 
 //
@@ -380,8 +388,15 @@ def gtfSourceFixNeeded(aligner, genome, genomes, gtf) {
 //
 def isStarIndexLegacy(genome, genomes, star_index) {
     def genome_entry = genomes && genome ? genomes[genome] : null
-    return  genome_entry?.star_legacy &&
-            star_index == genome_entry.star
+    def star_legacy = genome_entry?.star_legacy as Boolean
+    def index_from_genome = star_index == genome_entry?.star
+    def legacy = star_legacy && index_from_genome
+    log.info(
+        "STAR legacy index check: genome=${genome}, star_legacy=${star_legacy}, " +
+        "index_matches_genome_entry=${index_from_genome}, star_index=${star_index}, " +
+        "genome_star=${genome_entry?.star} => star_genomeparams_upgrade=${legacy}"
+    )
+    return legacy
 }
 
 //
