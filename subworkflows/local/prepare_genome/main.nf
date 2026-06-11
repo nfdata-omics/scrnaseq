@@ -59,7 +59,6 @@ workflow PREPARE_GENOME {
         }
         GTF_SOURCE_FIX(ch_gtf_meta, [], false)
         ch_gtf = GTF_SOURCE_FIX.out.output.map { _meta, reference_gtf -> reference_gtf }
-        ch_versions = ch_versions.mix(GTF_SOURCE_FIX.out.versions_gawk)
     }
 
     emit:
