@@ -82,6 +82,7 @@ workflow SCRNASEQ {
     ch_simpleaf_index   = simpleaf_index ? file(simpleaf_index, checkIfExists: true) : []
 
     //star params
+    star_index_legacy = isStarIndexLegacy(params.genome, params.genomes, star_index) ?: false
     star_index        = star_index ? file(star_index, checkIfExists: true) : null
 
     //cellranger params
@@ -167,7 +168,7 @@ workflow SCRNASEQ {
             ch_genome_fasta,
             ch_filter_gtf,
             star_index,
-            isStarIndexLegacy(params.genome, params.genomes, star_index) ?: false,
+            star_index_legacy,
             protocol_config['protocol'],
             ch_barcode_whitelist,
             ch_fastq,
