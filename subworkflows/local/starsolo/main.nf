@@ -50,7 +50,6 @@ workflow STARSOLO {
                 "https://nf-co.re/scrnaseq/dev/docs/usage#reference-genome-options"
             )
             STAR_GENOMEPARAMS_UPGRADE(ch_star_raw)
-            ch_versions = ch_versions.mix(STAR_GENOMEPARAMS_UPGRADE.out.versions_gawk)
             ch_star_index = STAR_GENOMEPARAMS_UPGRADE.out.index
         }
         else {
