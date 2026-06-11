@@ -38,7 +38,7 @@ jobs:
               id 'nf-slack@0.5.0'
             }
             slack {
-              enabled = false
+              enabled = true
               bot {
                 token = '${{ secrets.NFSLACK_BOT_TOKEN }}'
                 channel = 'scrnaseq-dev'
