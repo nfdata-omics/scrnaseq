@@ -8,9 +8,9 @@ include { paramsSummaryMap                                  } from 'plugin/nf-sc
 include { paramsSummaryMultiqc                              } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                            } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText                            } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
-include { gtfSourceFixNeeded                                  } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
+include { gtfSourceFixNeeded                                } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
 include { isStarIndexLegacy                                 } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
-include { PREPARE_GENOME                                      } from '../subworkflows/local/prepare_genome/main'
+include { PREPARE_GENOME                                    } from '../subworkflows/local/prepare_genome'
 include { FASTQC_CHECK                                      } from '../subworkflows/local/fastqc'
 include { KALLISTO_BUSTOOLS                                 } from '../subworkflows/local/kallisto_bustools'
 include { SIMPLEAF                                          } from '../subworkflows/local/simpleaf'
@@ -82,6 +82,7 @@ workflow SCRNASEQ {
     ch_simpleaf_index   = simpleaf_index ? file(simpleaf_index, checkIfExists: true) : []
 
     //star params
+    star_index_legacy = isStarIndexLegacy(params.genome, params.genomes, star_index) ?: false
     star_index        = star_index ? file(star_index, checkIfExists: true) : null
 
     //cellranger params
@@ -107,7 +108,7 @@ workflow SCRNASEQ {
     PREPARE_GENOME(
         fasta,
         gtf,
-        gtfSourceFixNeeded()
+        gtfSourceFixNeeded(params.aligner, params.genome, params.genomes, gtf)
     )
     ch_genome_fasta = PREPARE_GENOME.out.fasta
     ch_filter_gtf   = PREPARE_GENOME.out.gtf
@@ -167,7 +168,7 @@ workflow SCRNASEQ {
             ch_genome_fasta,
             ch_filter_gtf,
             star_index,
-            isStarIndexLegacy() ?: false,
+            star_index_legacy,
             protocol_config['protocol'],
             ch_barcode_whitelist,
             ch_fastq,
