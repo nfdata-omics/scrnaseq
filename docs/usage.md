@@ -120,6 +120,8 @@ Simpleaf has the ability to pass custom chemistries to Alevin-fry, in a slightly
 
 When using simpleaf, the same `--protocol` value is also used to select the qcatch chemistry for QC. Set `--skip_qcatch` to skip qcatch report generation.
 
+For protocols without a QCatch chemistry mapping (e.g. `10XV1`, `dropseq`), QCatch omits `--chemistry` and instead infers the chemistry from the quantification metadata. For non-10X / custom assays where inference is not possible, set `--qcatch_n_partitions <int>` to provide the partition count (max number of barcodes) for QCatch's empty-drops step.
+
 For more details, see Simpleaf's paper, [He _et al._ 2023](https://doi.org/10.1093/bioinformatics/btad614) and the [detailed description](https://hackmd.io/@PI7Og0l1ReeBZu_pjQGUQQ/rJMgmvr13).
 
 #### Cell Ranger ARC
