@@ -118,13 +118,16 @@ workflow SIMPLEAF {
 
     /*
     * Run qcatch QC (optional)
+    * qcatch_chemistry may be null for protocols without a QCatch chemistry mapping
+    * (e.g. 10XV1 and dropseq); the module then omits --chemistry and QCatch infers
+    * it from metadata or uses --n_partitions (set via --qcatch_n_partitions).
     */
     ch_qcatch_report = channel.empty()
     if ( !skip_qcatch ) {
         // Map quant channel to include chemistry for qcatch: tuple(meta, chemistry, quant_dir)
         ch_qcatch_input = ch_af_quant.map { meta, quant_dir -> [meta, qcatch_chemistry, quant_dir] }
         QCATCH( ch_qcatch_input )
-        ch_versions = ch_versions.mix(QCATCH.out.versions)
+        // QCATCH emits versions via the `versions` topic (collected in the main workflow)
         ch_qcatch_report = QCATCH.out.report
     }
 
