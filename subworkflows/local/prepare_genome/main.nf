@@ -14,51 +14,55 @@ workflow PREPARE_GENOME {
     gtf_source_fix
 
     main:
-    ch_versions     = channel.empty()
+    ch_versions = channel.empty()
+    ch_fasta    = []
+    ch_gtf      = []
 
     if (fasta) {
-        ch_fasta = file(fasta, checkIfExists: true)
+        def fasta_file = file(fasta, checkIfExists: true)
         if (fasta.endsWith('.gz')) {
-            ch_fasta = GUNZIP_FASTA([[:], ch_fasta]).gunzip
-                .map { _meta, fasta_file -> fasta_file }.collect()
+            ch_fasta = GUNZIP_FASTA([[:], fasta_file]).gunzip
+                .map { _meta, fasta_path -> fasta_path }.collect()
         }
         else {
-            ch_fasta = channel.value(ch_fasta)
+            ch_fasta = channel.value(fasta_file)
         }
     }
 
     if (gtf) {
-        ch_gtf = file(gtf, checkIfExists: true)
+        def gtf_file = file(gtf, checkIfExists: true)
         if (gtf.endsWith('.gz')) {
-            ch_gtf = GUNZIP_GTF([[:], ch_gtf]).gunzip
-                .map { _meta, gtf_file -> gtf_file }.collect()
+            ch_gtf = GUNZIP_GTF([[:], gtf_file]).gunzip
+                .map { _meta, gtf_path -> gtf_path }.collect()
         }
         else {
-            ch_gtf = channel.value(ch_gtf)
+            ch_gtf = channel.value(gtf_file)
         }
-    }
 
-    GTF_GENE_FILTER(
-        ch_fasta,
-        ch_gtf
-    )
-    ch_gtf = GTF_GENE_FILTER.out.gtf
-    ch_versions = ch_versions.mix(GTF_GENE_FILTER.out.versions)
-
-    if (gtf_source_fix) {
-        // iGenomes GTF annotations with spaces in the source column (e.g. NCBI GRCh38
-        // "Curated Genomic") fail Cell Ranger 10 mkref. Opt-in per genome via
-        // gtf_source_has_spaces in the genomes map; see usage docs.
-        log.warn(
-            "Using an iGenomes GTF with spaces in the source column. nf-core/scrnaseq will rewrite the GTF source field for " +
-            "Cell Ranger compatibility, but we recommend current reference annotations for production runs. See " +
-            "https://nf-co.re/scrnaseq/dev/docs/usage#reference-genome-options"
-        )
-        ch_gtf_meta = ch_gtf.map { reference_gtf ->
-            [[id: "${reference_gtf.baseName}.source_fixed"], reference_gtf]
+        if (fasta) {
+            GTF_GENE_FILTER(
+                ch_fasta,
+                ch_gtf
+            )
+            ch_gtf = GTF_GENE_FILTER.out.gtf
+            ch_versions = ch_versions.mix(GTF_GENE_FILTER.out.versions)
         }
-        GTF_SOURCE_FIX(ch_gtf_meta, [], false)
-        ch_gtf = GTF_SOURCE_FIX.out.output.map { _meta, reference_gtf -> reference_gtf }
+
+        if (gtf_source_fix) {
+            // iGenomes GTF annotations with spaces in the source column (e.g. NCBI GRCh38
+            // "Curated Genomic") fail Cell Ranger 10 mkref. Opt-in per genome via
+            // gtf_source_has_spaces in the genomes map; see usage docs.
+            log.warn(
+                "Using an iGenomes GTF with spaces in the source column. nf-core/scrnaseq will rewrite the GTF source field for " +
+                "Cell Ranger compatibility, but we recommend current reference annotations for production runs. See " +
+                "https://nf-co.re/scrnaseq/dev/docs/usage#reference-genome-options"
+            )
+            ch_gtf_meta = ch_gtf.map { reference_gtf ->
+                [[id: "${reference_gtf.baseName}.source_fixed"], reference_gtf]
+            }
+            GTF_SOURCE_FIX(ch_gtf_meta, [], false)
+            ch_gtf = GTF_SOURCE_FIX.out.output.map { _meta, reference_gtf -> reference_gtf }
+        }
     }
 
     emit:
