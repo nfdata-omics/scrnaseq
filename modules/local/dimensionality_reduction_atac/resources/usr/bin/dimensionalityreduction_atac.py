@@ -180,7 +180,7 @@ def main():
     snap.pp.knn(adata_atac, use_rep="X_spectral")
     snap.tl.umap(adata_atac)
     print("Done!")
-        
+
     print("\n===== PLOT UMAP BEFORE HARMONY =====")
     snap.pl.umap(
         adata_atac,
@@ -240,7 +240,7 @@ def main():
     print("Done!")
 
     print(adata_atac)
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           COMPUTE AND VISUALIZE UMAP PLOT (after Harmony integration)
 # --------------------------------------------------------------------------------------------------------------------
@@ -254,7 +254,7 @@ def main():
 
     print("\nVisualize UMAP plots after integration")
     snap.pl.umap( adata_atac, color="sample", interactive=False, show=False, out_file=os.path.join(results_dir, "umap_ATAC_sample_Harmony.pdf"))
-    
+
     # Visualize UMAP for all Leiden resolutions
     print("\n===== VISUALIZE UMAP FOR ALL RESOLUTIONS =====")
     for res in resolutions:
@@ -301,7 +301,7 @@ def main():
     )
     plt.close()
     print("Done!")
-    
+
     print("\n===== PRINT UMAPS BY METADATA =====")
     # UMAP plot highlighting metadata features (if present)
     # Metadata features have been renamed as meta_* in the convert_mudata step
@@ -322,7 +322,7 @@ def main():
                     )
                     plt.close()
     print("Done!")
-    
+
 # --------------------------------------------------------------------------------------------------------------------
 #                           SAVE OUTPUT FILE
 # --------------------------------------------------------------------------------------------------------------------
