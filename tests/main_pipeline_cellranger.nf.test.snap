@@ -3,58 +3,7 @@
         "content": [
             22,
             {
-                "ANNDATAR_CONVERT": {
-                    "SeuratObject": "5.0.2",
-                    "SingleCellExperiment": "1.28.1",
-                    "anndataR": "0.99.0",
-                    "r-base": "R version 4.4.2 (2024-10-31)"
-                },
-                "CELLRANGER_COUNT": {
-                    "cellranger": "cellranger 10.0.0 "
-                },
-                "CELLRANGER_MKGTF": {
-                    "cellranger": "cellranger 10.0.0"
-                },
-                "CELLRANGER_MKREF": {
-                    "cellranger": "cellranger 10.0.0"
-                },
-                "CONCAT_H5AD": {
-                    "python": "3.12.5",
-                    "scanpy": "1.10.2"
-                },
-                "CONVERT_MUDATA": {
-                    "convert.py": "0.0.1"
-                },
-                "DOUBLETS": {
-                    "Biobase": "2.66.0",
-                    "BiocGenerics": "0.52.0",
-                    "GenomeInfoDb": "1.42.1",
-                    "GenomicRanges": "1.58.0",
-                    "IRanges": "2.40.1",
-                    "MatrixGenerics": "1.18.1",
-                    "R": "4.4.2",
-                    "S4Vectors": "0.44.0",
-                    "SingleCellExperiment": "1.28.1",
-                    "SummarizedExperiment": "1.36.0",
-                    "matrixStats": "1.5.0",
-                    "optparse": "1.7.5",
-                    "scDblFinder": "1.20.0"
-                },
-                "FASTQC": {
-                    "fastqc": "0.12.1"
-                },
-                "GTF_GENE_FILTER": {
-                    "python": "3.14.5"
-                },
-                "MTX_TO_H5AD": {
-                    "anndata": "0.10.8",
-                    "pandas": "2.2.2",
-                    "python": "3.12.5",
-                    "scanpy": "1.10.2"
-                },
-                "QUALITY_FILTERING": {
-                    "qualitymetricsfilters.py": "0.0.1"
-                }
+                
             },
             [
                 "cellranger",
@@ -348,7 +297,7 @@
                 "multiqc/multiqc_plots/svg/mqc_cellranger_count_saturation.svg",
                 "multiqc/multiqc_report.html",
                 "pipeline_info",
-                "pipeline_info/scrnaseq_software_mqc_versions.yml",
+                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml",
                 "qualitycontrol",
                 "qualitycontrol/Cells_after_filtering.pdf",
                 "qualitycontrol/Cells_before_filtering.pdf",
@@ -423,10 +372,10 @@
                 "summary_qualitycontrol_by_pool.csv:md5,b7c69f93e634495e8c5db09544f9f5fb"
             ]
         ],
-        "timestamp": "2026-05-29T08:58:41.232483981",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "26.04.0"
-        }
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.4"
+        },
+        "timestamp": "2026-07-22T15:20:09.830853632"
     }
 }
