@@ -3,40 +3,7 @@
         "content": [
             14,
             {
-                "ANNDATAR_CONVERT": {
-                    "SeuratObject": "5.0.2",
-                    "SingleCellExperiment": "1.28.1",
-                    "anndataR": "0.99.0",
-                    "r-base": "R version 4.4.2 (2024-10-31)"
-                },
-                "CELLRANGERARC_COUNT": {
-                    "cellrangerarc": "2.0.2"
-                },
-                "CELLRANGERARC_MKGTF": {
-                    "cellrangerarc": "2.0.2"
-                },
-                "CELLRANGERARC_MKREF": {
-                    "cellrangerarc": "2.0.2"
-                },
-                "CONCAT_H5AD": {
-                    "python": "3.12.5",
-                    "scanpy": "1.10.2"
-                },
-                "CONVERT_MUDATA": {
-                    "convert.py": "0.0.1"
-                },
-                "FASTQC": {
-                    "fastqc": "0.12.1"
-                },
-                "GTF_GENE_FILTER": {
-                    "python": "3.14.5"
-                },
-                "MTX_TO_H5AD": {
-                    "anndata": "0.10.8",
-                    "pandas": "2.2.2",
-                    "python": "3.12.5",
-                    "scanpy": "1.10.2"
-                }
+                
             },
             [
                 "cellrangerarc",
@@ -236,7 +203,7 @@
                 "multiqc/multiqc_plots/svg/fastqc_top_overrepresented_sequences_table.svg",
                 "multiqc/multiqc_report.html",
                 "pipeline_info",
-                "pipeline_info/scrnaseq_software_mqc_versions.yml"
+                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml"
             ],
             [
                 "atac_cut_sites.bigwig:md5,7114cf85657c09f92d5c3dbd32432759",
@@ -273,12 +240,12 @@
                 "sjdbList.out.tab:md5,be8b2978e8ac3a2c8266c798c7c34b90",
                 "transcriptInfo.tab:md5,5a6ee447f3efac16042d8c99f653747b",
                 "config:md5,c05a6c4276e54a19a7149b700cf6fbd9",
-                "10k_PBMC_filtered_matrix.h5ad:md5,60b9311d46f756cd2b9fb737628713b3",
-                "10k_PBMC_filtered_matrix.sce.rds:md5,8409899c40573213cc0cb3da48dfd99c",
-                "10k_PBMC_filtered_matrix.seurat.rds:md5,a2f61027f631ca0fe62167ad37cf0bfe",
-                "10k_PBMC_raw_matrix.h5ad:md5,4ac50d4109bcccd1d82ed83fc00d7580",
-                "10k_PBMC_raw_matrix.sce.rds:md5,862283b4babd1aa9b1ab9c364528639e",
-                "10k_PBMC_raw_matrix.seurat.rds:md5,8aff06e0add005677e484864db5774b9",
+                "10k_PBMC_filtered_matrix.h5ad:md5,363249fcd16f215cac32e5bf14e3114d",
+                "10k_PBMC_filtered_matrix.sce.rds:md5,12da40681f324c1574b99b340d7d20c3",
+                "10k_PBMC_filtered_matrix.seurat.rds:md5,4c2766133b7fc5410be80cff9ac15dbe",
+                "10k_PBMC_raw_matrix.h5ad:md5,25d6d103ad31112ab5d2c170aa3ad975",
+                "10k_PBMC_raw_matrix.sce.rds:md5,fcda5ad3fa3ef81247d092c65ab08bd0",
+                "10k_PBMC_raw_matrix.seurat.rds:md5,272f7c801329f9e6f0c4e903eee52ddf",
                 "fastqc-status-check-heatmap.txt:md5,55b658eef7b63c6f8e3d559be41f5df8",
                 "fastqc_adapter_content_plot.txt:md5,31ca16758049ac46cc84875ddc4ff6d3",
                 "fastqc_overrepresented_sequences_plot.txt:md5,314754adfcfa2977ee4f61c2ec5444f2",
@@ -294,10 +261,10 @@
                 "multiqc_general_stats.txt:md5,fd84f94100989affc666904a2f34c40c"
             ]
         ],
-        "timestamp": "2026-05-29T08:55:55.275563341",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "26.04.0"
-        }
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.4"
+        },
+        "timestamp": "2026-07-22T15:31:34.557367707"
     }
 }
