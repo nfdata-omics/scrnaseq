@@ -1,0 +1,73 @@
+/* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
+include { CONCAT_H5AD           } from '../../../modules/local/concat_h5ad'
+include { ANNDATAR_CONVERT      } from '../../../modules/local/anndatar_convert'
+
+workflow H5AD_CONVERSION {
+
+    take:
+    ch_h5ads
+    samplesheet
+
+    main:
+
+    ch_versions = channel.empty()
+
+    // Concat all raw and unfiltered h5ad files
+    //
+    ch_concat_h5ad_input = ch_h5ads
+        .map{ meta, file -> [ [id: 'combined', input_type: meta.input_type], file ]}
+        .groupTuple()
+
+    CONCAT_H5AD (
+        ch_concat_h5ad_input,
+        samplesheet
+    )
+
+    ch_h5ad_concat = CONCAT_H5AD.out.h5ad
+
+
+    // Filter input_type:'raw'
+    ch_h5ad_concat_raw = ch_h5ad_concat.filter { item ->
+        item[0].input_type == 'raw'
+    }
+
+    // Filter input_type:'filtered'
+    ch_h5ad_concat_filtered = ch_h5ad_concat.filter { item ->
+        item[0].input_type == 'filtered'
+    }
+
+    // Filtered input_type:'cellbender_filter'
+    ch_h5ad_concat_cellbender = ch_h5ad_concat.filter { item ->
+        item[0].input_type == 'cellbender_filter'
+    }
+
+    ch_versions = ch_versions.mix(CONCAT_H5AD.out.versions.first())
+
+    // MODULE: Convert to RDS with AnndataR package
+    //
+    ANNDATAR_CONVERT (
+        ch_h5ads.mix(ch_h5ad_concat_filtered)
+    )
+
+    ch_convert_concat = ANNDATAR_CONVERT.out.rds
+
+
+    ch_convert_concat_filtered = ch_convert_concat.filter {item ->
+        item[0].id == 'combined' && item[0].input_type == 'filtered'
+    }
+    ch_convert_concat_cellbender = ch_convert_concat.filter {item ->
+        item[0].id == 'combined' && item[0].input_type == 'cellbender_filter'
+    }
+
+    ch_versions = ch_versions.mix(ANNDATAR_CONVERT.out.versions.first())
+
+
+    emit:
+    ch_versions
+    h5ads = ch_h5ads
+    h5ad_raw = ch_h5ad_concat_raw
+    h5ad_filtered = ch_h5ad_concat_filtered
+    h5ad_cellbender = ch_h5ad_concat_cellbender
+    rds_concat = ch_convert_concat_filtered
+    rds_cellbender = ch_convert_concat_cellbender
+}

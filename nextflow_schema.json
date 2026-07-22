@@ -20,8 +20,7 @@
                     "mimetype": "text/csv",
                     "pattern": "^\\S+\\.csv$",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row.",
-                    "fa_icon": "fas fa-file-csv"
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/scrnaseq/usage#samplesheet-input)."
                 },
                 "outdir": {
                     "type": "string",
@@ -113,6 +112,15 @@
                 "skip_qcfilters": {
                     "type": "boolean",
                     "description": "Skip qc filtering subworkflow"
+                },
+                "skip_qcatch": {
+                    "type": "boolean",
+                    "description": "Skip qcatch QC for simpleaf aligner"
+                },
+                "skip_emptydrops": {
+                    "type": "boolean",
+                    "deprecated": true,
+                    "errorMessage": "Parameter has been deprecated in favour of --skip_cellbender to properly match name of workflow."
                 }
             }
         },
@@ -160,6 +168,13 @@
                     "format": "file-path",
                     "exists": true
                 },
+                "gff": {
+                    "type": "string",
+                    "description": "Reference GFF annotation file. Can be used as an alternative to the GTF file. If both are provided, the GTF file will be used.",
+                    "fa_icon": "fas fa-code-branch",
+                    "format": "file-path",
+                    "exists": true
+                },
                 "save_reference": {
                     "type": "boolean",
                     "description": "Specify this parameter to save the indices created (STAR, Kallisto, Simpleaf) to the results.",
@@ -180,7 +195,7 @@
                 },
                 "txp2gene": {
                     "type": "string",
-                    "description": "Path to transcript to gene mapping file. This allows the specification of a transcript to gene mapping file for Kallisto/BUS and Alevin-fry with AlevinQC.",
+                    "description": "Path to transcript to gene mapping file. This allows the specification of a transcript to gene mapping file for Kallisto/BUS and Alevin-fry.",
                     "fa_icon": "fas fa-map-marked-alt",
                     "format": "file-path",
                     "exists": true
@@ -215,6 +230,16 @@
                     "description": "UMI resolution strategy to deduplicate UMIs.",
                     "help_text": "This parameter specifies the [UMI resolution strategy](https://simpleaf.readthedocs.io/en/latest/quant-command.html) to use for deduplicating UMIs. The default is `cr-like`, which mimics the behavior of Cell Ranger, i.e., discarding UMIs equally compatible to multiple genes. Strategies that resolve multi-mapped UMIs by expectation maximization are available, like `cr-like-em`, `parsimony-em`, and `parsimony-gene-em`.",
                     "fa_icon": "fas fa-map-marked-alt"
+                },
+                "remove_doublets": {
+                    "type": "boolean",
+                    "description": "Enable doublet detection and removal using Scrublet via QCatch.",
+                    "help_text": "When enabled, QCatch will run Scrublet-based doublet detection and removal on the filtered count matrix, and include doublet visualizations in the QC report. Only applies when using the simpleaf aligner with QCatch enabled."
+                },
+                "qcatch_n_partitions": {
+                    "type": "integer",
+                    "description": "Number of partitions (max barcodes) for QCatch's empty_drops step.",
+                    "help_text": "Passed to QCatch as `--n_partitions`. Use for non-10X / custom assays (e.g. drop-seq) where QCatch has no chemistry mapping and cannot reliably auto-infer the partition range. Only applies when using the simpleaf aligner with QCatch enabled."
                 }
             }
         },
@@ -634,13 +659,6 @@
                     "type": "boolean",
                     "description": "Do not use coloured log outputs.",
                     "fa_icon": "fas fa-palette",
-                    "hidden": true
-                },
-                "hook_url": {
-                    "type": "string",
-                    "description": "Incoming hook URL for messaging service",
-                    "fa_icon": "fas fa-people-group",
-                    "help_text": "Incoming hook URL for messaging service. Currently, MS Teams and Slack are supported.",
                     "hidden": true
                 },
                 "multiqc_config": {
