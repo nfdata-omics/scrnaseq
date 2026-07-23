@@ -1,0 +1,42 @@
+name: pseudobulk
+description: Aggregate single-cell counts into pseudobulk profiles for differential analysis.
+keywords: [single-cell, pseudobulk, differential-expression]
+tools:
+  - scanpy:
+      description: Single-cell analysis toolkit.
+      homepage: https://scanpy.readthedocs.io/
+      licence: ["BSD-3-Clause"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing comparison metadata.
+    - h5mu:
+        type: file
+        description: Input MuData object.
+    - group_column:
+        type: string
+        description: Metadata column used for aggregation.
+    - resolution:
+        type: string
+        description: Clustering resolution.
+    - comparison:
+        type: string
+        description: Comparison to export.
+output:
+  pseudobulk_plots:
+    - "pseudobulk/*.pdf":
+        type: file
+        description: Pseudobulk plots.
+  pseudobulk_deseq2:
+    - - resolution:
+          type: string
+          description: Clustering resolution.
+      - pseudobulk/export_deseq2:
+          type: directory
+          description: DESeq2 input directory.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

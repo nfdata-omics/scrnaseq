@@ -1,0 +1,32 @@
+name: differential_abundance
+description: Test differential abundance of cell populations between conditions.
+keywords: [single-cell, differential-abundance, pertpy]
+tools:
+  - pertpy:
+      description: Toolkit for perturbation and differential analysis.
+      homepage: https://pertpy.readthedocs.io/
+      licence: ["Apache-2.0"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing comparison metadata.
+    - h5mu:
+        type: file
+        description: Input MuData object.
+    - comparisons:
+        type: string
+        description: Comparisons to test.
+    - resolution:
+        type: string
+        description: Clustering resolution.
+output:
+  diff_abund_results:
+    - "diff_abundance/*":
+        type: file
+        description: Differential-abundance results.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

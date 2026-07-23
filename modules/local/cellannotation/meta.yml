@@ -1,0 +1,44 @@
+name: cell_annotation
+description: Annotate cell types using CellTypist models.
+keywords: [single-cell, annotation, celltypist]
+tools:
+  - celltypist:
+      description: Automated cell-type annotation tool.
+      homepage: https://www.celltypist.org/
+      licence: ["MIT"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing sample information.
+    - input_h5mu:
+        type: file
+        description: Input MuData object.
+  - input_model:
+      type: file
+      description: CellTypist model.
+output:
+  h5mu:
+    - - meta:
+          type: map
+          description: Groovy map containing sample information.
+      - "*.annotated.h5mu":
+          type: file
+          description: Annotated MuData object.
+  graph_umap:
+    - "Annotated_UMAP_*.pdf":
+        type: file
+        description: Annotated UMAP plots.
+  summary_cellannotation:
+    - "summary_cellannotation_*.csv":
+        type: file
+        description: Annotation summary.
+  metadata:
+    - metadata.csv:
+        type: file
+        description: Annotated cell metadata.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

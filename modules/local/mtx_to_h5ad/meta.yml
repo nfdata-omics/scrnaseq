@@ -1,0 +1,38 @@
+name: mtx_to_h5ad
+description: Convert Cell Ranger matrix outputs into AnnData H5AD files.
+keywords: [single-cell, matrix, anndata, h5ad]
+tools:
+  - scanpy:
+      description: Single-cell analysis toolkit.
+      homepage: https://scanpy.readthedocs.io/
+      licence: ["BSD-3-Clause"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing matrix metadata.
+    - inputs:
+        type: file
+        description: Matrix input files.
+  - txp2gene:
+      type: file
+      description: Transcript-to-gene mapping, when applicable.
+  - star_index:
+      type: directory
+      description: STAR index, when applicable.
+  - input_aligner:
+      type: string
+      description: Aligner that generated the matrix.
+output:
+  h5ad:
+    - - meta:
+          type: map
+          description: Groovy map containing matrix metadata.
+      - "${meta.id}_${meta.input_type}_matrix.h5ad":
+          type: file
+          description: Converted AnnData matrix.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

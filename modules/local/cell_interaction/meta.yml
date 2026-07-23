@@ -1,0 +1,39 @@
+name: cell_interaction
+description: Infer and visualize cell-cell communication from a MuData object.
+keywords: [single-cell, cell-cell-interaction, liana]
+tools:
+  - liana:
+      description: Framework for cell-cell communication analysis.
+      homepage: https://liana-py.readthedocs.io/
+      licence: ["GPL-3.0-or-later"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing sample information.
+    - h5mu:
+        type: file
+        description: Input MuData object.
+    - method:
+        type: string
+        description: Interaction inference method.
+    - resource:
+        type: string
+        description: Ligand-receptor resource.
+    - resolution:
+        type: string
+        description: Clustering resolution.
+output:
+  plots:
+    - "**/*.pdf":
+        type: file
+        description: Interaction plots.
+  excel:
+    - "**/*.xlsx":
+        type: file
+        description: Interaction result tables.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]
