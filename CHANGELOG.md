@@ -5,6 +5,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+> [!IMPORTANT]
+> **Major project milestone — nfdata-omics/scrnaseq is now an independent project.**
+>
+> Originally created as a fork of `nf-core/scrnaseq`, the repository has now been detached from the upstream fork network. This marks a new chapter in the project's history: `nfdata-omics/scrnaseq` is maintained and developed as a standalone nfdata-omics pipeline, with its own scope and direction.
+
+### Changed
+
+- Focus the supported alignment workflows on the Cell Ranger family (`cellranger`, `cellrangerarc`, and `cellrangermulti`), with Cell Ranger now used as the default aligner.
+- Streamline the pipeline by removing retired alignment workflows and their associated modules, parameters, configuration, protocol assets, and test resources.
+- Improve repository maintainability and nf-core lint compatibility by documenting local modules, normalizing component imports, and removing obsolete files and configuration.
+
 ### Features
 
 - Add the `--gff` parameter to allow the user to specify a GFF file as a reference (instead of a GTF file) ([#451](https://github.com/nf-core/scrnaseq/pull/451))
