@@ -105,29 +105,20 @@ workflow SCRNASEQ {
         : channel.empty()
 
     // Pseudobulk params
-    ch_pseudobulk_group = params.pseudobulk_group ? Channel
-        .value(params.pseudobulk_group)
-        : Channel.empty()
-
-    ch_pseudobulk_comparisons = params.pseudobulk_comparisons ? Channel
-        .fromList(params.pseudobulk_comparisons.split(',').flatten())
-        : channel.empty()
-
-    ch_pseudobulk_formula = params.pseudobulk_formula ? Channel
-        .value(params.pseudobulk_formula)
-        : Channel.empty()
-
-    ch_pseudobulk_fdr = params.pseudobulk_fdr ? Channel
-        .value(params.pseudobulk_fdr)
-        : Channel.empty()
+    ch_pseudobulk_group = params.pseudobulk_group ?
+        channel.value(params.pseudobulk_group) : channel.empty()
+    ch_pseudobulk_comparisons = params.pseudobulk_comparisons ?
+        channel.fromList(params.pseudobulk_comparisons.split(',').flatten()) : channel.empty()
+    ch_pseudobulk_formula = params.pseudobulk_formula ?
+        channel.value(params.pseudobulk_formula) : channel.empty()
+    ch_pseudobulk_fdr = params.pseudobulk_fdr ?
+        channel.value(params.pseudobulk_fdr) : channel.empty()
 
     // Cell interaction params
-    ch_liana_method = params.liana_method ? Channel
-        .value(params.liana_method)
-        : channel.empty()
-    ch_liana_resource = params.liana_resource ? Channel
-        .value(params.liana_resource)
-        : channel.empty()
+    ch_liana_method = params.liana_method ?
+        channel.value(params.liana_method) : channel.empty()
+    ch_liana_resource = params.liana_resource ?
+        channel.value(params.liana_resource) : channel.empty()
 
     // Run FastQC
     if (!params.skip_fastqc) {
@@ -178,7 +169,7 @@ workflow SCRNASEQ {
         // Collect the fragments files and their index
         ch_fragments =
             CELLRANGERARC_ALIGN.out.cellrangerarc_out.map { meta, outs ->
-            def desired_files = outs.findAll { it.name == "atac_fragments.tsv.gz" }
+            def desired_files = outs.findAll { file -> file.name == "atac_fragments.tsv.gz" }
 
 
             if (desired_files.size() > 0) {
@@ -204,7 +195,7 @@ workflow SCRNASEQ {
 
         ch_fragments_index =
             CELLRANGERARC_ALIGN.out.cellrangerarc_out.map { meta, outs ->
-            def desired_files = outs.findAll { it.name == "atac_fragments.tsv.gz.tbi" }
+            def desired_files = outs.findAll { file -> file.name == "atac_fragments.tsv.gz.tbi" }
 
 
             if (desired_files.size() > 0) {
@@ -299,9 +290,9 @@ workflow SCRNASEQ {
 
     }
 
-    ch_count_matrix = Channel.empty()
+    ch_count_matrix = channel.empty()
     if ( params.counts ) {
-        ch_count_matrix = Channel
+        ch_count_matrix = channel
         .fromPath(params.counts, checkIfExists: true)
         .splitCsv(header: true)
         .map { row ->
@@ -377,7 +368,7 @@ workflow SCRNASEQ {
 
     //TODO: modify this part beacuse only one input is present
     if (params.demultiplexing_doublets) {
-    ch_metadata_demuxafy = Channel.fromPath(params.demultiplexing_doublets, checkIfExists: true)
+    ch_metadata_demuxafy = channel.fromPath(params.demultiplexing_doublets, checkIfExists: true)
         .splitCsv(header: true, sep: '\t')
         .map { row ->
             def meta = [ id: row.sample ]
@@ -385,10 +376,10 @@ workflow SCRNASEQ {
             tuple(meta, metadata_file)
         }
     } else {
-        ch_metadata_demuxafy = Channel.value([ [id: 'dummy'], [] ])
+        ch_metadata_demuxafy = channel.value([ [id: 'dummy'], [] ])
     }
 
-    ch_metadata = params.metadata ? Channel.value(params.metadata) : Channel.value(file('dummy_metadata.csv'))
+    ch_metadata = params.metadata ? channel.value(params.metadata) : channel.value(file('dummy_metadata.csv'))
 
 
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc" || params.aligner == "cellranger" ) {
@@ -396,7 +387,7 @@ workflow SCRNASEQ {
             H5AD_CONVERSION.out.h5ad_cellbender :
             (
                 params.h5ad_matrix ?
-                    Channel
+                    channel
                         .fromPath(params.h5ad_matrix,checkIfExists: true)
                         .splitCsv(header: true)
                         .map { row ->
@@ -455,7 +446,7 @@ workflow SCRNASEQ {
 
     // Make raw h5ad optional for reclustering workflows
     ch_h5ad_raw = params.h5ad_matrix ?
-        Channel.fromPath("${projectDir}/assets/EMPTY").map { [[:], it] } :
+        channel.fromPath("${projectDir}/assets/EMPTY").map { file -> [[:], file] } :
         H5AD_CONVERSION.out.h5ad_raw
 
     NORMALIZATION_AND_HVG (
@@ -489,7 +480,7 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run ATAC preprocessing
     //
-    atac_out_h5ad = Channel.empty()
+    atac_out_h5ad = channel.empty()
 
     if (params.aligner == "cellrangerarc") {
         blacklist_path = params.blacklist_path ? \
@@ -549,13 +540,13 @@ workflow SCRNASEQ {
 
     // Handling multiple resolutions
     if ( params.resolution ) {
-        resolution_ch = Channel.fromList(params.resolution.toString().split(',').flatten())
+        resolution_ch = channel.fromList(params.resolution.toString().split(',').flatten())
 
         //
         // MODULES: Enrichment on marker genes for a selected resolution
         //
         if ( params.enrich_collection ){
-            ch_enrich_collection = Channel.fromList(params.enrich_collection.split(',').flatten())
+            ch_enrich_collection = channel.fromList(params.enrich_collection.split(',').flatten())
             resolution_ch
                 .combine( ch_enrich_collection )
                 .map{ res, coll -> [["res": res, "coll": coll], res, coll] }
@@ -573,7 +564,7 @@ workflow SCRNASEQ {
     // MODULES: Plot custom genelist
     //
     if ( params.custom_geneset ) {
-        ch_custom_geneset = Channel.fromList(params.custom_geneset.split(',').flatten())
+        ch_custom_geneset = channel.fromList(params.custom_geneset.split(',').flatten())
 
         if ( params.resolution ) {
             resolution_ch
@@ -606,7 +597,7 @@ workflow SCRNASEQ {
 
     if (params.resolution) {
 
-        resolution_ch = Channel.fromList(params.resolution.toString().split(',').flatten())
+        resolution_ch = channel.fromList(params.resolution.toString().split(',').flatten())
 
         DIFFERENTIAL_ABUNDANCE(
             CLUSTERING.out.h5mu
@@ -621,7 +612,7 @@ workflow SCRNASEQ {
 
     if ( params.resolution ) {
 
-        ch_resolution = Channel.fromList(params.resolution.toString().split(',').flatten())
+        ch_resolution = channel.fromList(params.resolution.toString().split(',').flatten())
 
         PSEUDOBULK_ANALYSIS(
             CLUSTERING.out.h5mu,
@@ -639,7 +630,7 @@ workflow SCRNASEQ {
     // Cell to cell interaction
     if ( params.resolution ) {
 
-        ch_resolution = Channel.fromList(params.resolution.toString().split(',').flatten())
+        ch_resolution = channel.fromList(params.resolution.toString().split(',').flatten())
 
         CLUSTERING.out.h5mu
             .combine(ch_liana_method)
