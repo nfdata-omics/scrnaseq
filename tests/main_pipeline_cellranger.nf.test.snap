@@ -3,7 +3,58 @@
         "content": [
             22,
             {
-                
+                "ANNDATAR_CONVERT": {
+                    "SeuratObject": "5.4.0",
+                    "SingleCellExperiment": "1.32.0",
+                    "anndataR": "1.0.2",
+                    "r-base": "R version 4.5.3 (2026-03-11)"
+                },
+                "CELLRANGER_COUNT": {
+                    "cellranger": "cellranger 10.0.0 "
+                },
+                "CELLRANGER_MKGTF": {
+                    "cellranger": "cellranger 10.0.0"
+                },
+                "CELLRANGER_MKREF": {
+                    "cellranger": "cellranger 10.0.0"
+                },
+                "CONCAT_H5AD": {
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
+                },
+                "CONVERT_MUDATA": {
+                    "convert.py": "0.0.1"
+                },
+                "DOUBLETS": {
+                    "Biobase": "2.66.0",
+                    "BiocGenerics": "0.52.0",
+                    "GenomeInfoDb": "1.42.1",
+                    "GenomicRanges": "1.58.0",
+                    "IRanges": "2.40.1",
+                    "MatrixGenerics": "1.18.1",
+                    "R": "4.4.2",
+                    "S4Vectors": "0.44.0",
+                    "SingleCellExperiment": "1.28.1",
+                    "SummarizedExperiment": "1.36.0",
+                    "matrixStats": "1.5.0",
+                    "optparse": "1.7.5",
+                    "scDblFinder": "1.20.0"
+                },
+                "FASTQC": {
+                    "fastqc": "0.12.1"
+                },
+                "GTF_GENE_FILTER": {
+                    "python": "3.14.5"
+                },
+                "MTX_TO_H5AD": {
+                    "anndata": "0.10.8",
+                    "pandas": "2.2.2",
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
+                },
+                "QUALITY_FILTERING": {
+                    "qualitymetricsfilters.py": "0.0.1"
+                }
             },
             [
                 "cellranger",
@@ -376,6 +427,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.4"
         },
-        "timestamp": "2026-07-22T15:20:09.830853632"
+        "timestamp": "2026-07-23T10:55:53.486824065"
     }
 }
