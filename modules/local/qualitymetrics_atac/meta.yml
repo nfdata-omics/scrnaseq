@@ -1,0 +1,67 @@
+name: quality_filtering_atac
+description: Calculate quality metrics and filter single-cell ATAC-seq fragments.
+keywords: [single-cell, atac-seq, quality-control]
+tools:
+  - snapatac2:
+      description: Single-cell ATAC-seq analysis toolkit.
+      homepage: https://kzhang.org/SnapATAC2/
+      licence: ["MIT"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing fragment metadata.
+    - input_fragment_file:
+        type: file
+        description: Fragment files.
+  - - meta2:
+        type: map
+        description: Groovy map containing fragment-index metadata.
+    - input_fragment_index_file:
+        type: file
+        description: Fragment index files.
+  - tss_threshold:
+      type: float
+      description: Minimum TSS enrichment score.
+  - min_fragments_counts:
+      type: integer
+      description: Minimum fragment count.
+  - max_fragments_counts:
+      type: integer
+      description: Maximum fragment count.
+  - blacklist_path:
+      type: file
+      description: Genomic blacklist.
+output:
+  h5ad:
+    - - meta:
+          type: map
+          description: Groovy map containing sample information.
+      - "*.filtered_atac.h5ad":
+          type: file
+          description: Filtered ATAC matrix.
+  fragment_size_distribution:
+    - FragSizeDist_all_samples.pdf:
+        type: file
+        description: Fragment-size distribution.
+  qc_histograms:
+    - QC_Histograms_all_samples.pdf:
+        type: file
+        description: QC histograms.
+  TSS_score:
+    - "TSSE_score_sample_*":
+        type: file
+        description: Per-sample TSS scores.
+  tss_signal:
+    - TSSE_score_all_samples.pdf:
+        type: file
+        description: TSS enrichment plot.
+  cell_counts:
+    - cell_counts.csv:
+        type: file
+        description: Cell counts.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

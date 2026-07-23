@@ -1,0 +1,30 @@
+name: anndatar_convert
+description: Convert AnnData H5AD matrices to R single-cell object formats.
+keywords: [single-cell, anndata, r, conversion]
+tools:
+  - anndatar:
+      description: R package for working with AnnData objects.
+      homepage: https://anndatar.data-intuitive.com/
+      licence: ["MIT"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing matrix metadata.
+    - h5ad:
+        type: file
+        description: Input AnnData matrix.
+        pattern: "*.h5ad"
+output:
+  rds:
+    - - meta:
+          type: map
+          description: Groovy map containing matrix metadata.
+      - "${meta.id}_${meta.input_type}_matrix*.rds":
+          type: file
+          description: Converted R object.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

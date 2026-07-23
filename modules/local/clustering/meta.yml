@@ -1,0 +1,58 @@
+name: clustering
+description: Cluster single-cell data and calculate ranked marker genes.
+keywords: [single-cell, clustering, markers]
+tools:
+  - scanpy:
+      description: Single-cell analysis toolkit.
+      homepage: https://scanpy.readthedocs.io/
+      licence: ["BSD-3-Clause"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing sample information.
+    - input_h5mu:
+        type: file
+        description: Input MuData matrix.
+        pattern: "*.h5mu"
+  - resolution_min:
+      type: float
+      description: Minimum clustering resolution.
+  - resolution_max:
+      type: float
+      description: Maximum clustering resolution.
+  - top_n_markers:
+      type: integer
+      description: Number of top markers to report.
+output:
+  h5mu:
+    - - meta:
+          type: map
+          description: Groovy map containing sample information.
+      - "matrix.clustered*.h5mu":
+          type: file
+          description: Clustered MuData matrix.
+  metadata_final:
+    - - meta:
+          type: map
+          description: Groovy map containing sample information.
+      - final_metadata.csv:
+          type: file
+          description: Final cell metadata.
+  clusters:
+    - "cluster_id*.pdf":
+        type: file
+        description: Cluster plots.
+  ranked_genes:
+    - ranked_genes.xlsx:
+        type: file
+        description: Ranked marker genes.
+  heatmaps:
+    - "top_*_markers_heatmap.pdf":
+        type: file
+        description: Marker heatmaps.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

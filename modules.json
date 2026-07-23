@@ -80,39 +80,9 @@
                         "git_sha": "0902eac3012baaf4f9ab6513c8c55acc9353c96c",
                         "installed_by": ["modules"]
                     },
-                    "kallistobustools/count": {
-                        "branch": "master",
-                        "git_sha": "aa2fa2262e7ffef3035f2a991424d0d4af331627",
-                        "installed_by": ["modules"]
-                    },
-                    "kallistobustools/ref": {
-                        "branch": "master",
-                        "git_sha": "aa2fa2262e7ffef3035f2a991424d0d4af331627",
-                        "installed_by": ["modules"]
-                    },
                     "multiqc": {
                         "branch": "master",
                         "git_sha": "98403d15b0e50edae1f3fec5eae5e24982f1fade",
-                        "installed_by": ["modules"]
-                    },
-                    "qcatch": {
-                        "branch": "master",
-                        "git_sha": "4c594931203e827ba22f06bca97b3f9d633f89db",
-                        "installed_by": ["modules"]
-                    },
-                    "simpleaf/index": {
-                        "branch": "master",
-                        "git_sha": "0863c5e1224f2e5d62a43fe68f8a16a0e8255ad2",
-                        "installed_by": ["modules"]
-                    },
-                    "simpleaf/quant": {
-                        "branch": "master",
-                        "git_sha": "0863c5e1224f2e5d62a43fe68f8a16a0e8255ad2",
-                        "installed_by": ["modules"]
-                    },
-                    "star/genomegenerate": {
-                        "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
                         "installed_by": ["modules"]
                     },
                     "unzip": {
@@ -166,7 +136,7 @@
                 "nfdata-omics": {
                     "deseq2_analysis": {
                         "branch": "main",
-                        "git_sha": "7ee1c02b7a3ec4718fefb57f813fb2871753f4b4",
+                        "git_sha": "4af5a2d77ed3d6c634d772e1a7e64442bf0d61d4",
                         "installed_by": ["subworkflows"]
                     }
                 }

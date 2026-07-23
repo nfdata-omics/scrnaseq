@@ -32,14 +32,10 @@ include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_scrn
 params.fasta                = getGenomeAttribute('fasta')
 params.gtf                  = getGenomeAttribute('gtf')
 params.gff                  = getGenomeAttribute('gff')
-params.star_index           = getGenomeAttribute('star')
-params.simpleaf_index       = getGenomeAttribute('simpleaf')
-params.kallisto_index       = getGenomeAttribute('kallisto')
 params.cellranger_index     = getGenomeAttribute(
     params.aligner == 'cellrangerarc' ? 'cellranger_atac' : 'cellranger'
 )
 params.txp2gene             = getGenomeAttribute('txp2gene')
-params.transcript_fasta     = getGenomeAttribute('transcript_fasta')
 params.motifs               = getGenomeAttribute('motifs')
 params.cellranger_vdj_index = getGenomeAttribute('cellranger_vdj')
 
@@ -61,12 +57,8 @@ workflow NFDATAOMICS_SCRNASEQ {
     fasta                        // val: path-like string (or null)
     gtf                          // val: path-like string (or null)
     gff                          // val: path-like string (or null)
-    star_index                   // val: path-like string (or null)
-    simpleaf_index               // val: path-like string (or null)
-    kallisto_index               // val: path-like string (or null)
     cellranger_index             // val: path-like string (or null)
     txp2gene                     // val: path-like string (or null)
-    transcript_fasta             // val: path-like string (or null)
     motifs                       // val: path-like string (or null)
     cellranger_vdj_index         // val: path-like string (or null)
     multiqc_config               // val: path-like string (or null)
@@ -86,12 +78,8 @@ workflow NFDATAOMICS_SCRNASEQ {
         fasta,
         gtf,
         gff,
-        star_index,
-        simpleaf_index,
-        kallisto_index,
         cellranger_index,
         txp2gene,
-        transcript_fasta,
         motifs,
         cellranger_vdj_index,
         multiqc_config,
@@ -99,6 +87,7 @@ workflow NFDATAOMICS_SCRNASEQ {
         multiqc_methods_description,
         outdir,
     )
+
     emit:
     multiqc_report = SCRNASEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
 }
@@ -111,6 +100,7 @@ workflow NFDATAOMICS_SCRNASEQ {
 workflow {
 
     main:
+
     //
     // SUBWORKFLOW: Run initialisation tasks
     //
@@ -138,12 +128,8 @@ workflow {
         params.fasta,
         params.gtf,
         params.gff,
-        params.star_index,
-        params.simpleaf_index,
-        params.kallisto_index,
         params.cellranger_index,
         params.txp2gene,
-        params.transcript_fasta,
         params.motifs,
         params.cellranger_vdj_index,
         params.multiqc_config,
@@ -151,6 +137,7 @@ workflow {
         params.multiqc_methods_description,
         params.outdir,
     )
+
     //
     // SUBWORKFLOW: Run completion tasks
     //

@@ -407,20 +407,6 @@ def gtfSourceFixNeeded(aligner, genome, genomes, gtf) {
 }
 
 //
-// Decide whether the supplied STAR index needs to be routed through the
-// STAR_GENOMEPARAMS_UPGRADE adapter. Fires when the active genomes-map entry
-// has `star_legacy = true` (set on every iGenomes entry that ships a
-// `star` directory) and the user has not overridden the resolved index with
-// their own --star_index.
-//
-def isStarIndexLegacy(genome, genomes, star_index) {
-    def genome_entry = genomes && genome ? genomes[genome] : null
-    def star_legacy = genome_entry?.star_legacy as Boolean
-    def index_from_genome = star_index == genome_entry?.star
-    return star_legacy && index_from_genome
-}
-
-//
 // Exit pipeline if incorrect --genome key provided
 //
 def genomeExistsError() {
