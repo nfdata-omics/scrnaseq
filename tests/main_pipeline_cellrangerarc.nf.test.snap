@@ -3,7 +3,40 @@
         "content": [
             14,
             {
-                
+                "ANNDATAR_CONVERT": {
+                    "SeuratObject": "5.4.0",
+                    "SingleCellExperiment": "1.32.0",
+                    "anndataR": "1.0.2",
+                    "r-base": "R version 4.5.3 (2026-03-11)"
+                },
+                "CELLRANGERARC_COUNT": {
+                    "cellrangerarc": "2.0.2"
+                },
+                "CELLRANGERARC_MKGTF": {
+                    "cellrangerarc": "2.0.2"
+                },
+                "CELLRANGERARC_MKREF": {
+                    "cellrangerarc": "2.0.2"
+                },
+                "CONCAT_H5AD": {
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
+                },
+                "CONVERT_MUDATA": {
+                    "convert.py": "0.0.1"
+                },
+                "FASTQC": {
+                    "fastqc": "0.12.1"
+                },
+                "GTF_GENE_FILTER": {
+                    "python": "3.14.5"
+                },
+                "MTX_TO_H5AD": {
+                    "anndata": "0.10.8",
+                    "pandas": "2.2.2",
+                    "python": "3.12.5",
+                    "scanpy": "1.10.2"
+                }
             },
             [
                 "cellrangerarc",
@@ -265,6 +298,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.4"
         },
-        "timestamp": "2026-07-22T15:31:34.557367707"
+        "timestamp": "2026-07-23T11:01:48.052989696"
     }
 }
