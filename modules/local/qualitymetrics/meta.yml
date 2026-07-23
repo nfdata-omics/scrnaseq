@@ -1,0 +1,79 @@
+name: quality_filtering
+description: Calculate quality metrics and filter single-cell gene-expression data.
+keywords: [single-cell, quality-control, filtering]
+tools:
+  - scanpy:
+      description: Single-cell analysis toolkit.
+      homepage: https://scanpy.readthedocs.io/
+      licence: ["BSD-3-Clause"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing sample information.
+    - input_h5mu:
+        type: file
+        description: Input MuData object.
+  - - meta2:
+        type: map
+        description: Groovy map containing doublet metadata.
+    - doublets_csv:
+        type: file
+        description: Doublet scores.
+  - mt_threshold:
+      type: float
+      description: Mitochondrial-count threshold.
+  - min_umi_gex:
+      type: integer
+      description: Minimum GEX UMI count.
+  - max_umi_gex:
+      type: integer
+      description: Maximum GEX UMI count.
+  - min_genes_gex:
+      type: integer
+      description: Minimum detected genes.
+  - max_genes_gex:
+      type: integer
+      description: Maximum detected genes.
+  - min_cells_gex:
+      type: integer
+      description: Minimum cells per gene.
+  - min_features_adt:
+      type: integer
+      description: Minimum ADT features.
+  - min_counts_adt:
+      type: integer
+      description: Minimum ADT counts.
+output:
+  h5mu:
+    - - meta:
+          type: map
+          description: Groovy map containing sample information.
+      - "*.filtered.h5mu":
+          type: file
+          description: Filtered MuData object.
+  cells_before_filtering:
+    - Cells_before_filtering.pdf:
+        type: file
+        description: Pre-filtering cell QC.
+  cells_after_filtering:
+    - Cells_after_filtering.pdf:
+        type: file
+        description: Post-filtering cell QC.
+  qc_density:
+    - QC_Density_all_samples.pdf:
+        type: file
+        description: QC density plots.
+  qc_density_mito:
+    - QC_Density_MT-Ribo_all_samples.pdf:
+        type: file
+        description: Mitochondrial and ribosomal QC plots.
+  summary_qualitycontrol:
+    - "summary_qualitycontrol_*.csv":
+        type: file
+        description: Quality-control summary.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

@@ -1,0 +1,32 @@
+name: enrich_markers
+description: Perform functional enrichment analysis on ranked cluster markers.
+keywords: [single-cell, enrichment, markers]
+tools:
+  - clusterprofiler:
+      description: R package for functional enrichment analysis.
+      homepage: https://yulab-smu.top/biomedical-knowledge-mining-book/
+      licence: ["Artistic-2.0"]
+input:
+  - ranked_genes:
+      type: file
+      description: Ranked marker-gene workbook.
+  - - meta:
+        type: map
+        description: Groovy map containing collection metadata.
+    - resolution:
+        type: string
+        description: Clustering resolution.
+    - collection:
+        type: file
+        description: Gene-set collection.
+output:
+  enriched_markers:
+    - "enrich_Leiden_*.xlsx":
+        type: file
+        description: Enrichment results.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

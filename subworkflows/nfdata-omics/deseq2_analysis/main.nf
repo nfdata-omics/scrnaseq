@@ -1,5 +1,5 @@
-include {   DESEQ2_FIT      } from "../../../modules/nfdata-omics/deseq2/fit/main.nf"
-include {   DESEQ2_COMPARE  } from "../../../modules/nfdata-omics/deseq2/compare/main.nf"
+include {   DESEQ2_FIT      } from "../../../modules/nfdata-omics/deseq2/fit"
+include {   DESEQ2_COMPARE  } from "../../../modules/nfdata-omics/deseq2/compare"
 
 workflow DIFFERENTIAL_ANALYSIS {
 
