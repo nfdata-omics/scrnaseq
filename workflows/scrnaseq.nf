@@ -10,12 +10,8 @@ include { softwareVersionsToYAML                            } from '../subworkfl
 include { methodsDescriptionText                            } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
 include { getProtocol                                       } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
 include { gtfSourceFixNeeded                                } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
-include { isStarIndexLegacy                                 } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
 include { PREPARE_GENOME                                    } from '../subworkflows/local/prepare_genome'
 include { FASTQC_CHECK                                      } from '../subworkflows/local/fastqc'
-include { KALLISTO_BUSTOOLS                                 } from '../subworkflows/local/kallisto_bustools'
-include { SIMPLEAF                                          } from '../subworkflows/local/simpleaf'
-include { STARSOLO                                          } from '../subworkflows/local/starsolo'
 include { CELLRANGER_ALIGN                                  } from "../subworkflows/local/align_cellranger"
 include { CELLRANGER_MULTI_ALIGN                            } from "../subworkflows/local/align_cellrangermulti"
 include { CELLRANGERARC_ALIGN                               } from "../subworkflows/local/align_cellrangerarc"
@@ -69,11 +65,7 @@ workflow SCRNASEQ {
         error "Only cellranger supports `protocol = 'auto'`. Please specify the protocol manually!"
     }
 
-    // Get qcatch chemistry for simpleaf QC (derived from the simpleaf protocol; null if unmapped)
-    qcatch_chemistry = params.aligner == "simpleaf" ? protocol_config['qcatch_protocol'] : null
-
     // general input and params
-    ch_transcript_fasta     = transcript_fasta ? file(transcript_fasta, checkIfExists: true) : []
     ch_motifs               = motifs           ? file(motifs, checkIfExists: true)           : []
     ch_txp2gene             = txp2gene         ? file(txp2gene, checkIfExists: true)         : []
 
@@ -95,18 +87,6 @@ workflow SCRNASEQ {
     ch_input = params.input                ? file(params.input, checkIfExists: true)    : []
     ch_counts = params.counts              ? file(params.counts, checkIfExists: true)    : []
     ch_h5ad_matrix = params.h5ad_matrix    ? file(params.h5ad_matrix, checkIfExists: true): []
-
-    //kallisto params
-    ch_kallisto_index = kallisto_index ? file(kallisto_index, checkIfExists: true) : []
-    kb_t1c            = params.kb_t1c  ? file(params.kb_t1c, checkIfExists: true)  : []
-    kb_t2c            = params.kb_t2c  ? file(params.kb_t2c, checkIfExists: true)  : []
-
-    //simpleaf params
-    ch_simpleaf_index   = simpleaf_index ? file(simpleaf_index, checkIfExists: true) : []
-
-    //star params
-    star_index_legacy = isStarIndexLegacy(params.genome, params.genomes, star_index) ?: false
-    star_index        = star_index ? file(star_index, checkIfExists: true) : null
 
     //cellranger params
     ch_cellranger_index = cellranger_index ? file(cellranger_index, checkIfExists: true) : []
@@ -166,70 +146,6 @@ workflow SCRNASEQ {
     )
     ch_genome_fasta = PREPARE_GENOME.out.fasta
     ch_genome_gtf   = PREPARE_GENOME.out.gtf
-
-    // Run kallisto bustools pipeline
-    if (params.aligner == "kallisto") {
-        KALLISTO_BUSTOOLS(
-            ch_genome_fasta,
-            ch_genome_gtf,
-            ch_kallisto_index,
-            ch_txp2gene,
-            kb_t1c,
-            kb_t2c,
-            protocol_config['protocol'],
-            params.kb_workflow,
-            ch_fastq
-        )
-        ch_mtx_matrices = ch_mtx_matrices.mix( KALLISTO_BUSTOOLS.out.counts_raw, KALLISTO_BUSTOOLS.out.counts_filtered )
-        ch_txp2gene = KALLISTO_BUSTOOLS.out.txp2gene
-    }
-
-    // Run simpleaf pipeline
-    if ( params.aligner == "simpleaf" ) {
-
-        SIMPLEAF(
-            ch_genome_fasta,
-            ch_genome_gtf,
-            ch_transcript_fasta,
-            ch_simpleaf_index,
-            ch_txp2gene,
-            ch_barcode_whitelist,
-            protocol_config['protocol'],
-            qcatch_chemistry,
-            params.skip_qcatch,
-            params.simpleaf_umi_resolution,
-            ch_fastq,
-            [] // for existing map dir; not applicable
-        )
-        ch_multiqc_files = ch_multiqc_files.mix(SIMPLEAF.out.quant.map{ _meta, it -> it })
-        ch_mtx_matrices = ch_mtx_matrices.mix(
-            SIMPLEAF.out.quant.map{
-                meta, files -> [
-                    meta +
-                    [input_type: meta["filtered"] ? "filtered" : "raw" ],
-                    files
-                ]
-            }
-        )
-    }
-
-    // Run STARSolo pipeline
-    if (params.aligner == "star") {
-        STARSOLO(
-            ch_genome_fasta,
-            ch_genome_gtf,
-            star_index,
-            star_index_legacy,
-            protocol_config['protocol'],
-            ch_barcode_whitelist,
-            ch_fastq,
-            params.star_feature,
-            protocol_config.get('extra_args', ""),
-        )
-        ch_versions = ch_versions.mix(STARSOLO.out.ch_versions)
-        ch_multiqc_files = ch_multiqc_files.mix(STARSOLO.out.for_multiqc)
-        ch_mtx_matrices = ch_mtx_matrices.mix( STARSOLO.out.raw_counts, STARSOLO.out.filtered_counts )
-    }
 
     // Run cellranger pipeline
     if (params.aligner == "cellranger") {
