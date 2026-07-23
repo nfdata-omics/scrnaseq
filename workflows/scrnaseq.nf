@@ -69,14 +69,6 @@ workflow SCRNASEQ {
     ch_motifs               = motifs           ? file(motifs, checkIfExists: true)           : []
     ch_txp2gene             = txp2gene         ? file(txp2gene, checkIfExists: true)         : []
 
-    if (params.barcode_whitelist) {
-        ch_barcode_whitelist = file(params.barcode_whitelist, checkIfExists: true)
-    } else if (protocol_config.containsKey("whitelist")) {
-        ch_barcode_whitelist = file("$projectDir/${protocol_config['whitelist']}", checkIfExists: true)
-    } else {
-        ch_barcode_whitelist = []
-    }
-
     // Warn if both GTF and GFF files are provided
     if (gtf && gff) {
         log.warn("Both GTF and GFF files are provided. GTF file will be used.")
@@ -100,9 +92,8 @@ workflow SCRNASEQ {
     ch_cellrangerarc_config = params.cellrangerarc_config ? file(params.cellrangerarc_config)          : []
 
     // Differential analysis params
-    ch_diff_abundance_comparisons = params.diff_abundance_comparisons ? Channel
-        .fromList(params.diff_abundance_comparisons.split(',').flatten())
-        : channel.empty()
+    ch_diff_abundance_comparisons = params.diff_abundance_comparisons ?
+        channel.fromList(params.diff_abundance_comparisons.split(',').flatten()) : channel.empty()
 
     // Pseudobulk params
     ch_pseudobulk_group = params.pseudobulk_group ?
