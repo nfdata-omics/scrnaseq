@@ -1,0 +1,28 @@
+name: parse_cellrangermulti_samplesheet
+description: Validate and split a Cell Ranger Multi barcode samplesheet into modality-specific files.
+keywords: [cellranger, multi, samplesheet]
+tools:
+  - python:
+      description: Python interpreter.
+      homepage: https://www.python.org/
+      licence: ["PSF-2.0"]
+input:
+  - samplesheet:
+      type: file
+      description: Cell Ranger Multi barcode samplesheet.
+      pattern: "*.csv"
+output:
+  cmo:
+    - "cmo_files/*":
+        type: file
+        description: CMO barcode files.
+  ocm:
+    - "ocm_files/*":
+        type: file
+        description: OCM barcode files.
+  frna:
+    - "frna_files/*":
+        type: file
+        description: Fixed RNA profiling barcode files.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

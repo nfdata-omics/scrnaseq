@@ -1,0 +1,69 @@
+name: dimensionality_reduction_atac
+description: Perform feature selection, dimensionality reduction, and clustering for single-cell ATAC-seq data.
+keywords: [single-cell, atac-seq, dimensionality-reduction]
+tools:
+  - snapatac2:
+      description: Single-cell ATAC-seq analysis toolkit.
+      homepage: https://kzhang.org/SnapATAC2/
+      licence: ["MIT"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing sample information.
+    - input_h5ad:
+        type: file
+        description: Input ATAC AnnData matrix.
+  - n_features_atac:
+      type: integer
+      description: Number of ATAC features.
+  - frac_dup:
+      type: float
+      description: Maximum duplicate fraction.
+  - peaks_frac:
+      type: float
+      description: Fraction of peaks retained.
+  - n_comps_atac:
+      type: integer
+      description: Number of components.
+  - n_neighbors_atac:
+      type: integer
+      description: Number of neighbors.
+  - n_clusters_atac:
+      type: integer
+      description: Number of clusters.
+  - blacklist_path:
+      type: file
+      description: Genomic blacklist.
+  - cell_counts:
+      type: file
+      description: Per-cell fragment counts.
+output:
+  h5ad:
+    - - meta:
+          type: map
+          description: Groovy map containing sample information.
+      - "*.dimred_atac.h5ad":
+          type: file
+          description: Dimensionally reduced ATAC matrix.
+  umap_all_res:
+    - UMAP_ATAC_all_res.pdf:
+        type: file
+        description: Combined UMAP plots.
+  umap_individual:
+    - "UMAP_ATAC_res_*.png":
+        type: file
+        description: Per-resolution UMAP plots.
+  qc_plots:
+    - Cells_after_filtering_atac.pdf:
+        type: file
+        description: Post-filtering QC plot.
+  cell_counts:
+    - cell_counts.csv:
+        type: file
+        description: Updated cell counts.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

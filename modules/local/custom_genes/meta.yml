@@ -1,0 +1,47 @@
+name: custom_genes
+description: Plot expression of user-provided gene sets across clusters.
+keywords: [single-cell, genes, visualization]
+tools:
+  - scanpy:
+      description: Single-cell analysis toolkit.
+      homepage: https://scanpy.readthedocs.io/
+      licence: ["BSD-3-Clause"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing sample information.
+    - input_h5mu:
+        type: file
+        description: Clustered MuData object.
+  - - meta_geneset:
+        type: map
+        description: Groovy map containing gene-set metadata.
+    - resolution:
+        type: string
+        description: Clustering resolution.
+    - custom_geneset:
+        type: file
+        description: Custom gene-set file.
+output:
+  feat_plot:
+    - "*_features_plots.pdf":
+        type: file
+        description: Feature plots.
+  dotplot:
+    - "*_dotplot_r*.pdf":
+        type: file
+        description: Dot plots.
+  heatmap:
+    - "*_heatmap_r*.pdf":
+        type: file
+        description: Heatmaps.
+  violin:
+    - "*_violin_r*.pdf":
+        type: file
+        description: Violin plots.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

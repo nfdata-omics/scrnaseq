@@ -1,5 +1,5 @@
-include { PSEUDOBULK                  } from '../../modules/local/pseudobulk/main.nf'
-include { DIFFERENTIAL_ANALYSIS       } from '../../subworkflows/nfdata-omics/deseq2_analysis/main.nf'
+include { PSEUDOBULK                  } from '../../modules/local/pseudobulk'
+include { DIFFERENTIAL_ANALYSIS       } from '../../subworkflows/nfdata-omics/deseq2_analysis'
 
 workflow PSEUDOBULK_ANALYSIS {
 
