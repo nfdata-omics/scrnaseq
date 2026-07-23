@@ -167,7 +167,7 @@ def main():
     print("\nNormalizing data using TF-IDF normalization ... ", end='')
     snap.pp.select_features(adata_atac, n_features=n_features_atac, blacklist=blacklist_path, inplace=True)
     print(adata_atac)
-    snap.tl.spectral(adata_atac,n_comps=n_comps_atac,features="selected",weighted_by_sd=True, random_state=0,inplace=True)
+    snap.tl.spectral(adata_atac, n_comps=n_comps_atac, features="selected", weighted_by_sd=True, random_state=0, inplace=True)
     print("Done!")
 
 # --------------------------------------------------------------------------------------------------------------------
