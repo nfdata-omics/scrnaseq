@@ -89,7 +89,7 @@ workflow NFDATAOMICS_SCRNASEQ {
     )
 
     emit:
-    SCRNASEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
+    multiqc_report = SCRNASEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
 }
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
