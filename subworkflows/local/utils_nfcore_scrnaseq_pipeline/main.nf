@@ -14,7 +14,6 @@ include { samplesheetToList         } from 'plugin/nf-schema'
 include { paramsHelp                } from 'plugin/nf-schema'
 include { completionEmail           } from '../../nf-core/utils_nfcore_pipeline'
 include { completionSummary         } from '../../nf-core/utils_nfcore_pipeline'
-include { imNotification            } from '../../nf-core/utils_nfcore_pipeline'
 include { UTILS_NFCORE_PIPELINE     } from '../../nf-core/utils_nfcore_pipeline'
 include { UTILS_NEXTFLOW_PIPELINE   } from '../../nf-core/utils_nextflow_pipeline'
 
@@ -32,7 +31,7 @@ workflow PIPELINE_INITIALISATION {
     monochrome_logs   // boolean: Do not use coloured log outputs
     nextflow_cli_args //   array: List of positional nextflow CLI args
     outdir            //  string: The output directory where the results will be saved
-    input             //  string: Path to input samplesheet
+    _input            //  string: Path to input samplesheet
     counts            //  string: Path to input counts matrix file
     h5ad_matrix       //  string: Path to input h5ad matrix file
     help              // boolean: Display help message and exit
@@ -56,6 +55,30 @@ workflow PIPELINE_INITIALISATION {
     //
     // Validate parameters and generate parameter summary to stdout
     //
+
+    def before_text = ""
+    def after_text = ""
+    before_text = """
+-\033[2m----------------------------------------------------\033[0m-
+                                        \033[0;32m,--.\033[0;30m/\033[0;32m,-.\033[0m
+\033[0;34m        ___     __   __   __   ___     \033[0;32m/,-._.--~\'\033[0m
+\033[0;34m  |\\ | |__  __ /  ` /  \\ |__) |__         \033[0;33m}  {\033[0m
+\033[0;34m  | \\| |       \\__, \\__/ |  \\ |___     \033[0;32m\\`-._,-`-,\033[0m
+                                        \033[0;32m`._,._,\'\033[0m
+\033[0;35m  nf-core/scrnaseq ${workflow.manifest.version}\033[0m
+-\033[2m----------------------------------------------------\033[0m-
+"""
+    after_text = """${workflow.manifest.doi ? "\n* The pipeline\n" : ""}${workflow.manifest.doi.tokenize(",").collect { doi -> "    https://doi.org/${doi.trim().replace('https://doi.org/','')}"}.join("\n")}${workflow.manifest.doi ? "\n" : ""}
+* The nf-core framework
+    https://doi.org/10.1038/s41587-020-0439-x
+
+* Software dependencies
+    https://github.com/nf-core/scrnaseq/blob/master/CITATIONS.md
+"""
+    if (monochrome_logs) {
+        before_text = before_text.replaceAll(/\033\[[0-9;]*m/, '')
+    }
+
     command = "nextflow run ${workflow.manifest.name} -profile <docker/singularity/.../institute> --input samplesheet.csv --outdir <OUTDIR>"
 
     UTILS_NFSCHEMA_PLUGIN (
@@ -181,7 +204,6 @@ workflow PIPELINE_COMPLETION {
     plaintext_email // boolean: Send plain-text email instead of HTML
     outdir          //    path: Path to output directory where results will be published
     monochrome_logs // boolean: Disable ANSI colour codes in log output
-    hook_url        //  string: hook URL for notifications
     multiqc_report  //  string: Path to MultiQC report
 
     main:
@@ -205,13 +227,11 @@ workflow PIPELINE_COMPLETION {
         }
 
         completionSummary(monochrome_logs)
-        if (hook_url) {
-            imNotification(summary_params, hook_url)
-        }
+
     }
 
     workflow.onError {
-        log.error "Pipeline failed. Please refer to troubleshooting docs: https://nf-co.re/docs/usage/troubleshooting"
+        log.error "Pipeline failed. Please refer to troubleshooting docs for common issues: https://nf-co.re/docs/running/troubleshooting"
     }
 }
 
@@ -220,6 +240,22 @@ workflow PIPELINE_COMPLETION {
     FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
+// Retrieve the aligner-specific protocol based on the specified protocol.
+// Returns a map containing the protocol and any optional aligner configuration.
+def getProtocol(workflow, log, aligner, protocol) {
+    def jsonSlurper = new groovy.json.JsonSlurper()
+    def protocols = jsonSlurper.parseText(new File("${workflow.projectDir}/assets/protocols.json").text)
+    def protocol_aligner = aligner == 'cellrangermulti' ? 'cellranger' : aligner
+    def aligner_map = protocols[protocol_aligner]
+
+    if (aligner_map.containsKey(protocol)) {
+        return aligner_map[protocol]
+    }
+
+    log.warn("Protocol '${protocol}' not recognized by the pipeline. Passing on the protocol to the aligner unmodified.")
+    return [protocol: protocol]
+}
 //
 // Check and validate pipeline parameters
 //
@@ -236,10 +272,10 @@ def validateInputParameters() {
 // Validate cellranger_multi_barcodes samplesheet for uniqueness and conditional requirements
 //
 def validateCellrangerMultiBarcodes() {
-    cellranger_multi_barcodes = file(params.cellranger_multi_barcodes).splitCsv(header: true)
+    def cellranger_multi_barcodes = file(params.cellranger_multi_barcodes).splitCsv(header: true)
 
     // Get unique samples from input samplesheet for cross-validation
-    def inputSamples = file(params.input).splitCsv(header: true).collect { it.sample }.toSet()
+    def inputSamples = file(params.input).splitCsv(header: true).collect { row -> row.sample }.toSet()
 
     // Check that at least one barcode column is provided for each row
     // and that each sample uses only one type of barcode
@@ -266,14 +302,14 @@ def validateCellrangerMultiBarcodes() {
 
     // Validate that at least one barcode identifier is populated in each row
     if (rowsWithoutBarcodes) {
-        def errorDetails = rowsWithoutBarcodes.collect { "row ${it.row} (${it.multiplexed_sample_id})" }.join(', ')
+        def errorDetails = rowsWithoutBarcodes.collect { missing -> "row ${missing.row} (${missing.multiplexed_sample_id})" }.join(', ')
         error("Please check cellranger_multi_barcodes samplesheet -> " +
               "The following rows have no barcode identifiers: ${errorDetails}. " +
               "Each row must have exactly one of: 'probe_barcode_ids', 'cmo_ids', or 'ocm_ids'.")
     }
 
     // Validate that no more than one barcode identifier is populated in each row
-    def samplesWithMixedBarcodes = sampleBarcodeTypes.findAll { multiplexed_sample_id, info -> info.types.size() > 1 }
+    def samplesWithMixedBarcodes = sampleBarcodeTypes.findAll { _multiplexed_sample_id, info -> info.types.size() > 1 }
     if (samplesWithMixedBarcodes) {
         def errorMsg = samplesWithMixedBarcodes.collect { multiplexed_sample_id, info ->
             "'${multiplexed_sample_id}' (row ${info.row}) uses multiple barcode types: ${info.types.join(', ')}"
@@ -319,7 +355,7 @@ def cellrangerarcStructure(input) {
 
     // Validate that the property "sample_type" is present and has valid values
     def valid_sample_types = ["gex", "atac"]
-    def sample_type_ok = metas.collect { meta -> meta.sample_type }.unique().every { it in valid_sample_types }
+    def sample_type_ok = metas.collect { meta -> meta.sample_type }.unique().every { st -> st in valid_sample_types }
     if (!sample_type_ok) {
         error("Please check input samplesheet -> The property 'sample_type' is required and can only be 'gex' or 'atac'.")
     }
@@ -356,6 +392,32 @@ def getGenomeAttribute(attribute) {
     } else {
         return null
     }
+}
+
+//
+// iGenomes GTF annotations with spaces in the GTF source column (e.g. NCBI RefSeq "Curated Genomic")
+// are incompatible with Cell Ranger 10 mkref; opt-in per genome via gtf_source_has_spaces.
+//
+def gtfSourceFixNeeded(aligner, genome, genomes, gtf) {
+    def genome_entry = genomes && genome ? genomes[genome] : null
+    def cellranger_aligner = aligner in ['cellranger', 'cellrangerarc', 'cellrangermulti']
+    def gtf_flagged = genome_entry?.gtf_source_has_spaces as Boolean
+    def gtf_from_genome = gtf == genome_entry?.gtf
+    return cellranger_aligner && gtf_flagged && gtf_from_genome
+}
+
+//
+// Decide whether the supplied STAR index needs to be routed through the
+// STAR_GENOMEPARAMS_UPGRADE adapter. Fires when the active genomes-map entry
+// has `star_legacy = true` (set on every iGenomes entry that ships a
+// `star` directory) and the user has not overridden the resolved index with
+// their own --star_index.
+//
+def isStarIndexLegacy(genome, genomes, star_index) {
+    def genome_entry = genomes && genome ? genomes[genome] : null
+    def star_legacy = genome_entry?.star_legacy as Boolean
+    def index_from_genome = star_index == genome_entry?.star
+    return star_legacy && index_from_genome
 }
 
 //
