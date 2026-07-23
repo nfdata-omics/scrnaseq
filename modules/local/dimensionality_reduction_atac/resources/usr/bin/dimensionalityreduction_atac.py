@@ -11,7 +11,6 @@ import warnings
 import pathlib                      # library for handle filesystem paths
 import numpy as np
 import pandas as pd                 # library for data analysis and manipulation
-# import scanpy as sc
 import snapatac2 as snap
 import os
 import anndata as ad
