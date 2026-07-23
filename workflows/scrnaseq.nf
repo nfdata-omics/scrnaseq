@@ -42,12 +42,8 @@ workflow SCRNASEQ {
     fasta                       // val: path-like string (or null)
     gtf                         // val: path-like string (or null)
     gff                         // val: path-like string (or null)
-    star_index                  // val: path-like string (or null)
-    simpleaf_index              // val: path-like string (or null)
-    kallisto_index              // val: path-like string (or null)
     cellranger_index            // val: path-like string (or null)
     txp2gene                    // val: path-like string (or null)
-    transcript_fasta            // val: path-like string (or null)
     motifs                      // val: path-like string (or null)
     cellranger_vdj_index        // val: path-like string (or null)
     multiqc_config              // val: path-like string (or null)
@@ -305,7 +301,7 @@ workflow SCRNASEQ {
     MTX_TO_H5AD (
         ch_count_matrix,
         ch_txp2gene,
-        star_index ?: [],
+        [],
         params.aligner
     )
     ch_versions = ch_versions.mix(MTX_TO_H5AD.out.versions.first())
