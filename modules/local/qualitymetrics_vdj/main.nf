@@ -46,8 +46,6 @@ process QUALITY_METRICS_VDJ   {
     stub:
     """
     touch matrix.qc_vdj.h5mu
-
-
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         qualitymetrics_vdj.py --version >> versions.yml
