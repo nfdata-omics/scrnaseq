@@ -444,7 +444,7 @@ workflow SCRNASEQ {
     if (params.vdj) {
 
         // Case 1: VDJ provided as external input
-        ch_vdj_input = Channel
+        ch_vdj_input = channel
             .fromPath(params.vdj, checkIfExists: true)
             .splitCsv(header: true)
             .map { row ->
