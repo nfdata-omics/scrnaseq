@@ -31,9 +31,6 @@ process QUALITY_METRICS_VDJ   {
     export NUMBA_CACHE_DIR=/tmp
     export MPLCONFIGDIR=/tmp
     export XDG_CONFIG_HOME=/tmp
-
-
-
     qualitymetrics_vdj.py -ad $input_h5mu
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
