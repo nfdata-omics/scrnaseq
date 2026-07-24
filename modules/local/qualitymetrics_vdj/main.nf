@@ -25,8 +25,6 @@ process QUALITY_METRICS_VDJ   {
 
 
     script:
-
-
     """
     export NUMBA_CACHE_DIR=/tmp
     export MPLCONFIGDIR=/tmp
