@@ -22,8 +22,6 @@ process QUALITY_METRICS_VDJ   {
 
     when:
     task.ext.when == null || task.ext.when
-
-
     script:
     """
     export NUMBA_CACHE_DIR=/tmp
