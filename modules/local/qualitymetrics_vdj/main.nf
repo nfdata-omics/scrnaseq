@@ -35,8 +35,6 @@ process QUALITY_METRICS_VDJ   {
 
 
     qualitymetrics_vdj.py -ad $input_h5mu
-
-
     cat <<-END_VERSIONS >> versions.yml
     "${task.process}":
         qualitymetrics_vdj.py --version >> versions.yml
