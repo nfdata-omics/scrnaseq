@@ -65,8 +65,6 @@ workflow SCRNASEQ {
 
     // general input and params
     ch_motifs               = motifs           ? file(motifs, checkIfExists: true)           : []
-    ch_txp2gene             = txp2gene         ? file(txp2gene, checkIfExists: true)         : []
-
     // Warn if both GTF and GFF files are provided
     if (gtf && gff) {
         log.warn("Both GTF and GFF files are provided. GTF file will be used.")
@@ -297,10 +295,7 @@ workflow SCRNASEQ {
     // MODULE: Convert mtx matrices to h5ad
     //
     MTX_TO_H5AD (
-        ch_mtx_matrices,
-        ch_txp2gene,
-        [],
-        params.aligner
+        ch_mtx_matrices
     )
     ch_versions = ch_versions.mix(MTX_TO_H5AD.out.versions.first())
     ch_h5ads = MTX_TO_H5AD.out.h5ad

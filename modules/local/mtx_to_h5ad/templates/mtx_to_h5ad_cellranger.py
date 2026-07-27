@@ -1,30 +1,51 @@
 #!/usr/bin/env python
 
-# Set numba chache dir to current working directory (which is a writable mount also in containers)
+# Set numba cache dir to current working directory (which is a writable mount also in containers)
 import os
 
 os.environ["NUMBA_CACHE_DIR"] = "."
 
-import glob
 import platform
+from pathlib import Path
 
 import anndata
 import pandas as pd
 import scanpy as sc
 
 
-def _mtx_to_adata(
-    input: str,
+def read_10x_matrix(
+    input_data: str,
     sample: str,
 ):
+    input_path = Path(input_data)
 
-    adata = sc.read_10x_h5(input,gex_only=False)
+    if input_path.is_file() and input_path.suffix.lower() == ".h5":
+        adata = sc.read_10x_h5(input_path, gex_only=False)
+    elif input_path.is_dir():
+        adata = sc.read_10x_mtx(input_path, gex_only=False)
+    else:
+        raise ValueError(
+            f"Unsupported matrix input: {input_path}. "
+            "Expected an H5 file or a complete MEX directory."
+        )
+
+    if "gene_ids" not in adata.var:
+        raise ValueError(f"Matrix input {input_path} does not contain gene identifiers.")
+
     adata.var["gene_symbols"] = adata.var_names
     adata.var.set_index("gene_ids", inplace=True)
     adata.obs["sample"] = sample
 
-    # reorder columns for 10x mtx files
-    adata.var = adata.var[["gene_symbols", "feature_types", "genome"]]
+    # Keep the same leading columns across H5 and MEX while preserving optional
+    # metadata, such as the genome column available in Cell Ranger H5 files.
+    preferred_columns = ["gene_symbols", "feature_types", "genome"]
+    ordered_columns = [
+        column for column in preferred_columns if column in adata.var.columns
+    ]
+    ordered_columns += [
+        column for column in adata.var.columns if column not in ordered_columns
+    ]
+    adata.var = adata.var[ordered_columns]
 
     return adata
 
@@ -71,8 +92,7 @@ def input_to_adata(
 ):
     print(f"Reading in {input_data}")
 
-    # open main data
-    adata = _mtx_to_adata(input_data, sample)
+    adata = read_10x_matrix(input_data, sample)
 
     # standard format
     # index are gene IDs and symbols are a column
@@ -81,25 +101,19 @@ def input_to_adata(
     adata.var_names_make_unique()
 
     # write results
-    adata.write_h5ad(f"{output}")
+    adata.write_h5ad(output)
     print(f"Wrote h5ad file to {output}")
 
     # dump versions
     dump_versions()
-
-    return adata
 
 
 #
 # Run main script
 #
 
-# create the directory with the sample name
-os.makedirs("${meta.id}", exist_ok=True)
-
-# input_type comes from NF module
-adata = input_to_adata(
-    input_data=glob.glob("*${meta.input_type}_feature_bc_matrix.h5")[0],  # cellrangermulti has 'sample_' as prefix
+input_to_adata(
+    input_data="${matrix_input}",
     output="${meta.id}_${meta.input_type}_matrix.h5ad",
     sample="${meta.id}",
 )
