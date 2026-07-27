@@ -27,6 +27,18 @@
                 "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
                 "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
             },
+            "processed_data": {
+                "type": "string",
+                "format": "path",
+                "exists": true,
+                "errorMessage": "Processed data must be an existing HDF5 file or MEX/MTX directory"
+            },
+            "unfiltered_data": {
+                "type": "string",
+                "format": "path",
+                "exists": true,
+                "errorMessage": "Unfiltered data must be an existing HDF5 file or MEX/MTX directory"
+            },
             "fastq_barcode": {
                 "type": "string",
                 "meta": ["fastq_barcode"]
@@ -51,6 +63,38 @@
                 "meta": ["feature_type"]
             }
         },
-        "required": ["sample", "fastq_1", "fastq_2"]
+        "required": ["sample"],
+        "oneOf": [
+            {
+                "required": ["fastq_1", "fastq_2"],
+                "not": {
+                    "anyOf": [
+                        {
+                            "required": ["processed_data"]
+                        },
+                        {
+                            "required": ["unfiltered_data"]
+                        }
+                    ]
+                }
+            },
+            {
+                "required": ["processed_data", "feature_type"],
+                "not": {
+                    "anyOf": [
+                        {
+                            "required": ["fastq_1"]
+                        },
+                        {
+                            "required": ["fastq_2"]
+                        }
+                    ]
+                }
+            }
+        ],
+        "dependentRequired": {
+            "unfiltered_data": ["processed_data"]
+        },
+        "errorMessage": "Each row must provide either paired FASTQ files or processed_data with optional unfiltered_data; the two input forms cannot be mixed"
     }
 }
