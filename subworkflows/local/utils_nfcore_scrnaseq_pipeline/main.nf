@@ -147,10 +147,10 @@ workflow PIPELINE_INITIALISATION {
             Channel
                 .fromList(samplesheet_rows)
                 .map { meta, fastq_1, fastq_2, processed_data, unfiltered_data ->
-                    if (!fastq_2 || (meta.sample_type == "atac" && !meta.fastq_barcode)) {
+                    if (!fastq_2 || (meta.feature_type == "atac" && !meta.fastq_barcode)) {
                         error("Please check input samplesheet -> cellrangerarc requires both paired-end reads and barcode fastq files: ${meta.id}")
                     }
-                    if (meta.sample_type == "atac") {
+                    if (meta.feature_type == "atac") {
                         return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2, file(meta.fastq_barcode, checkIfExists: true) ] ]
                     } else {
                         return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
@@ -344,6 +344,19 @@ def validateInputSamplesheet(input) {
         def sample = meta.id
         def row_number = index + 2
 
+        if (!hasSamplesheetValue(meta.feature_type)) {
+            meta.feature_type = 'gex'
+        }
+
+        def valid_feature_types = params.aligner == 'cellrangerarc'
+            ? ['gex', 'atac']
+            : params.aligner == 'cellrangermulti'
+                ? ['gex', 'vdj', 'ab', 'crispr', 'cmo']
+                : ['gex']
+        if (meta.feature_type !in valid_feature_types) {
+            error("Please check input samplesheet -> feature_type '${meta.feature_type}' is not supported by aligner '${params.aligner}' for sample '${sample}'. Allowed values: ${valid_feature_types.join(', ')}.")
+        }
+
         rows_by_sample[sample] << [
             row_number     : row_number,
             has_fastq      : hasSamplesheetValue(fastq_1) || hasSamplesheetValue(fastq_2),
@@ -461,20 +474,19 @@ def cellrangerarcStructure(input) {
         error("Please check input samplesheet -> Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end: ${metas[0].id}")
     }
 
-    // Validate that the property "sample_type" is present and has valid values
-    def valid_sample_types = ["gex", "atac"]
-    def sample_type_ok = metas.collect { meta -> meta.sample_type }.unique().every { st -> st in valid_sample_types }
-    if (!sample_type_ok) {
-        error("Please check input samplesheet -> The property 'sample_type' is required and can only be 'gex' or 'atac'.")
+    // Validate that the property "feature_type" has a valid value for Cell Ranger ARC
+    def valid_feature_types = ["gex", "atac"]
+    def feature_type_ok = metas.collect { meta -> meta.feature_type }.unique().every { feature_type -> feature_type in valid_feature_types }
+    if (!feature_type_ok) {
+        error("Please check input samplesheet -> For cellrangerarc, 'feature_type' can only be 'gex' or 'atac'.")
     }
 
     // Define a new common meta for all the fastqs in this channel instance
     def sampleMeta = metas[0].clone()
-    sampleMeta.remove("sample_type")
     sampleMeta.remove("feature_type")
 
-    // Create a list with all the entries of meta.sample_type
-    def sampletypes = metas.collect { meta -> meta.sample_type }
+    // Create a list with all the feature types expected by Cell Ranger ARC
+    def sampletypes = metas.collect { meta -> meta.feature_type }
 
     // Create a list with all the base name of the fastq files
     def subsamples = fastqs.collect { fastq ->
