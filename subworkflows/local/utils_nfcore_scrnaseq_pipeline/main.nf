@@ -32,7 +32,6 @@ workflow PIPELINE_INITIALISATION {
     nextflow_cli_args //   array: List of positional nextflow CLI args
     outdir            //  string: The output directory where the results will be saved
     _input            //  string: Path to input samplesheet
-    counts            //  string: Path to input counts matrix file
     h5ad_matrix       //  string: Path to input h5ad matrix file
     help              // boolean: Display help message and exit
     help_full         // boolean: Show the full help message
@@ -105,91 +104,22 @@ workflow PIPELINE_INITIALISATION {
     //
     validateInputParameters()
 
-    if (counts) {
-        ch_counts = counts ? Channel.fromPath( counts, checkIfExists: true ) : Channel.empty()
-        ch_samplesheet = Channel.empty()
-        ch_h5ad_matrix = Channel.empty()
-    }
-    else if (h5ad_matrix) {
-        ch_h5ad_matrix = h5ad_matrix ? Channel.fromPath( h5ad_matrix, checkIfExists: true ) : Channel.empty()
-        ch_counts = Channel.empty()
-        ch_samplesheet = Channel.empty()
+    if (h5ad_matrix) {
+        ch_h5ad_matrix = h5ad_matrix ? channel.fromPath( h5ad_matrix, checkIfExists: true ) : channel.empty()
+        ch_samplesheet = channel.empty()
     }
     else {
         //
         // Create channel from input file provided through params.input
         //
-        def samplesheet_rows = samplesheetToList(params.input, "${projectDir}/assets/schema_input.json")
-        validateInputSamplesheet(samplesheet_rows)
-
-        if (params.aligner == 'cellrangermulti') { // the cellrangermulti sub-workflow logic needs that channels have reads separated by feature_type. Cannot merge all.
-            Channel
-                .fromList(samplesheet_rows)
-                .map {
-                    meta, fastq_1, fastq_2, processed_data, unfiltered_data ->
-                        if (!fastq_2) {
-                            return [ meta.id, meta.feature_type, meta + [ single_end:true ], [ fastq_1 ] ]
-                        } else {
-                            return [ meta.id, meta.feature_type, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
-                        }
-                }
-                .groupTuple( by: [0,1] )
-                .map{ id, type, meta, reads -> [ id, meta, reads ] }
-                .map {
-                    validateFastqSample(it)
-                }
-                .map {
-                    meta, fastqs ->
-                        return [ meta, fastqs.flatten() ]
-                }
-                .set { ch_samplesheet }
-        } else if (params.aligner == 'cellrangerarc') { // the cellrangerarc sub-workflow logic needs that channels have a meta, type, subsample, fastqs structure.
-            Channel
-                .fromList(samplesheet_rows)
-                .map { meta, fastq_1, fastq_2, processed_data, unfiltered_data ->
-                    if (!fastq_2 || (meta.feature_type == "atac" && !meta.fastq_barcode)) {
-                        error("Please check input samplesheet -> cellrangerarc requires both paired-end reads and barcode fastq files: ${meta.id}")
-                    }
-                    if (meta.feature_type == "atac") {
-                        return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2, file(meta.fastq_barcode, checkIfExists: true) ] ]
-                    } else {
-                        return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
-                    }
-                }
-                .groupTuple()
-                .map {
-                    cellrangerarcStructure(it)
-                }
-                .set { ch_samplesheet }
-        } else {
-            Channel
-                .fromList(samplesheet_rows)
-                .map {
-                    meta, fastq_1, fastq_2, processed_data, unfiltered_data ->
-                        if (!fastq_2) {
-                            return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
-                        } else {
-                            return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
-                        }
-                }
-                .groupTuple()
-                .map {
-                    validateFastqSample(it)
-                }
-                .map {
-                    meta, fastqs ->
-                        return [ meta, fastqs.flatten() ]
-                }
-                .set { ch_samplesheet }
-        }
-        ch_counts = Channel.empty()
-        ch_h5ad_matrix = Channel.empty()
+        PARSE_SAMPLESHEET(params.input)
+        ch_samplesheet = PARSE_SAMPLESHEET.out.samplesheet
+        ch_h5ad_matrix = channel.empty()
     }
 
     emit:
     samplesheet = ch_samplesheet
     versions    = ch_versions
-    counts      = ch_counts
     h5ad_matrix = ch_h5ad_matrix
 }
 
@@ -236,6 +166,74 @@ workflow PIPELINE_COMPLETION {
     workflow.onError {
         log.error "Pipeline failed. Please refer to troubleshooting docs for common issues: https://nf-co.re/docs/running/troubleshooting"
     }
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    SUBWORKFLOW TO PARSE THE INPUT SAMPLESHEET
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+workflow PARSE_SAMPLESHEET {
+
+    take:
+    samplesheet // path: Input samplesheet
+
+    main:
+    def samplesheet_rows = samplesheetToList(samplesheet, "${projectDir}/assets/schema_input.json")
+    validateInputSamplesheet(samplesheet_rows)
+
+    ch_samplesheet_rows = channel.fromList(samplesheet_rows)
+
+    ch_fastq = ch_samplesheet_rows
+        .filter { _meta, fastq_1, _fastq_2, _processed_data, _unfiltered_data ->
+            hasSamplesheetValue(fastq_1)
+        }
+        .map { meta, fastq_1, fastq_2, _processed_data, _unfiltered_data ->
+            def reads = [fastq_1]
+            if (hasSamplesheetValue(fastq_2)) {
+                reads << fastq_2
+            }
+            if (meta.feature_type == 'atac') {
+                reads << file(meta.fastq_barcode, checkIfExists: true)
+            }
+
+            [
+                meta.id,
+                meta.feature_type,
+                meta + [
+                    input_type: 'fastq',
+                    single_end: !hasSamplesheetValue(fastq_2)
+                ],
+                reads
+            ]
+        }
+        .groupTuple(by: [0, 1])
+        .map { id, _feature_type, metas, fastqs ->
+            def (meta, validated_fastqs) = validateFastqSample([id, metas, fastqs])
+            [meta, validated_fastqs.flatten()]
+        }
+
+    ch_preprocessed = ch_samplesheet_rows
+        .filter { _meta, _fastq_1, _fastq_2, processed_data, _unfiltered_data ->
+            hasSamplesheetValue(processed_data)
+        }
+        .flatMap { meta, _fastq_1, _fastq_2, processed_data, unfiltered_data ->
+            def entries = [
+                [meta + [input_type: 'filtered'], [processed_data]]
+            ]
+            if (hasSamplesheetValue(unfiltered_data)) {
+                entries << [meta + [input_type: 'raw'], [unfiltered_data]]
+            }
+            entries
+        }
+
+    ch_fastq
+        .mix(ch_preprocessed)
+        .set { ch_samplesheet }
+
+    emit:
+    samplesheet = ch_samplesheet
 }
 
 /*
@@ -355,6 +353,9 @@ def validateInputSamplesheet(input) {
                 : ['gex']
         if (meta.feature_type !in valid_feature_types) {
             error("Please check input samplesheet -> feature_type '${meta.feature_type}' is not supported by aligner '${params.aligner}' for sample '${sample}'. Allowed values: ${valid_feature_types.join(', ')}.")
+        }
+        if (params.aligner == 'cellrangerarc' && meta.feature_type == 'atac' && !hasSamplesheetValue(meta.fastq_barcode)) {
+            error("Please check input samplesheet -> Cell Ranger ARC requires a barcode FASTQ for ATAC input: ${sample}.")
         }
 
         rows_by_sample[sample] << [

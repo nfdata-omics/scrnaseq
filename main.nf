@@ -51,8 +51,7 @@ params.cellranger_vdj_index = getGenomeAttribute('cellranger_vdj')
 workflow NFDATAOMICS_SCRNASEQ {
 
     take:
-    samplesheet // channel: samplesheet read in from --input
-    counts      // channel: count matrix file read as --counts
+    samplesheet // channel: [ meta, files ] parsed from --input
     h5ad_matrix // channel: h5ad matrix file read as --h5ad_matrix
     fasta                        // val: path-like string (or null)
     gtf                          // val: path-like string (or null)
@@ -73,7 +72,6 @@ workflow NFDATAOMICS_SCRNASEQ {
     //
     SCRNASEQ (
         samplesheet,
-        counts,
         h5ad_matrix,
         fasta,
         gtf,
@@ -111,7 +109,6 @@ workflow {
         args,
         params.outdir,
         params.input,
-        params.counts,
         params.h5ad_matrix,
         params.help,
         params.help_full,
@@ -123,7 +120,6 @@ workflow {
     //
     NFDATAOMICS_SCRNASEQ (
         PIPELINE_INITIALISATION.out.samplesheet,
-        PIPELINE_INITIALISATION.out.counts,
         PIPELINE_INITIALISATION.out.h5ad_matrix,
         params.fasta,
         params.gtf,
