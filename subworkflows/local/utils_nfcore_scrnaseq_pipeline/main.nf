@@ -119,11 +119,14 @@ workflow PIPELINE_INITIALISATION {
         //
         // Create channel from input file provided through params.input
         //
+        def samplesheet_rows = samplesheetToList(params.input, "${projectDir}/assets/schema_input.json")
+        validateInputSamplesheet(samplesheet_rows)
+
         if (params.aligner == 'cellrangermulti') { // the cellrangermulti sub-workflow logic needs that channels have reads separated by feature_type. Cannot merge all.
             Channel
-                .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+                .fromList(samplesheet_rows)
                 .map {
-                    meta, fastq_1, fastq_2 ->
+                    meta, fastq_1, fastq_2, processed_data, unfiltered_data ->
                         if (!fastq_2) {
                             return [ meta.id, meta.feature_type, meta + [ single_end:true ], [ fastq_1 ] ]
                         } else {
@@ -133,7 +136,7 @@ workflow PIPELINE_INITIALISATION {
                 .groupTuple( by: [0,1] )
                 .map{ id, type, meta, reads -> [ id, meta, reads ] }
                 .map {
-                    validateInputSamplesheet(it)
+                    validateFastqSample(it)
                 }
                 .map {
                     meta, fastqs ->
@@ -142,8 +145,8 @@ workflow PIPELINE_INITIALISATION {
                 .set { ch_samplesheet }
         } else if (params.aligner == 'cellrangerarc') { // the cellrangerarc sub-workflow logic needs that channels have a meta, type, subsample, fastqs structure.
             Channel
-                .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
-                .map { meta, fastq_1, fastq_2 ->
+                .fromList(samplesheet_rows)
+                .map { meta, fastq_1, fastq_2, processed_data, unfiltered_data ->
                     if (!fastq_2 || (meta.sample_type == "atac" && !meta.fastq_barcode)) {
                         error("Please check input samplesheet -> cellrangerarc requires both paired-end reads and barcode fastq files: ${meta.id}")
                     }
@@ -160,9 +163,9 @@ workflow PIPELINE_INITIALISATION {
                 .set { ch_samplesheet }
         } else {
             Channel
-                .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+                .fromList(samplesheet_rows)
                 .map {
-                    meta, fastq_1, fastq_2 ->
+                    meta, fastq_1, fastq_2, processed_data, unfiltered_data ->
                         if (!fastq_2) {
                             return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
                         } else {
@@ -171,7 +174,7 @@ workflow PIPELINE_INITIALISATION {
                 }
                 .groupTuple()
                 .map {
-                    validateInputSamplesheet(it)
+                    validateFastqSample(it)
                 }
                 .map {
                     meta, fastqs ->
@@ -331,6 +334,59 @@ def validateCellrangerMultiBarcodes() {
 // Validate channels from input samplesheet
 //
 def validateInputSamplesheet(input) {
+    // samplesheetToList returns one list per samplesheet row, with metadata in
+    // the first position. Validate constraints that span more than one row
+    // before constructing the input channel.
+    def rows_by_sample = [:].withDefault { [] }
+
+    input.eachWithIndex { row, index ->
+        def (meta, fastq_1, fastq_2, processed_data, unfiltered_data) = row
+        def sample = meta.id
+        def row_number = index + 2
+
+        rows_by_sample[sample] << [
+            row_number     : row_number,
+            has_fastq      : hasSamplesheetValue(fastq_1) || hasSamplesheetValue(fastq_2),
+            processed_data : processed_data,
+            unfiltered_data: unfiltered_data
+        ]
+
+        if (hasSamplesheetValue(processed_data)) {
+            validatePreprocessedInput(processed_data, sample, 'processed_data')
+        }
+        if (hasSamplesheetValue(unfiltered_data)) {
+            validatePreprocessedInput(unfiltered_data, sample, 'unfiltered_data')
+        }
+    }
+
+    rows_by_sample.each { sample, rows ->
+        def fastq_rows = rows.findAll { row -> row.has_fastq }
+        def processed_rows = rows.findAll { row -> hasSamplesheetValue(row.processed_data) }
+        def unfiltered_rows = rows.findAll { row -> hasSamplesheetValue(row.unfiltered_data) }
+
+        if (fastq_rows && (processed_rows || unfiltered_rows)) {
+            error("Please check input samplesheet -> Sample '${sample}' provides both FASTQ and preprocessed input. Choose only one input form.")
+        }
+        if (unfiltered_rows && !processed_rows) {
+            error("Please check input samplesheet -> Sample '${sample}' provides unfiltered_data without the required processed_data.")
+        }
+        if (processed_rows.size() > 1) {
+            def row_numbers = processed_rows.collect { row -> row.row_number }.join(', ')
+            error("Please check input samplesheet -> Sample '${sample}' provides processed_data more than once (rows ${row_numbers}).")
+        }
+        if (unfiltered_rows.size() > 1) {
+            def row_numbers = unfiltered_rows.collect { row -> row.row_number }.join(', ')
+            error("Please check input samplesheet -> Sample '${sample}' provides unfiltered_data more than once (rows ${row_numbers}).")
+        }
+    }
+
+    return input
+}
+
+//
+// Validate grouped FASTQ rows for one sample
+//
+def validateFastqSample(input) {
     def (metas, fastqs) = input[1..2]
 
     // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
@@ -340,6 +396,58 @@ def validateInputSamplesheet(input) {
     }
 
     return [ metas[0], fastqs ]
+}
+
+//
+// Check whether an optional samplesheet value is populated
+//
+def hasSamplesheetValue(value) {
+    return value != null &&
+        (!(value instanceof Collection) || !value.isEmpty()) &&
+        value.toString().trim()
+}
+
+//
+// Validate supported preprocessed inputs: a Cell Ranger HDF5 file or a
+// MEX/MTX directory containing the three required matrix components.
+//
+def validatePreprocessedInput(input, sample, column) {
+    def input_path = input as java.nio.file.Path
+
+    if (java.nio.file.Files.isRegularFile(input_path)) {
+        if (!input_path.fileName.toString().toLowerCase().endsWith('.h5')) {
+            error("Please check input samplesheet -> ${column} for sample '${sample}' must be an .h5 file or a MEX/MTX directory: ${input_path}")
+        }
+        if (!java.nio.file.Files.isReadable(input_path)) {
+            error("Please check input samplesheet -> ${column} for sample '${sample}' is not readable: ${input_path}")
+        }
+        return
+    }
+
+    if (java.nio.file.Files.isDirectory(input_path)) {
+        if (!java.nio.file.Files.isReadable(input_path)) {
+            error("Please check input samplesheet -> ${column} directory for sample '${sample}' is not readable: ${input_path}")
+        }
+
+        def required_files = [
+            matrix  : ['matrix.mtx', 'matrix.mtx.gz'],
+            barcodes: ['barcodes.tsv', 'barcodes.tsv.gz'],
+            features: ['features.tsv', 'features.tsv.gz']
+        ]
+        def missing_files = required_files.findAll { name, alternatives ->
+            !alternatives.any { filename ->
+                def candidate = input_path.resolve(filename)
+                java.nio.file.Files.isRegularFile(candidate) && java.nio.file.Files.isReadable(candidate)
+            }
+        }.keySet()
+
+        if (missing_files) {
+            error("Please check input samplesheet -> ${column} for sample '${sample}' is not a valid MEX/MTX directory. Missing readable component(s): ${missing_files.join(', ')}.")
+        }
+        return
+    }
+
+    error("Please check input samplesheet -> ${column} for sample '${sample}' must be an .h5 file or a MEX/MTX directory: ${input_path}")
 }
 //
 // cellrangerarc structure for samplesheet channel
