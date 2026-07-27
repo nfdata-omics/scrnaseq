@@ -10,6 +10,7 @@ include { softwareVersionsToYAML                            } from '../subworkfl
 include { methodsDescriptionText                            } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
 include { getProtocol                                       } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
 include { gtfSourceFixNeeded                                } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
+include { cellrangerarcStructure                            } from '../subworkflows/local/utils_nfcore_scrnaseq_pipeline'
 include { PREPARE_GENOME                                    } from '../subworkflows/local/prepare_genome'
 include { FASTQC_CHECK                                      } from '../subworkflows/local/fastqc'
 include { CELLRANGER_ALIGN                                  } from "../subworkflows/local/align_cellranger"
@@ -36,8 +37,7 @@ include { CELL_INTERACTION                                  } from '../modules/l
 workflow SCRNASEQ {
 
     take:
-    ch_fastq                    // channel: [ meta, fastq ] from samplesheet
-    counts
+    ch_samplesheet              // channel: [ meta, files ] from samplesheet
     h5ad_matrix
     fasta                       // val: path-like string (or null)
     gtf                         // val: path-like string (or null)
@@ -56,6 +56,8 @@ workflow SCRNASEQ {
     ch_versions      = channel.empty()
     ch_mtx_matrices  = channel.empty()
 
+    ch_fastq = ch_samplesheet.filter { meta, _files -> meta.input_type == 'fastq' }
+
     protocol_config = getProtocol(workflow, log, params.aligner, params.protocol)
     if (protocol_config['protocol'] == 'auto' && params.aligner !in ["cellranger", "cellrangerarc", "cellrangermulti"]) {
         error "Only cellranger supports `protocol = 'auto'`. Please specify the protocol manually!"
@@ -73,7 +75,6 @@ workflow SCRNASEQ {
     // samplesheet - this is passed to the MTX conversion functions to add metadata to the
     // AnnData objects.
     ch_input = params.input                ? file(params.input, checkIfExists: true)    : []
-    ch_counts = params.counts              ? file(params.counts, checkIfExists: true)    : []
     ch_h5ad_matrix = params.h5ad_matrix    ? file(params.h5ad_matrix, checkIfExists: true): []
 
     //cellranger params
@@ -142,12 +143,27 @@ workflow SCRNASEQ {
 
     // Run cellrangerarc pipeline
     if (params.aligner == "cellrangerarc") {
+        ch_cellrangerarc_fastq = ch_fastq
+            .flatMap { meta, fastqs ->
+                def library_size = meta.feature_type == 'atac' ? 3 : 2
+                if (fastqs.size() % library_size != 0) {
+                    error("Please check input samplesheet -> Unexpected number of FASTQ files for ${meta.id} (${meta.feature_type}).")
+                }
+                fastqs.collate(library_size).collect { library_fastqs ->
+                    [meta.id, meta, library_fastqs]
+                }
+            }
+            .groupTuple()
+            .map { grouped_fastqs ->
+                cellrangerarcStructure(grouped_fastqs)
+            }
+
         CELLRANGERARC_ALIGN(
             ch_genome_fasta,
             ch_genome_gtf,
             ch_motifs,
             ch_cellranger_index,
-            ch_fastq,
+            ch_cellrangerarc_fastq,
             ch_cellrangerarc_config
         )
         ch_mtx_matrices = ch_mtx_matrices.mix( CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_raw, CELLRANGERARC_ALIGN.out.cellrangerarc_mtx_filtered )
@@ -277,29 +293,11 @@ workflow SCRNASEQ {
 
     }
 
-    ch_count_matrix = channel.empty()
-    if ( params.counts ) {
-        ch_count_matrix = channel
-        .fromPath(params.counts, checkIfExists: true)
-        .splitCsv(header: true)
-        .map { row ->
-            def meta = [
-                id         : row.sample,
-                input_type : row.input_type
-            ]
-            def matrix_file = file(row.h5)
-            tuple(meta, matrix_file)
-        }
-    } else {
-        ch_count_matrix = ch_mtx_matrices
-    }
-
-
     //
     // MODULE: Convert mtx matrices to h5ad
     //
     MTX_TO_H5AD (
-        ch_count_matrix,
+        ch_mtx_matrices,
         ch_txp2gene,
         [],
         params.aligner
@@ -328,7 +326,7 @@ workflow SCRNASEQ {
     //
     H5AD_CONVERSION (
         ch_h5ads,
-        ch_input ?: ch_counts
+        ch_input
     )
     ch_versions = ch_versions.mix(H5AD_CONVERSION.out.ch_versions)
 
@@ -368,26 +366,21 @@ workflow SCRNASEQ {
 
     ch_metadata = params.metadata ? channel.value(params.metadata) : channel.value(file('dummy_metadata.csv'))
 
-
     if (params.aligner == "cellrangermulti" || params.aligner == "cellrangerarc" || params.aligner == "cellranger" ) {
-        def ch_h5ad_selected = params.counts ?
-            H5AD_CONVERSION.out.h5ad_cellbender :
-            (
-                params.h5ad_matrix ?
-                    channel
-                        .fromPath(params.h5ad_matrix,checkIfExists: true)
-                        .splitCsv(header: true)
-                        .map { row ->
-                            def meta = [
-                                id         : row.sample,
-                                input_type : row.input_type
-                        ]
-                        def h5ad_file = file(row.h5ad)
-                        tuple(meta, h5ad_file)
-                    }
-                :
-                    H5AD_CONVERSION.out.h5ad_filtered
-            )
+        def ch_h5ad_selected = params.h5ad_matrix ?
+                channel
+                    .fromPath(params.h5ad_matrix,checkIfExists: true)
+                    .splitCsv(header: true)
+                    .map { row ->
+                        def meta = [
+                            id         : row.sample,
+                            input_type : row.input_type
+                    ]
+                    def h5ad_file = file(row.h5ad)
+                    tuple(meta, h5ad_file)
+                }
+            :
+                H5AD_CONVERSION.out.h5ad_filtered
         CONVERT_MUDATA(
             ch_h5ad_selected,
             ch_vdj,
@@ -404,10 +397,9 @@ workflow SCRNASEQ {
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
     // Da togliere questa cosa ch_rds_selected, se counts, canale vuoto tanto non faro' la parte dei doppietti
-    def ch_rds_selected = params.counts ? H5AD_CONVERSION.out.rds_cellbender : H5AD_CONVERSION.out.rds_concat
     if ( !params.skip_qcfilters ) {
         DOUBLETS_QUALITYFILTERING (
-            ch_rds_selected,
+            H5AD_CONVERSION.out.rds_concat,
             CONVERT_MUDATA.out.h5mu,
             params.mt_threshold,
             params.min_umi_gex,
