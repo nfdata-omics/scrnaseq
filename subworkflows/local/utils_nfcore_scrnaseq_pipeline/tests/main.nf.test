@@ -1,0 +1,309 @@
+nextflow_workflow {
+
+    name "Test Workflow PARSE_SAMPLESHEET"
+    script "../main.nf"
+    workflow "PARSE_SAMPLESHEET"
+
+    tag "subworkflows"
+    tag "subworkflows_local"
+    tag "utils_nfcore_scrnaseq_pipeline"
+    tag "parse_samplesheet"
+
+    test("Should parse FASTQ, H5, and MEX inputs into one channel") {
+
+        when {
+            params {
+                aligner = "cellranger"
+            }
+
+            workflow {
+                """
+                def fixture_dir = file("${launchDir}/fixtures")
+                java.nio.file.Files.createDirectories(fixture_dir)
+
+                def create_file = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path.parent)
+                    java.nio.file.Files.write(path, new byte[0])
+                    path
+                }
+                def create_mex = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path)
+                    ["matrix.mtx.gz", "barcodes.tsv.gz", "features.tsv.gz"].each {
+                        java.nio.file.Files.write(path.resolve(it), new byte[0])
+                    }
+                    path
+                }
+
+                def lane_1_r1 = create_file("fastq_sample_S1_L001_R1_001.fastq.gz")
+                def lane_1_r2 = create_file("fastq_sample_S1_L001_R2_001.fastq.gz")
+                def lane_2_r1 = create_file("fastq_sample_S1_L002_R1_001.fastq.gz")
+                def lane_2_r2 = create_file("fastq_sample_S1_L002_R2_001.fastq.gz")
+                def filtered_h5 = create_file("h5_sample.filtered.h5")
+                def raw_h5 = create_file("h5_sample.raw.h5")
+                def filtered_mex = create_mex("mex_sample.filtered")
+
+                def samplesheet = fixture_dir.resolve("cellranger.csv")
+                def rows = [
+                    "sample,fastq_1,fastq_2,feature_type,processed_data,unfiltered_data",
+                    "fastq_sample," + lane_1_r1 + "," + lane_1_r2 + ",,,,",
+                    "fastq_sample," + lane_2_r1 + "," + lane_2_r2 + ",,,,",
+                    "h5_sample,,,gex," + filtered_h5 + "," + raw_h5,
+                    "mex_sample,,,gex," + filtered_mex + ","
+                ]
+                java.nio.file.Files.writeString(samplesheet, rows.join("\\n") + "\\n")
+
+                input[0] = samplesheet
+                """
+            }
+        }
+
+        then {
+            def observed = workflow.out.samplesheet.collect { entry ->
+                def meta = entry[0]
+                [
+                    id          : meta.id,
+                    feature_type: meta.feature_type,
+                    input_type  : meta.input_type,
+                    single_end  : meta.single_end,
+                    files       : entry[1].collect { new File(it.toString()).name }.sort()
+                ]
+            }.sort { "${it.id}:${it.input_type}" }
+
+            def expected = [
+                [
+                    id          : "fastq_sample",
+                    feature_type: "gex",
+                    input_type  : "fastq",
+                    single_end  : false,
+                    files       : [
+                        "fastq_sample_S1_L001_R1_001.fastq.gz",
+                        "fastq_sample_S1_L001_R2_001.fastq.gz",
+                        "fastq_sample_S1_L002_R1_001.fastq.gz",
+                        "fastq_sample_S1_L002_R2_001.fastq.gz"
+                    ]
+                ],
+                [
+                    id          : "h5_sample",
+                    feature_type: "gex",
+                    input_type  : "filtered",
+                    single_end  : null,
+                    files       : ["h5_sample.filtered.h5"]
+                ],
+                [
+                    id          : "h5_sample",
+                    feature_type: "gex",
+                    input_type  : "raw",
+                    single_end  : null,
+                    files       : ["h5_sample.raw.h5"]
+                ],
+                [
+                    id          : "mex_sample",
+                    feature_type: "gex",
+                    input_type  : "filtered",
+                    single_end  : null,
+                    files       : ["mex_sample.filtered"]
+                ]
+            ].sort { "${it.id}:${it.input_type}" }
+
+            assertAll(
+                { assert workflow.success },
+                { assert observed == expected }
+            )
+        }
+    }
+
+    test("Should preserve Cell Ranger Multi feature types") {
+
+        when {
+            params {
+                aligner = "cellrangermulti"
+            }
+
+            workflow {
+                """
+                def fixture_dir = file("${launchDir}/fixtures")
+                java.nio.file.Files.createDirectories(fixture_dir)
+
+                def create_file = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path.parent)
+                    java.nio.file.Files.write(path, new byte[0])
+                    path
+                }
+
+                def rows = ["sample,fastq_1,fastq_2,feature_type,processed_data,unfiltered_data"]
+                ["gex", "vdj", "ab", "crispr", "cmo"].each { feature_type ->
+                    def read_1 = create_file("multi_" + feature_type + "_S1_L001_R1_001.fastq.gz")
+                    def read_2 = create_file("multi_" + feature_type + "_S1_L001_R2_001.fastq.gz")
+                    rows << "multi_sample," + read_1 + "," + read_2 + "," + feature_type + ",,"
+                }
+
+                def gex_lane_2_r1 = create_file("multi_gex_S1_L002_R1_001.fastq.gz")
+                def gex_lane_2_r2 = create_file("multi_gex_S1_L002_R2_001.fastq.gz")
+                rows << "multi_sample," + gex_lane_2_r1 + "," + gex_lane_2_r2 + ",gex,,"
+
+                def samplesheet = fixture_dir.resolve("cellrangermulti.csv")
+                java.nio.file.Files.writeString(samplesheet, rows.join("\\n") + "\\n")
+
+                input[0] = samplesheet
+                """
+            }
+        }
+
+        then {
+            def observed = workflow.out.samplesheet.collect { entry ->
+                def meta = entry[0]
+                [
+                    id          : meta.id,
+                    feature_type: meta.feature_type,
+                    input_type  : meta.input_type,
+                    single_end  : meta.single_end,
+                    files       : entry[1].collect { new File(it.toString()).name }.sort()
+                ]
+            }.sort { it.feature_type }
+
+            def expected = ["ab", "cmo", "crispr", "gex", "vdj"].collect { feature_type ->
+                def files = [
+                    "multi_${feature_type}_S1_L001_R1_001.fastq.gz",
+                    "multi_${feature_type}_S1_L001_R2_001.fastq.gz"
+                ]
+                if (feature_type == "gex") {
+                    files.addAll([
+                        "multi_gex_S1_L002_R1_001.fastq.gz",
+                        "multi_gex_S1_L002_R2_001.fastq.gz"
+                    ])
+                }
+                [
+                    id          : "multi_sample",
+                    feature_type: feature_type,
+                    input_type  : "fastq",
+                    single_end  : false,
+                    files       : files.sort()
+                ]
+            }
+
+            assertAll(
+                { assert workflow.success },
+                { assert observed == expected }
+            )
+        }
+    }
+
+    test("Should preserve Cell Ranger ARC feature types and barcode FASTQ") {
+
+        when {
+            params {
+                aligner = "cellrangerarc"
+            }
+
+            workflow {
+                """
+                def fixture_dir = file("${launchDir}/fixtures")
+                java.nio.file.Files.createDirectories(fixture_dir)
+
+                def create_file = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path.parent)
+                    java.nio.file.Files.write(path, new byte[0])
+                    path
+                }
+
+                def gex_r1 = create_file("arc_gex_S1_L001_R1_001.fastq.gz")
+                def gex_r2 = create_file("arc_gex_S1_L001_R2_001.fastq.gz")
+                def atac_r1 = create_file("arc_atac_S1_L001_R1_001.fastq.gz")
+                def atac_r2 = create_file("arc_atac_S1_L001_R2_001.fastq.gz")
+                def atac_barcode = create_file("arc_atac_S1_L001_R3_001.fastq.gz")
+
+                def samplesheet = fixture_dir.resolve("cellrangerarc.csv")
+                def rows = [
+                    "sample,fastq_1,fastq_2,fastq_barcode,feature_type,processed_data,unfiltered_data",
+                    "arc_sample," + gex_r1 + "," + gex_r2 + ",,gex,,",
+                    "arc_sample," + atac_r1 + "," + atac_r2 + "," + atac_barcode + ",atac,,"
+                ]
+                java.nio.file.Files.writeString(samplesheet, rows.join("\\n") + "\\n")
+
+                input[0] = samplesheet
+                """
+            }
+        }
+
+        then {
+            def observed = workflow.out.samplesheet.collect { entry ->
+                def meta = entry[0]
+                [
+                    id          : meta.id,
+                    feature_type: meta.feature_type,
+                    input_type  : meta.input_type,
+                    single_end  : meta.single_end,
+                    files       : entry[1].collect { new File(it.toString()).name }.sort()
+                ]
+            }.sort { it.feature_type }
+
+            def expected = [
+                [
+                    id          : "arc_sample",
+                    feature_type: "atac",
+                    input_type  : "fastq",
+                    single_end  : false,
+                    files       : [
+                        "arc_atac_S1_L001_R1_001.fastq.gz",
+                        "arc_atac_S1_L001_R2_001.fastq.gz",
+                        "arc_atac_S1_L001_R3_001.fastq.gz"
+                    ]
+                ],
+                [
+                    id          : "arc_sample",
+                    feature_type: "gex",
+                    input_type  : "fastq",
+                    single_end  : false,
+                    files       : [
+                        "arc_gex_S1_L001_R1_001.fastq.gz",
+                        "arc_gex_S1_L001_R2_001.fastq.gz"
+                    ]
+                ]
+            ]
+
+            assertAll(
+                { assert workflow.success },
+                { assert observed == expected }
+            )
+        }
+    }
+
+    test("Should reject unfiltered data without processed data") {
+
+        when {
+            params {
+                aligner = "cellranger"
+            }
+
+            workflow {
+                """
+                def fixture_dir = file("${launchDir}/fixtures")
+                java.nio.file.Files.createDirectories(fixture_dir)
+
+                def raw_h5 = fixture_dir.resolve("raw_only.h5")
+                java.nio.file.Files.write(raw_h5, new byte[0])
+
+                def samplesheet = fixture_dir.resolve("invalid_raw_only.csv")
+                def rows = [
+                    "sample,fastq_1,fastq_2,feature_type,processed_data,unfiltered_data",
+                    "raw_only_sample,,,gex,," + raw_h5
+                ]
+                java.nio.file.Files.writeString(samplesheet, rows.join("\\n") + "\\n")
+
+                input[0] = samplesheet
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.failed },
+                { assert workflow.stderr.any { it.contains("processed_data") } }
+            )
+        }
+    }
+}
