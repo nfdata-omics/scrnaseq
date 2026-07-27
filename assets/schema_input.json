@@ -52,18 +52,21 @@
                 "type": "string",
                 "meta": ["seq_center"]
             },
-            "sample_type": {
-                "type": "string",
-                "enum": ["atac", "gex"],
-                "meta": ["sample_type"]
-            },
             "feature_type": {
                 "type": "string",
-                "enum": ["gex", "vdj", "ab", "crispr", "cmo"],
+                "enum": ["gex", "atac", "vdj", "ab", "crispr", "cmo"],
                 "meta": ["feature_type"]
             }
         },
         "required": ["sample"],
+        "allOf": [
+            {
+                "not": {
+                    "required": ["sample_type"]
+                },
+                "errorMessage": "The 'sample_type' column has been replaced by 'feature_type'"
+            }
+        ],
         "oneOf": [
             {
                 "required": ["fastq_1", "fastq_2"],
