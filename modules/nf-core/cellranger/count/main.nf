@@ -37,11 +37,13 @@ process CELLRANGER_COUNT {
     prefix = task.ext.prefix ?: "${meta.id}"
     """
     mkdir -p "${prefix}/outs/"
-    echo "$prefix" > ${prefix}/outs/fake_file.txt
+    touch "${prefix}/outs/raw_feature_bc_matrix.h5"
+    touch "${prefix}/outs/filtered_feature_bc_matrix.h5"
+    touch "${prefix}/outs/web_summary.html"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        cellranger: \$(echo \$( cellranger --version 2>&1) | sed 's/^.*[^0-9]\\([0-9]*\\.[0-9]*\\.[0-9]*\\).*\$/\\1/' )
+        cellranger: stub
     END_VERSIONS
     """
 }

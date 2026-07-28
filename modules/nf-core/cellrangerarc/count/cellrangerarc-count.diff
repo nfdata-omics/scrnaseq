@@ -1,0 +1,24 @@
+Changes in component 'nf-core/cellrangerarc/count'
+'modules/nf-core/cellrangerarc/count/meta.yml' is unchanged
+Changes in 'cellrangerarc/count/main.nf':
+--- modules/nf-core/cellrangerarc/count/main.nf
++++ modules/nf-core/cellrangerarc/count/main.nf
+@@ -77,7 +77,11 @@
+ 
+     """
+     mkdir -p "${prefix}/outs/"
+-    touch ${prefix}/outs/fake_file.txt
+-    touch ${prefix}_lib.csv
++    touch "${prefix}/outs/raw_feature_bc_matrix.h5"
++    touch "${prefix}/outs/filtered_feature_bc_matrix.h5"
++    touch "${prefix}/outs/atac_fragments.tsv.gz"
++    touch "${prefix}/outs/atac_fragments.tsv.gz.tbi"
++    touch "${prefix}/outs/web_summary.html"
++    touch "${prefix}_lib.csv"
+     """
+ }
+
+'modules/nf-core/cellrangerarc/count/tests/nextflow.config' is unchanged
+'modules/nf-core/cellrangerarc/count/tests/main.nf.test.snap' is unchanged
+'modules/nf-core/cellrangerarc/count/tests/main.nf.test' is unchanged
+************************************************************
