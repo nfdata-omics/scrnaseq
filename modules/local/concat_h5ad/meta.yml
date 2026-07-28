@@ -1,0 +1,43 @@
+name: concat_h5ad
+description: Concatenate per-sample AnnData files into a combined H5AD matrix.
+keywords:
+  - single-cell
+  - anndata
+  - h5ad
+  - concatenation
+tools:
+  - scanpy:
+      description: Single-cell analysis toolkit used to concatenate AnnData objects.
+      homepage: https://scanpy.readthedocs.io/
+      documentation: https://scanpy.readthedocs.io/
+      licence: ["BSD-3-Clause"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing matrix metadata.
+    - h5ad:
+        type: file
+        description: Input AnnData files.
+        pattern: "*.h5ad"
+  - samplesheet:
+      type: file
+      description: Samplesheet used to annotate the combined matrix.
+      pattern: "*.csv"
+output:
+  h5ad:
+    - - meta:
+          type: map
+          description: Groovy map containing matrix metadata.
+      - "*.h5ad":
+          type: file
+          description: Combined AnnData matrix.
+          pattern: "*.h5ad"
+  versions:
+    - versions.yml:
+        type: file
+        description: File containing software versions.
+        pattern: "versions.yml"
+authors:
+  - "@nfdata-omics"
+maintainers:
+  - "@nfdata-omics"

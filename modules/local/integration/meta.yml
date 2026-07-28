@@ -1,0 +1,62 @@
+name: integration
+description: Integrate batches in single-cell data using Harmony.
+keywords: [single-cell, integration, harmony]
+tools:
+  - harmonypy:
+      description: Python implementation of Harmony batch integration.
+      homepage: https://github.com/slowkow/harmonypy
+      licence: ["GPL-3.0-or-later"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing sample information.
+    - input_h5mu:
+        type: file
+        description: Input MuData object.
+  - n_neighbors_harmony:
+      type: integer
+      description: Number of neighbors.
+  - min_dist_harmony:
+      type: float
+      description: UMAP minimum distance.
+  - integration_var:
+      type: string
+      description: Metadata variable used for integration.
+output:
+  h5mu:
+    - - meta:
+          type: map
+          description: Groovy map containing sample information.
+      - "*.integrated.h5mu":
+          type: file
+          description: Harmony-integrated MuData object.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+  csv_harmony:
+    - Harmony_UMAP_coordinates_GEX.csv:
+        type: file
+        description: Harmony UMAP coordinates.
+  graph_UMAP_integrated:
+    - Harmony_corrected_UMAP_plot_GEX.pdf:
+        type: file
+        description: Integrated UMAP.
+  graph_UMAP_integrated_QC:
+    - Harmony_corrected_UMAP_plot_GEX_QC.pdf:
+        type: file
+        description: Integrated QC UMAP.
+  graph_UMAP_integrated_phase:
+    - Harmony_corrected_UMAP_plot_GEX_phase.pdf:
+        type: file
+        description: UMAP colored by cell-cycle phase.
+  graph_UMAP_integrated_celltypist:
+    - Harmony_corrected_UMAP_plot_GEX_celltypist.pdf:
+        type: file
+        description: UMAP colored by CellTypist annotation.
+  graph_UMAP_integrated_metadata:
+    - Harmony_corrected_UMAP_plot_GEX_metadata.pdf:
+        type: file
+        description: UMAP colored by metadata.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

@@ -42,6 +42,7 @@ if (length(fastq_cols) > 0) {
 names(assays(sce)) <- "counts"
 
 #Compute doublets
+set.seed(123)
 sce <- scDblFinder(sce, sample = "sample")
 
 # Defining the output file path in the specified directory
