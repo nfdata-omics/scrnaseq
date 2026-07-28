@@ -1,7 +1,7 @@
 {
     "test-dataset_cellrangerarc_aligner": {
         "content": [
-            14,
+            15,
             {
                 "ANNDATAR_CONVERT": {
                     "SeuratObject": "5.4.0",
@@ -160,16 +160,16 @@
                 "cellrangerarc/mtx_conversions/combined_filtered_matrix.seurat.rds",
                 "cellrangerarc/mtx_conversions/combined_raw_matrix.h5ad",
                 "fastqc",
-                "fastqc/10k_PBMC_1_fastqc.html",
-                "fastqc/10k_PBMC_1_fastqc.zip",
-                "fastqc/10k_PBMC_2_fastqc.html",
-                "fastqc/10k_PBMC_2_fastqc.zip",
-                "fastqc/10k_PBMC_3_fastqc.html",
-                "fastqc/10k_PBMC_3_fastqc.zip",
-                "fastqc/10k_PBMC_4_fastqc.html",
-                "fastqc/10k_PBMC_4_fastqc.zip",
-                "fastqc/10k_PBMC_5_fastqc.html",
-                "fastqc/10k_PBMC_5_fastqc.zip",
+                "fastqc/10k_PBMC_atac_1_fastqc.html",
+                "fastqc/10k_PBMC_atac_1_fastqc.zip",
+                "fastqc/10k_PBMC_atac_2_fastqc.html",
+                "fastqc/10k_PBMC_atac_2_fastqc.zip",
+                "fastqc/10k_PBMC_atac_3_fastqc.html",
+                "fastqc/10k_PBMC_atac_3_fastqc.zip",
+                "fastqc/10k_PBMC_gex_1_fastqc.html",
+                "fastqc/10k_PBMC_gex_1_fastqc.zip",
+                "fastqc/10k_PBMC_gex_2_fastqc.html",
+                "fastqc/10k_PBMC_gex_2_fastqc.zip",
                 "mudata",
                 "mudata/matrix.mudata.h5mu",
                 "multiqc",
@@ -273,31 +273,31 @@
                 "sjdbList.out.tab:md5,be8b2978e8ac3a2c8266c798c7c34b90",
                 "transcriptInfo.tab:md5,5a6ee447f3efac16042d8c99f653747b",
                 "config:md5,c05a6c4276e54a19a7149b700cf6fbd9",
-                "10k_PBMC_filtered_matrix.h5ad:md5,363249fcd16f215cac32e5bf14e3114d",
-                "10k_PBMC_filtered_matrix.sce.rds:md5,12da40681f324c1574b99b340d7d20c3",
-                "10k_PBMC_filtered_matrix.seurat.rds:md5,4c2766133b7fc5410be80cff9ac15dbe",
-                "10k_PBMC_raw_matrix.h5ad:md5,25d6d103ad31112ab5d2c170aa3ad975",
-                "10k_PBMC_raw_matrix.sce.rds:md5,fcda5ad3fa3ef81247d092c65ab08bd0",
-                "10k_PBMC_raw_matrix.seurat.rds:md5,272f7c801329f9e6f0c4e903eee52ddf",
-                "fastqc-status-check-heatmap.txt:md5,55b658eef7b63c6f8e3d559be41f5df8",
-                "fastqc_adapter_content_plot.txt:md5,31ca16758049ac46cc84875ddc4ff6d3",
-                "fastqc_overrepresented_sequences_plot.txt:md5,314754adfcfa2977ee4f61c2ec5444f2",
-                "fastqc_per_base_n_content_plot.txt:md5,5cea53daa2ac7fdf01e7290e1f5dc764",
-                "fastqc_per_base_sequence_quality_plot.txt:md5,8066f483d4946d88a07edc956c384b8e",
-                "fastqc_per_sequence_gc_content_plot_Counts.txt:md5,aded058c8be315f19a9f6085dc2dc613",
-                "fastqc_per_sequence_gc_content_plot_Percentages.txt:md5,b2f1be57919d6c6ef0fc10faf52e7ea6",
-                "fastqc_per_sequence_quality_scores_plot.txt:md5,3b8687d636e80507480ef0389ad7c15c",
-                "fastqc_sequence_counts_plot.txt:md5,432a9dc6985f0c898800f35d9631b3ca",
-                "fastqc_sequence_duplication_levels_plot.txt:md5,e3437aa44086c949a4f4aed1e157975b",
+                "10k_PBMC_filtered_matrix.h5ad:md5,ffc4219f7dbc85f898b465e765866841",
+                "10k_PBMC_filtered_matrix.sce.rds:md5,0bc406a06b6564329dde7712d23cf8f3",
+                "10k_PBMC_filtered_matrix.seurat.rds:md5,90d0e43cf31d3c410dd4b2a15008b386",
+                "10k_PBMC_raw_matrix.h5ad:md5,1083b553d4683ffa61f4e97dd6ebb851",
+                "10k_PBMC_raw_matrix.sce.rds:md5,e9b8498ab3d5c74d7fa720cd418dd531",
+                "10k_PBMC_raw_matrix.seurat.rds:md5,593a3732df9db0381585524dcd938882",
+                "fastqc-status-check-heatmap.txt:md5,c2ee598f4dcac570bb05f36eb13cf57d",
+                "fastqc_adapter_content_plot.txt:md5,362d2f5753b8a83a6c76fe941c96f152",
+                "fastqc_overrepresented_sequences_plot.txt:md5,4d60b2a3362b0fe4b0bd13385b00083b",
+                "fastqc_per_base_n_content_plot.txt:md5,7148afa8f51d32d545e0af20b1450965",
+                "fastqc_per_base_sequence_quality_plot.txt:md5,fc4fc99b03550b7ee7e69f24469c7581",
+                "fastqc_per_sequence_gc_content_plot_Counts.txt:md5,3b80e1b07d94f93f1d9800a360b0bea4",
+                "fastqc_per_sequence_gc_content_plot_Percentages.txt:md5,864e610d5cb07b437b28ec0993fc7962",
+                "fastqc_per_sequence_quality_scores_plot.txt:md5,0501a96e84abddb74a72db1f4903e571",
+                "fastqc_sequence_counts_plot.txt:md5,5006076b728773bc7b8d434997300438",
+                "fastqc_sequence_duplication_levels_plot.txt:md5,e31bfe89bf50c996e80044c298db180a",
                 "multiqc_citations.txt:md5,4c806e63a283ec1b7e78cdae3a923d4f",
-                "multiqc_fastqc.txt:md5,2cf29158d5f9928cf0564bb0cc2ced97",
-                "multiqc_general_stats.txt:md5,fd84f94100989affc666904a2f34c40c"
+                "multiqc_fastqc.txt:md5,78607acf512297fa780ec892c2e72ae1",
+                "multiqc_general_stats.txt:md5,5cfd3daddff585e8cc628c0ffdb3d32d"
             ]
         ],
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.4"
         },
-        "timestamp": "2026-07-23T11:01:48.052989696"
+        "timestamp": "2026-07-28T13:26:01.044929954"
     }
 }
