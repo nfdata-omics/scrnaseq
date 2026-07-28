@@ -2,7 +2,7 @@ process QUALITY_FILTERING  {
     tag "$meta.id"
     label 'process_medium'
 
-    container 'docker.io/nfdata/sc_atacseq:v1.0.0'
+    container 'docker.io/nfdata/muon-sc_rnaseq:v1.0.1'
 
     input:
     tuple val(meta), path(input_h5mu)
@@ -19,7 +19,7 @@ process QUALITY_FILTERING  {
     output:
     tuple val(meta), path("*.filtered.h5mu"),   emit: h5mu
     path "Cells_before_filtering.pdf",          emit: cells_before_filtering, optional: true
-    path "Cells_after_filtering.pdf",           emit: cells_after_filtering,   optional: true
+    path "Cells_after_filtering.pdf",           emit: cells_after_filtering,  optional: true
     path "QC_Density_all_samples.pdf",          emit: qc_density,             optional: true
     path "QC_Density_MT-Ribo_all_samples.pdf",  emit: qc_density_mito,        optional: true
     path "summary_qualitycontrol_*.csv",        emit: summary_qualitycontrol, optional: true

@@ -18,6 +18,7 @@ workflow ATAC_PREPROCESSING {
     n_neighbors_atac
     n_clusters_atac
     blacklist_path
+    genome_annotation_path
     cell_annotation_meta_ch
 
 
@@ -32,7 +33,8 @@ workflow ATAC_PREPROCESSING {
             tss_threshold,
             min_fragments_counts,
             max_fragments_counts,
-            blacklist_path
+            blacklist_path,
+            genome_annotation_path
 
         )
         ch_versions = ch_versions.mix(QUALITY_FILTERING_ATAC.out.versions)
