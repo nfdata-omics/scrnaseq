@@ -180,6 +180,9 @@ workflow PARSE_SAMPLESHEET {
     samplesheet // path: Input samplesheet
 
     main:
+    if (!samplesheet) {
+        error("No input samplesheet was provided. Please specify `--input`.")
+    }
     def samplesheet_rows = samplesheetToList(samplesheet, "${projectDir}/assets/schema_input.json")
     validateInputSamplesheet(samplesheet_rows)
 
