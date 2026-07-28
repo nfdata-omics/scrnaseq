@@ -77,7 +77,11 @@ process CELLRANGERARC_COUNT {
 
     """
     mkdir -p "${prefix}/outs/"
-    touch ${prefix}/outs/fake_file.txt
-    touch ${prefix}_lib.csv
+    touch "${prefix}/outs/raw_feature_bc_matrix.h5"
+    touch "${prefix}/outs/filtered_feature_bc_matrix.h5"
+    touch "${prefix}/outs/atac_fragments.tsv.gz"
+    touch "${prefix}/outs/atac_fragments.tsv.gz.tbi"
+    touch "${prefix}/outs/web_summary.html"
+    touch "${prefix}_lib.csv"
     """
 }

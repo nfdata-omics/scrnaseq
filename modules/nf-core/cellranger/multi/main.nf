@@ -174,11 +174,23 @@ process CELLRANGER_MULTI {
 
     stub:
     prefix = task.ext.prefix ?: "${meta.id}"
+    stub_samples = task.ext.stub_samples ?: [meta.id]
+    stub_per_sample_outs = stub_samples.collect { sample_id ->
+        """
+        mkdir -p "${prefix}/outs/per_sample_outs/${sample_id}/vdj_b"
+        mkdir -p "${prefix}/outs/per_sample_outs/${sample_id}/vdj_t"
+        touch "${prefix}/outs/per_sample_outs/${sample_id}/sample_filtered_feature_bc_matrix.h5"
+        touch "${prefix}/outs/per_sample_outs/${sample_id}/sample_raw_feature_bc_matrix.h5"
+        touch "${prefix}/outs/per_sample_outs/${sample_id}/vdj_b/all_contig_annotations.csv"
+        touch "${prefix}/outs/per_sample_outs/${sample_id}/vdj_t/all_contig_annotations.csv"
+        touch "${prefix}/outs/per_sample_outs/${sample_id}/web_summary.html"
+        """
+    }.join('\n')
     """
     mkdir -p "${prefix}/outs/"
-    touch ${prefix}/outs/fake_file.txt
-    echo -n "" >> ${prefix}/outs/fake_file.txt
+    touch "${prefix}/outs/raw_feature_bc_matrix.h5"
+    touch "${prefix}/outs/filtered_feature_bc_matrix.h5"
+    ${stub_per_sample_outs}
     touch cellranger_multi_config.csv
-    echo -n "" >> cellranger_multi_config.csv
     """
 }
