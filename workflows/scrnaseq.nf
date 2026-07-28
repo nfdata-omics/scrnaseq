@@ -138,8 +138,11 @@ workflow SCRNASEQ {
     //
     // MODULE: Convert mtx matrices to h5ad
     //
+    def ch_matrix_inputs = ALIGNMENT.out.mtx_matrices.map { meta, matrix_paths ->
+        tuple(meta, selectMatrixInput(matrix_paths, meta))
+    }
     MTX_TO_H5AD (
-        ALIGNMENT.out.mtx_matrices
+        ch_matrix_inputs
     )
     ch_versions = ch_versions.mix(MTX_TO_H5AD.out.versions.first())
     ch_h5ads = MTX_TO_H5AD.out.h5ad
@@ -530,4 +533,54 @@ workflow SCRNASEQ {
     emit:
     multiqc_report = ch_multiqc_report           // channel: [ path(multiqc_report.html) ]
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
+}
+
+/*
+ * Cell Ranger modules currently expose all files below their output directory,
+ * whereas samplesheet restart entries contain one logical matrix artifact.
+ * Prefer the H5 representation when both H5 and MEX are present in the legacy
+ * aligner output. A supplied MEX directory is used directly.
+ */
+def selectMatrixInput(matrix_paths, meta) {
+    def paths = matrix_paths instanceof Collection ? matrix_paths as List : [matrix_paths]
+    def h5_paths = paths.findAll { path ->
+        path.name.toLowerCase().endsWith('.h5')
+    }
+
+    if (h5_paths.size() == 1) {
+        return h5_paths.first()
+    }
+    if (h5_paths.size() > 1) {
+        error("MTX_TO_H5AD received multiple H5 matrices for sample '${meta.id}' (${meta.input_type}): ${h5_paths*.name.join(', ')}")
+    }
+
+    def mex_paths = paths.findAll { path ->
+        isMexDirectory(path)
+    }
+    if (mex_paths.size() == 1) {
+        return mex_paths.first()
+    }
+    if (mex_paths.size() > 1) {
+        error("MTX_TO_H5AD received multiple MEX directories for sample '${meta.id}' (${meta.input_type}): ${mex_paths*.name.join(', ')}")
+    }
+
+    error("MTX_TO_H5AD requires one H5 matrix or one complete MEX directory for sample '${meta.id}' (${meta.input_type}).")
+}
+
+def isMexDirectory(path) {
+    def input_path = path as java.nio.file.Path
+    if (!java.nio.file.Files.isDirectory(input_path)) {
+        return false
+    }
+
+    def required_components = [
+        ['matrix.mtx', 'matrix.mtx.gz'],
+        ['barcodes.tsv', 'barcodes.tsv.gz'],
+        ['features.tsv', 'features.tsv.gz']
+    ]
+    return required_components.every { alternatives ->
+        alternatives.any { filename ->
+            java.nio.file.Files.isRegularFile(input_path.resolve(filename))
+        }
+    }
 }
