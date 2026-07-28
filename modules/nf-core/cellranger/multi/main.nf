@@ -232,6 +232,7 @@ process CELLRANGER_MULTI {
     ${stub_create_sample_outs}
     ${stub_per_sample_outs}
     touch cellranger_multi_config.csv
+    touch versions.yml
     """
 
 }
