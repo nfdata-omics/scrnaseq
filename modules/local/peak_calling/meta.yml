@@ -1,0 +1,40 @@
+name: peak_calling
+description: Call chromatin-accessibility peaks and construct tile and peak matrices.
+keywords: [single-cell, atac-seq, peaks]
+tools:
+  - snapatac2:
+      description: Single-cell ATAC-seq analysis toolkit.
+      homepage: https://kzhang.org/SnapATAC2/
+      licence: ["MIT"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing sample information.
+    - input_h5ad:
+        type: file
+        description: Input ATAC AnnData matrix.
+        pattern: "*.h5ad"
+  - input_meta_file:
+      type: file
+      description: Cell metadata file.
+output:
+  h5ad_tile:
+    - - meta:
+          type: map
+          description: Groovy map containing sample information.
+      - matrix.tile_atac.h5ad:
+          type: file
+          description: Tile matrix.
+  h5ad_peak:
+    - - meta:
+          type: map
+          description: Groovy map containing sample information.
+      - matrix.peak_atac.h5ad:
+          type: file
+          description: Peak matrix.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

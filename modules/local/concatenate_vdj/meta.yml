@@ -1,0 +1,29 @@
+name: concatenate_vdj
+description: Concatenate per-sample VDJ AnnData objects.
+keywords: [single-cell, vdj, scirpy, anndata]
+tools:
+  - scirpy:
+      description: Python toolkit for single-cell immune-receptor analysis.
+      homepage: https://scirpy.scverse.org/
+      licence: ["BSD-3-Clause"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing VDJ sample metadata.
+    - input_vdj:
+        type: file
+        description: Input VDJ files.
+output:
+  h5ad:
+    - - meta:
+          type: map
+          description: Groovy map containing combined VDJ metadata.
+      - "*.vdj.h5ad":
+          type: file
+          description: Combined VDJ AnnData object.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

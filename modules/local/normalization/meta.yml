@@ -1,0 +1,46 @@
+name: normalization
+description: Normalize gene-expression data stored in a MuData object.
+keywords: [single-cell, normalization, mudata]
+tools:
+  - muon:
+      description: Multimodal omics analysis framework.
+      homepage: https://muon.readthedocs.io/
+      licence: ["BSD-3-Clause"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing sample information.
+    - input_h5mu:
+        type: file
+        description: Input MuData object.
+  - - meta2:
+        type: map
+        description: Groovy map containing raw-matrix information.
+    - input_raw_h5ad:
+        type: file
+        description: Raw AnnData matrix.
+  - input_cellcycle_file:
+      type: file
+      description: Cell-cycle gene file or empty placeholder.
+output:
+  h5mu:
+    - - meta:
+          type: map
+          description: Groovy map containing sample information.
+      - "*.norm.h5mu":
+          type: file
+          description: Normalized MuData object.
+  pca_cellcycle_GEX_phase:
+    - pca_cellcycle_GEX_phase.pdf:
+        type: file
+        description: PCA colored by cell-cycle phase.
+  pca_cellcycle_GEX_sample:
+    - pca_cellcycle_GEX_sample.pdf:
+        type: file
+        description: PCA colored by sample.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

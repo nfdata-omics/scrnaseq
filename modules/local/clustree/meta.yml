@@ -1,0 +1,26 @@
+name: clustree
+description: Visualize clustering relationships across resolutions with Clustree.
+keywords: [single-cell, clustering, clustree]
+tools:
+  - clustree:
+      description: R package for visualizing cluster assignments at multiple resolutions.
+      homepage: https://lazappi.github.io/clustree/
+      licence: ["GPL-3.0-or-later"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing sample information.
+    - cluster_id:
+        type: file
+        description: Cluster assignments across resolutions.
+output:
+  clustree:
+    - clustree_plot.pdf:
+        type: file
+        description: Clustree plot.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

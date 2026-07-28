@@ -1,0 +1,30 @@
+name: doublets
+description: Calculate per-cell doublet scores with scDblFinder.
+keywords: [single-cell, doublets, scdblfinder]
+tools:
+  - scdblfinder:
+      description: Bioconductor package for doublet detection.
+      homepage: https://bioconductor.org/packages/scDblFinder/
+      licence: ["Artistic-2.0"]
+input:
+  - - meta:
+        type: map
+        description: Groovy map containing sample information.
+    - input_sce:
+        type: file
+        description: Input SingleCellExperiment object.
+        pattern: "*.rds"
+output:
+  doublets:
+    - - meta:
+          type: map
+          description: Groovy map containing sample information.
+      - doublets_score.csv:
+          type: file
+          description: Per-cell doublet scores and classifications.
+  versions:
+    - versions.yml:
+        type: file
+        description: Software versions.
+authors: ["@nfdata-omics"]
+maintainers: ["@nfdata-omics"]

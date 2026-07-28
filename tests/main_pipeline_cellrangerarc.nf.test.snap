@@ -4,10 +4,10 @@
             14,
             {
                 "ANNDATAR_CONVERT": {
-                    "SeuratObject": "5.0.2",
-                    "SingleCellExperiment": "1.28.1",
-                    "anndataR": "0.99.0",
-                    "r-base": "R version 4.4.2 (2024-10-31)"
+                    "SeuratObject": "5.4.0",
+                    "SingleCellExperiment": "1.32.0",
+                    "anndataR": "1.0.2",
+                    "r-base": "R version 4.5.3 (2026-03-11)"
                 },
                 "CELLRANGERARC_COUNT": {
                     "cellrangerarc": "2.0.2"
@@ -27,6 +27,9 @@
                 },
                 "FASTQC": {
                     "fastqc": "0.12.1"
+                },
+                "GTF_GENE_FILTER": {
+                    "python": "3.14.5"
                 },
                 "MTX_TO_H5AD": {
                     "anndata": "0.10.8",
@@ -109,9 +112,8 @@
                 "cellrangerarc/count/10k_PBMC/outs/summary.csv",
                 "cellrangerarc/count/10k_PBMC/outs/web_summary.html",
                 "cellrangerarc/count/10k_PBMC_lib.csv",
-                "cellrangerarc/count/versions.yml",
                 "cellrangerarc/mkgtf",
-                "cellrangerarc/mkgtf/genome_genes.filtered.gtf",
+                "cellrangerarc/mkgtf/chr21_gencode.filtered.gtf",
                 "cellrangerarc/mkref",
                 "cellrangerarc/mkref/cellrangerarc_reference",
                 "cellrangerarc/mkref/cellrangerarc_reference/fasta",
@@ -145,7 +147,6 @@
                 "cellrangerarc/mkref/cellrangerarc_reference/star/sjdbList.out.tab",
                 "cellrangerarc/mkref/cellrangerarc_reference/star/transcriptInfo.tab",
                 "cellrangerarc/mkref/config",
-                "cellrangerarc/mkref/versions.yml",
                 "cellrangerarc/mtx_conversions",
                 "cellrangerarc/mtx_conversions/10k_PBMC",
                 "cellrangerarc/mtx_conversions/10k_PBMC/10k_PBMC_filtered_matrix.h5ad",
@@ -195,6 +196,7 @@
                 "multiqc/multiqc_data/multiqc_sources.txt",
                 "multiqc/multiqc_plots",
                 "multiqc/multiqc_plots/pdf",
+                "multiqc/multiqc_plots/pdf/fastqc-status-check-heatmap.pdf",
                 "multiqc/multiqc_plots/pdf/fastqc_adapter_content_plot.pdf",
                 "multiqc/multiqc_plots/pdf/fastqc_overrepresented_sequences_plot.pdf",
                 "multiqc/multiqc_plots/pdf/fastqc_per_base_n_content_plot.pdf",
@@ -207,6 +209,7 @@
                 "multiqc/multiqc_plots/pdf/fastqc_sequence_duplication_levels_plot.pdf",
                 "multiqc/multiqc_plots/pdf/fastqc_top_overrepresented_sequences_table.pdf",
                 "multiqc/multiqc_plots/png",
+                "multiqc/multiqc_plots/png/fastqc-status-check-heatmap.png",
                 "multiqc/multiqc_plots/png/fastqc_adapter_content_plot.png",
                 "multiqc/multiqc_plots/png/fastqc_overrepresented_sequences_plot.png",
                 "multiqc/multiqc_plots/png/fastqc_per_base_n_content_plot.png",
@@ -219,6 +222,7 @@
                 "multiqc/multiqc_plots/png/fastqc_sequence_duplication_levels_plot.png",
                 "multiqc/multiqc_plots/png/fastqc_top_overrepresented_sequences_table.png",
                 "multiqc/multiqc_plots/svg",
+                "multiqc/multiqc_plots/svg/fastqc-status-check-heatmap.svg",
                 "multiqc/multiqc_plots/svg/fastqc_adapter_content_plot.svg",
                 "multiqc/multiqc_plots/svg/fastqc_overrepresented_sequences_plot.svg",
                 "multiqc/multiqc_plots/svg/fastqc_per_base_n_content_plot.svg",
@@ -232,19 +236,18 @@
                 "multiqc/multiqc_plots/svg/fastqc_top_overrepresented_sequences_table.svg",
                 "multiqc/multiqc_report.html",
                 "pipeline_info",
-                "pipeline_info/scrnaseq_software_mqc_versions.yml"
+                "pipeline_info/nf_core_scrnaseq_software_mqc_versions.yml"
             ],
             [
                 "atac_cut_sites.bigwig:md5,7114cf85657c09f92d5c3dbd32432759",
-                "atac_peak_annotation.tsv:md5,bd800e4d0321a50f340a801ae18dafe8",
+                "atac_peak_annotation.tsv:md5,1921be4ba8f9005f76b5fbbad5729e0f",
                 "barcodes.tsv.gz:md5,b5499384bbd9ecbd448c90dd73d9e84c",
                 "features.tsv.gz:md5,456af0e5fa4a7bcb3968400f300d12e9",
                 "matrix.mtx.gz:md5,83c4b3e84668282fbe55d02d84256b3f",
                 "barcodes.tsv.gz:md5,dc8ef24c54122529bdb2c7cd5969c805",
                 "features.tsv.gz:md5,456af0e5fa4a7bcb3968400f300d12e9",
                 "matrix.mtx.gz:md5,4b3aa16b720d414f5df50c533052d360",
-                "versions.yml:md5,b49c3719f6516067d6abc6239fbec851",
-                "genome_genes.filtered.gtf:md5,4328009f62d38b9220dd941c1a66e480",
+                "chr21_gencode.filtered.gtf:md5,92715689caf0f574962df87ab577d04b",
                 "genome.fa:md5,69bd44ef67566a76d6cbb8aa4a25ae35",
                 "genome.fa.amb:md5,fe9a4b4f263654a130bb314e282b00f1",
                 "genome.fa.ann:md5,f8c1d6a2b91d1973a2f13e7221fc7e7a",
@@ -252,7 +255,7 @@
                 "genome.fa.fai:md5,74184d265bc96cb92ddfb71c3ce85c09",
                 "genome.fa.pac:md5,cf76a4dbc5b8ae64fc890d6a95067b4f",
                 "genome.fa.sa:md5,92f0b3e443220a57c2bd09f737e7dbc4",
-                "genes.gtf.gz:md5,4328009f62d38b9220dd941c1a66e480",
+                "genes.gtf.gz:md5,92715689caf0f574962df87ab577d04b",
                 "transcripts.bed:md5,f9840436821172d8cef086cb6f3c27eb",
                 "tss.bed:md5,d637f9650dc3862c932cd9996ace49f5",
                 "Genome:md5,0aaebdafd448aeec403253cc47e15176",
@@ -269,14 +272,13 @@
                 "sjdbList.fromGTF.out.tab:md5,0a0674059c3be4ccf69d572c9560f5d7",
                 "sjdbList.out.tab:md5,be8b2978e8ac3a2c8266c798c7c34b90",
                 "transcriptInfo.tab:md5,5a6ee447f3efac16042d8c99f653747b",
-                "config:md5,055bd80c554d66120313c0500ff2f00d",
-                "versions.yml:md5,32284e865be19c9c9e4b4968135e611c",
+                "config:md5,c05a6c4276e54a19a7149b700cf6fbd9",
                 "10k_PBMC_filtered_matrix.h5ad:md5,363249fcd16f215cac32e5bf14e3114d",
-                "10k_PBMC_filtered_matrix.sce.rds:md5,4e5aa6979ccc31d70cd0ab3bbba7b77f",
-                "10k_PBMC_filtered_matrix.seurat.rds:md5,4161560d20e92b01f91efd6a3b9ec9af",
+                "10k_PBMC_filtered_matrix.sce.rds:md5,12da40681f324c1574b99b340d7d20c3",
+                "10k_PBMC_filtered_matrix.seurat.rds:md5,4c2766133b7fc5410be80cff9ac15dbe",
                 "10k_PBMC_raw_matrix.h5ad:md5,25d6d103ad31112ab5d2c170aa3ad975",
-                "10k_PBMC_raw_matrix.sce.rds:md5,47dcd79cd08669f4e818f0c785cbfb7e",
-                "10k_PBMC_raw_matrix.seurat.rds:md5,361aed11e3a6cdc8937bfcc6b6f302b7",
+                "10k_PBMC_raw_matrix.sce.rds:md5,fcda5ad3fa3ef81247d092c65ab08bd0",
+                "10k_PBMC_raw_matrix.seurat.rds:md5,272f7c801329f9e6f0c4e903eee52ddf",
                 "fastqc-status-check-heatmap.txt:md5,55b658eef7b63c6f8e3d559be41f5df8",
                 "fastqc_adapter_content_plot.txt:md5,31ca16758049ac46cc84875ddc4ff6d3",
                 "fastqc_overrepresented_sequences_plot.txt:md5,314754adfcfa2977ee4f61c2ec5444f2",
@@ -294,8 +296,8 @@
         ],
         "meta": {
             "nf-test": "0.9.3",
-            "nextflow": "25.10.3"
+            "nextflow": "25.10.4"
         },
-        "timestamp": "2026-02-26T12:47:27.731623851"
+        "timestamp": "2026-07-23T11:01:48.052989696"
     }
 }
