@@ -201,6 +201,13 @@ def main():
     df.to_csv(output_csv)
     print("Done!")
 
+    # Remove airr modality if present, as it is not needed for the downstream analyses and it is very heavy to save in the h5mu file
+    if 'airr' in mdata.mod:
+        print("\nRemoving 'airr' modality from MuData object")
+        del mdata.mod['airr']
+        mdata.update()
+        print("Done!")
+
     print("Saving h5ad data to file {}".format(output))
     mdata.write(output)
     print("Done!")

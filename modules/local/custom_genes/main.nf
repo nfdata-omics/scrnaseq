@@ -9,7 +9,7 @@ process CUSTOM_GENES {
     tuple val(meta_geneset), val(resolution), path(custom_geneset)
 
     output:
-    path "*_features_plots.pdf"         , emit: feat_plot
+    path "*_features_plots.pdf"         , optional: true, emit: feat_plot
     path "*_dotplot_r*.pdf"             , optional: true, emit: dotplot
     path "*_heatmap_r*.pdf"             , optional: true, emit: heatmap
     path "*_violin_r*.pdf"              , optional: true, emit: violin
