@@ -49,6 +49,8 @@ pbmc8k,pbmc8k_S1_L008_R1_001.fastq.gz,pbmc8k_S1_L008_R2_001.fastq.gz,10000
 
 Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
 
+The main samplesheet can also contain preprocessed Cell Ranger matrices. Use `processed_data` for a filtered `.h5` matrix or a complete MEX directory, and optionally `unfiltered_data` for its raw counterpart. FASTQ and preprocessed samples can be combined in the same run; see the [usage documentation](docs/usage.md#preprocessed-matrices-and-mixed-inputs) for the complete contract.
+
 Now, you can run the pipeline using:
 
 ```bash

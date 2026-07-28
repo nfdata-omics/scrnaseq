@@ -4,7 +4,7 @@
 
 ## Samplesheet input
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with at least 3 columns, and a header row as shown in the examples below.
+You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It must be a comma-separated file with a header row. Each row provides either FASTQ files or a preprocessed Cell Ranger matrix.
 
 ```bash
 --input '[path to samplesheet file]'
@@ -21,19 +21,32 @@ CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
 CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
 ```
 
-### Full samplesheet
+### FASTQ samplesheet
 
-There is a strict requirement for the first 3 columns to match those defined in the table below.
+For FASTQ rows, the `sample`, `fastq_1`, and `fastq_2` columns must match the definitions below.
 
 | Column           | Description                                                                                                                                                                                                                                                                                                               |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sample`         | Required. Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`).                                                                                                                          |
-| `fastq_1`        | Required. Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                                                                                                                                                      |
-| `fastq_2`        | Required. Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                                                                                                                                                      |
+| `fastq_1`        | Required for FASTQ input. Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                                                                                                                                      |
+| `fastq_2`        | Required for paired-end FASTQ input. Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                                                                                                                           |
 | `expected_cells` | Optional. Number of cells expected for a sample. Must be an integer. If multiple rows are provided for the same sample, this must be the same number for all rows, i.e. the total number of expected cells for the sample.                                                                                                |
 | `seq_center`     | Optional. Sequencing center for the sample. If multiple rows are provided for the same sample, this must be the same string for all rows. Samples sequenced at different centers are considered different samples and must have different identifiers. Used for STARsolo BAM outputs only. Overrides `params.seq_center`. |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+
+### Preprocessed matrices and mixed inputs
+
+Instead of FASTQ files, a row can provide a preprocessed Cell Ranger matrix with the `processed_data` column. `processed_data` is required and represents the filtered matrix used for downstream analysis; `unfiltered_data` is optional and represents the corresponding raw matrix. Both columns accept either a 10x Cell Ranger HDF5 file (`.h5`) or a MEX directory containing `matrix.mtx` (or `matrix.mtx.gz`), `barcodes.tsv` (or `barcodes.tsv.gz`), and `features.tsv` (or `features.tsv.gz`).
+
+Preprocessed rows must set `feature_type`. FASTQ and preprocessed data cannot be supplied for the same sample, but they can be mixed across different samples in one run.
+
+```csv title="mixed_samplesheet.csv"
+sample,fastq_1,fastq_2,feature_type,processed_data,unfiltered_data
+FASTQ_SAMPLE,/data/FASTQ_SAMPLE_R1.fastq.gz,/data/FASTQ_SAMPLE_R2.fastq.gz,gex,,
+H5_SAMPLE,,,gex,/data/H5_SAMPLE/filtered_feature_bc_matrix.h5,/data/H5_SAMPLE/raw_feature_bc_matrix.h5
+MEX_SAMPLE,,,gex,/data/MEX_SAMPLE/filtered_feature_bc_matrix,
+```
 
 ### Expected cells
 

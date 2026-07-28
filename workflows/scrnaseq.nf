@@ -237,7 +237,6 @@ workflow SCRNASEQ {
     //
     // SUBWORKFLOW: Run quality filtering on the concatenated h5ad files
     //
-    // Da togliere questa cosa ch_rds_selected, se counts, canale vuoto tanto non faro' la parte dei doppietti
     if ( !params.skip_qcfilters ) {
         DOUBLETS_QUALITYFILTERING (
             H5AD_CONVERSION.out.rds_concat,

@@ -3,7 +3,7 @@ Changes in component 'nf-core/cellranger/multi'
 Changes in 'cellranger/multi/main.nf':
 --- modules/nf-core/cellranger/multi/main.nf
 +++ modules/nf-core/cellranger/multi/main.nf
-@@ -161,16 +161,77 @@
+@@ -161,16 +161,78 @@
  
      stub:
      prefix = task.ext.prefix ?: "${meta.id}"
@@ -87,10 +87,11 @@ Changes in 'cellranger/multi/main.nf':
 -        cellranger: \$(echo \$( cellranger --version 2>&1) | sed 's/^.*[^0-9]\\([0-9]*\\.[0-9]*\\.[0-9]*\\).*\$/\\1/' )
 -    END_VERSIONS
 -    """
--}
++    touch versions.yml
 +    """
 +
-+}
+ }
+
 'modules/nf-core/cellranger/multi/templates/cellranger_multi.py' is unchanged
 'modules/nf-core/cellranger/multi/tests/nextflow.config' is unchanged
 'modules/nf-core/cellranger/multi/tests/singleplex_flex.config' is unchanged
