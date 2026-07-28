@@ -210,7 +210,7 @@ workflow SCRNASEQ {
 
     // Run cellrangermulti pipeline
     if (params.aligner == 'cellrangermulti' && !params.h5ad_matrix && !params.counts) {
- 
+
         // parse the input data to generate a collected channel per sample, which will have
         // the metadata and data for each data-type of every sample.
         // then, inside the subworkflow, it can be parsed to manage inputs to the module
@@ -351,13 +351,13 @@ workflow SCRNASEQ {
                 tuple(meta, contig_file)
             }
             .collect(flat: false)
-            .map { rows ->  
+            .map { rows ->
                 tuple(
                     rows.collect { it[0] },
                     rows.collect { it[1] }
                 )
             }
-                
+
         CONCATENATE_VDJ(ch_vdj_input)
 
         ch_versions = ch_versions.mix(
@@ -367,7 +367,7 @@ workflow SCRNASEQ {
         vdj_file = CONCATENATE_VDJ.out.h5ad
 
     } else if (
-        params.aligner == "cellrangermulti" && 
+        params.aligner == "cellrangermulti" &&
         params.include_vdj
     ) {
 
@@ -381,10 +381,10 @@ workflow SCRNASEQ {
         )
 
         vdj_file = CONCATENATE_VDJ.out.h5ad
-            
+
     }
     // If no VDJ input is available, send a dummy tuple to CONVERT_MUDATA
-    vdj_file = vdj_file.ifEmpty { 
+    vdj_file = vdj_file.ifEmpty {
         tuple([id: 'dummy'], [])
     }
 
