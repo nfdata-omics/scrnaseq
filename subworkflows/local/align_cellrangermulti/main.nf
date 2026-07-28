@@ -112,10 +112,6 @@ workflow CELLRANGER_MULTI_ALIGN {
             .map { grp -> if ( grp.size() == 2 ) { grp[1] } else { [] } } // a correct tuple from snippet will have: [ sample, frna.csv ]
             .set { ch_frna_sample_csv }
 
-            ch_grouped_fastq.gex.view()
-            PARSE_CELLRANGERMULTI_SAMPLESHEET.out.frna.flatten().view()
-            ch_frna_sample_csv.view()
-
         } else {
             ch_cmo_barcode_csv = []
             ch_ocm_barcode_csv = []
@@ -202,13 +198,13 @@ workflow CELLRANGER_MULTI_ALIGN {
         //
         CELLRANGER_MULTI(
             ch_grouped_fastq.gex.map{ pair -> pair[0] },
-            ch_grouped_fastq.gex.map { meta, fastqs -> [meta, fastqs, meta.options] },
+            ch_grouped_fastq.gex,
             ch_grouped_fastq.vdj,
             ch_grouped_fastq.ab,
             ch_grouped_fastq.beam,
             ch_grouped_fastq.cmo,
             ch_grouped_fastq.crispr,
-            ch_cellranger_gex_index,
+            ch_cellranger_gex_index.map{ _meta, file -> file },
             ch_gex_frna_probeset,
             ch_gex_target_panel,
             ch_cellranger_vdj_index,
