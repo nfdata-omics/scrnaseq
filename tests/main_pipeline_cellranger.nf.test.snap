@@ -28,6 +28,7 @@
                 "DOUBLETS": {
                     "Biobase": "2.66.0",
                     "BiocGenerics": "0.52.0",
+                    "BiocParallel": "1.40.0",
                     "GenomeInfoDb": "1.42.1",
                     "GenomicRanges": "1.58.0",
                     "IRanges": "2.40.1",
@@ -419,14 +420,14 @@
                 "multiqc_citations.txt:md5,db9f58c039af2923e06a61e46e82c015",
                 "multiqc_fastqc.txt:md5,12027880857508ce5cedc3904a351730",
                 "multiqc_general_stats.txt:md5,92a7a66e313e6ce2d13da53b501b5c0c",
-                "doublets_score.csv:md5,d6e51e2be679de020aa9fe473840ffe8",
-                "summary_qualitycontrol_by_pool.csv:md5,b7c69f93e634495e8c5db09544f9f5fb"
+                "doublets_score.csv:md5,06246ae0e9b2a42997f492e8464db679",
+                "summary_qualitycontrol_by_pool.csv:md5,61a28bf62beb3b738265b1a9c4b4c6bc"
             ]
         ],
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.4"
         },
-        "timestamp": "2026-07-23T10:55:53.486824065"
+        "timestamp": "2026-07-29T16:58:43.011304824"
     }
 }

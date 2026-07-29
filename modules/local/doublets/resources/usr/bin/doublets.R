@@ -4,6 +4,7 @@ options(warn = -1)
 suppressMessages(library(optparse))
 suppressMessages(library(scDblFinder))
 suppressMessages(library(SingleCellExperiment))
+suppressMessages(library(BiocParallel))
 
 ###Script to compute doublets from scdblfinder package
 option_list <- list(make_option(c("-o", "--output_dir"), action = "store", type = "character", default = getwd(), help = "Directory where the output files will be saved. [default: current working directory]"),
@@ -42,8 +43,10 @@ if (length(fastq_cols) > 0) {
 names(assays(sce)) <- "counts"
 
 #Compute doublets
-set.seed(123)
-sce <- scDblFinder(sce, sample = "sample")
+# scDblFinder dispatches samples through BiocParallel. The global R seed is
+# ignored by that backend, so seed the explicit serial parameter instead.
+bp <- SerialParam(RNGseed = 123)
+sce <- scDblFinder(sce, sample = "sample", BPPARAM = bp)
 
 # Defining the output file path in the specified directory
 cell_annotation <- as.data.frame(sce@colData)
