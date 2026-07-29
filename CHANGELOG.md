@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Focus the supported alignment workflows on the Cell Ranger family (`cellranger`, `cellrangerarc`, and `cellrangermulti`), with Cell Ranger now used as the default aligner.
 - Streamline the pipeline by removing retired alignment workflows and their associated modules, parameters, configuration, protocol assets, and test resources.
 - Improve repository maintainability and nf-core lint compatibility by documenting local modules, normalizing component imports, and removing obsolete files and configuration.
+- Replace the global `--counts` restart mode with samplesheet-based `processed_data` and optional `unfiltered_data` inputs.
+
+### Added
+
+- Support per-sample preprocessed Cell Ranger HDF5 and MEX/MTX matrices, including mixed FASTQ and preprocessed runs.
+- Validate preprocessed matrix inputs and normalize FASTQ, filtered, and raw samplesheet entries into one input channel.
+- Add integrated nf-test coverage for samplesheet parsing and Cell Ranger alignment/preprocessed-input handling.
 
 ### Features
 

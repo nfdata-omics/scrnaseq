@@ -1,5 +1,5 @@
 name: mtx_to_h5ad
-description: Convert Cell Ranger matrix outputs into AnnData H5AD files.
+description: Convert Cell Ranger H5 or MEX matrices into AnnData H5AD files.
 keywords: [single-cell, matrix, anndata, h5ad]
 tools:
   - scanpy:
@@ -10,18 +10,9 @@ input:
   - - meta:
         type: map
         description: Groovy map containing matrix metadata.
-    - inputs:
+    - matrix_input:
         type: file
-        description: Matrix input files.
-  - txp2gene:
-      type: file
-      description: Transcript-to-gene mapping, when applicable.
-  - star_index:
-      type: directory
-      description: STAR index, when applicable.
-  - input_aligner:
-      type: string
-      description: Aligner that generated the matrix.
+        description: Selected H5 matrix or complete MEX directory.
 output:
   h5ad:
     - - meta:

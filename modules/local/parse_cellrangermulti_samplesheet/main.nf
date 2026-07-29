@@ -30,9 +30,6 @@ process PARSE_CELLRANGERMULTI_SAMPLESHEET {
 
     stub:
     """
-    mkdir -p cmo_files ocm_files frna_files
-    touch frna_files/test.csv
-    touch cmo_files/test.csv
-    touch ocm_files/test.csv
+    check_cellrangermulti.py $samplesheet
     """
 }

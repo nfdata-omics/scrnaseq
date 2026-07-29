@@ -112,10 +112,6 @@ workflow CELLRANGER_MULTI_ALIGN {
             .map { grp -> if ( grp.size() == 2 ) { grp[1] } else { [] } } // a correct tuple from snippet will have: [ sample, frna.csv ]
             .set { ch_frna_sample_csv }
 
-            ch_grouped_fastq.gex.view()
-            PARSE_CELLRANGERMULTI_SAMPLESHEET.out.frna.flatten().view()
-            ch_frna_sample_csv.view()
-
         } else {
             ch_cmo_barcode_csv = []
             ch_ocm_barcode_csv = []
@@ -208,7 +204,7 @@ workflow CELLRANGER_MULTI_ALIGN {
             ch_grouped_fastq.beam,
             ch_grouped_fastq.cmo,
             ch_grouped_fastq.crispr,
-            ch_cellranger_gex_index,
+            ch_cellranger_gex_index.map{ _meta, file -> file },
             ch_gex_frna_probeset,
             ch_gex_target_panel,
             ch_cellranger_vdj_index,
@@ -225,73 +221,67 @@ workflow CELLRANGER_MULTI_ALIGN {
         )
 
         //
-        // Cellranger multi splits the results from each sample. So, a module execution will have: (1) a raw counts dir for all;
-        // (2) a filtered counts dir PER sample; (3) a raw counts dir PER sample
+        // Cell Ranger multi produces aggregate matrices for the complete run and sample-specific matrices under
+        // per_sample_outs. Only the latter belong in the downstream sample channel: aggregate matrices do not
+        // represent biological samples and would duplicate cells already present in the per-sample outputs.
         //
-        // Thus, cellranger multi outputs data from all identified samples in a single channel, which will cause file collision.
-        //
-        // For the conversion, we should convert the resulting files of each sample, thus, now, we must parse the names
-        // of the filtered 'per_sample_outs' of cellranger/multi on the split the channels raw / filtered.
-        //
+        ch_matrices_filtered = parse_per_sample_output_channels(
+            CELLRANGER_MULTI.out.outs,
+            "sample_filtered_feature_bc_matrix"
+        )
+        ch_matrices_raw = parse_per_sample_output_channels(
+            CELLRANGER_MULTI.out.outs,
+            "sample_raw_feature_bc_matrix"
+        )
 
-        // Split channels of raw and filtered to avoid file collision problems when loading the inputs in conversion modules.
-        ch_matrices_filtered = parse_demultiplexed_output_channels( CELLRANGER_MULTI.out.outs, "filtered_feature_bc_matrix" )
-        ch_matrices_raw      = parse_demultiplexed_output_channels( CELLRANGER_MULTI.out.outs, "raw_feature_bc_matrix"      )
-
-        // Extract filtered_contig_annotation file for each sample to compute the concatenation.
-        ch_vdj_files =
-            CELLRANGER_MULTI.out.outs.map { meta, outs ->
-            def desired_files = outs.findAll { it.name == "filtered_contig_annotations.csv" }
-            if (desired_files.size() > 0) {
-                [ meta, desired_files ]
+        // Preserve the sample and receptor type associated with each filtered V(D)J annotation.
+        ch_vdj_files = CELLRANGER_MULTI.out.outs
+            .flatMap { meta, outs ->
+                outs.findAll { path ->
+                    path.name == "filtered_contig_annotations.csv" &&
+                    path.toString().contains("/per_sample_outs/") &&
+                    (path.parent.name in ["vdj_b", "vdj_t"])
+                }.collect { path ->
+                    def meta_clone = per_sample_meta(meta, path)
+                    meta_clone.feature_type = "vdj"
+                    meta_clone.vdj_type = path.parent.name
+                    [meta_clone, path]
+                }
             }
-            else {
+            .collect()
+            .map { entries ->
+                def pairs = entries.collate(2)
+                [
+                    pairs.collect { meta, _path -> meta },
+                    pairs.collect { _meta, path -> path }
+                ]
             }
-        }
-
-        ch_vdj_files_collect =  ch_vdj_files.collect()
-
-
-        ch_transformed_channel = ch_vdj_files_collect.map { list ->
-        def meta = []
-        def files = []
-
-        list.collate(2).each { pair ->
-            meta << pair[0]
-            files << pair[1]
-        }
-        return [meta, files.flatten()]
-        }
 
     emit:
         cellrangermulti_out          = CELLRANGER_MULTI.out.outs
         cellrangermulti_mtx_raw      = ch_matrices_raw
         cellrangermulti_mtx_filtered = ch_matrices_filtered
-        vdj                          = ch_transformed_channel
+        vdj                          = ch_vdj_files
 }
 
-def parse_demultiplexed_output_channels(in_ch, pattern) {
-    def out_ch = in_ch
-        .map { meta, mtx_files ->
-            def desired_files = []
-            mtx_files.each{ path -> if ( path.toString().contains("${pattern}") ) { desired_files.add( path ) } }
-            [ meta, desired_files ]
-        }                    // separate only desired files
-        .transpose()         // transpose for handling one meta/file pair at a time
-        .map { meta, mtx_files ->
-            def meta_clone = meta.clone()
-            meta_clone.input_type = pattern.contains('raw_') ? 'raw' : 'filtered' // add metadata for conversion workflow
-            if ( mtx_files.toString().contains("per_sample_outs") ) {
-                def demultiplexed_sample_id = mtx_files.toString().split('/per_sample_outs/')[1].split('/')[0]
-                if ( demultiplexed_sample_id.toString() == meta.id) {
-                    return null
-                }
-                meta_clone.id = demultiplexed_sample_id.toString()
+def parse_per_sample_output_channels(in_ch, matrix_name) {
+    return in_ch
+        .flatMap { meta, matrix_files ->
+            matrix_files.findAll { path ->
+                path.toString().contains("/per_sample_outs/") &&
+                (path.name == matrix_name || path.name == "${matrix_name}.h5")
+            }.collect { path ->
+                def meta_clone = per_sample_meta(meta, path)
+                meta_clone.feature_type = "gex"
+                meta_clone.input_type = matrix_name.contains("_raw_") ? "raw" : "filtered"
+                [meta_clone, path]
             }
-            [ meta_clone, mtx_files ]
-        }                    // check if output is from demultiplexed sample, if yes, correct meta.id for proper conversion naming
-        .filter{ item -> item != null } // remove nulls from previous step
-        .groupTuple( by: 0 ) // group it back as one file collection per sample
+        }
+        .groupTuple(by: 0)
+}
 
-    return out_ch
+def per_sample_meta(meta, path) {
+    def meta_clone = meta.clone()
+    meta_clone.id = path.toString().split("/per_sample_outs/")[1].split("/")[0]
+    return meta_clone
 }

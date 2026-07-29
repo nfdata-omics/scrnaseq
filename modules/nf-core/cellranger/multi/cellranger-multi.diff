@@ -1,0 +1,100 @@
+Changes in component 'nf-core/cellranger/multi'
+'modules/nf-core/cellranger/multi/meta.yml' is unchanged
+Changes in 'cellranger/multi/main.nf':
+--- modules/nf-core/cellranger/multi/main.nf
++++ modules/nf-core/cellranger/multi/main.nf
+@@ -161,16 +161,78 @@
+ 
+     stub:
+     prefix = task.ext.prefix ?: "${meta.id}"
++    def stub_scenario
++    def stub_demultiplexing_file
++    if (frna_sampleinfo) {
++        stub_scenario = 'flex_multiplexed'
++        stub_demultiplexing_file = frna_sampleinfo
++    } else if (ocm_barcodes) {
++        stub_scenario = 'immune_ocm'
++        stub_demultiplexing_file = ocm_barcodes
++    } else if (cmo_barcodes) {
++        stub_scenario = 'cmo_multiplexed'
++        stub_demultiplexing_file = cmo_barcodes
++    } else {
++        stub_scenario = 'immune_singleplex'
++        stub_demultiplexing_file = null
++    }
++    def stub_has_vdj = meta_vdj && vdj_reference
++    def stub_has_sample_raw_matrix = stub_scenario != 'cmo_multiplexed'
++    def stub_top_level_outputs = ''
++    if (stub_scenario in ['immune_ocm', 'flex_multiplexed', 'cmo_multiplexed']) {
++        stub_top_level_outputs += """
++        mkdir -p "${prefix}/outs/multiplexing_analysis"
++        touch "${prefix}/outs/multiplexing_analysis/cells_per_tag.json"
++        """
++    }
++    if (stub_scenario == 'flex_multiplexed') {
++        stub_top_level_outputs += """
++        touch "${prefix}/outs/raw_probe_bc_matrix.h5"
++        touch "${prefix}/outs/multiplexing_analysis/frp_gem_barcode_overlap.csv"
++        """
++    }
++    def stub_vdj_top_level = stub_has_vdj ? """
++        mkdir -p "${prefix}/outs/vdj_b" "${prefix}/outs/vdj_t"
++        touch "${prefix}/outs/vdj_b/all_contig_annotations.csv"
++        touch "${prefix}/outs/vdj_t/all_contig_annotations.csv"
++        """ : ''
++    def stub_sample_raw_matrix = stub_has_sample_raw_matrix
++        ? 'touch "${sample_outdir}/sample_raw_feature_bc_matrix.h5"'
++        : ''
++    def stub_sample_probe_matrix = stub_scenario == 'flex_multiplexed'
++        ? 'touch "${sample_outdir}/sample_raw_probe_bc_matrix.h5"'
++        : ''
++    def stub_sample_vdj = stub_has_vdj ? '''
++        mkdir -p "${sample_outdir}/vdj_b" "${sample_outdir}/vdj_t"
++        touch "${sample_outdir}/vdj_b/filtered_contig_annotations.csv"
++        touch "${sample_outdir}/vdj_t/filtered_contig_annotations.csv"
++        ''' : ''
++    def stub_create_sample_outs = """
++    create_sample_outs() {
++        sample_outdir="${prefix}/outs/per_sample_outs/\$1"
++        mkdir -p "\${sample_outdir}"
++        touch "\${sample_outdir}/sample_filtered_feature_bc_matrix.h5"
++        ${stub_sample_raw_matrix}
++        ${stub_sample_probe_matrix}
++        ${stub_sample_vdj}
++        touch "\${sample_outdir}/web_summary.html"
++    }
++    """
++    def stub_per_sample_outs = stub_demultiplexing_file
++        ? "tail -n +2 \"${stub_demultiplexing_file}\" | cut -d ',' -f1 | while IFS= read -r sample_id; do create_sample_outs \"\${sample_id}\"; done"
++        : "create_sample_outs \"${meta.id}\""
+     """
+     mkdir -p "${prefix}/outs/"
+-    touch ${prefix}/outs/fake_file.txt
+-    echo -n "" >> ${prefix}/outs/fake_file.txt
++    touch "${prefix}/outs/config.csv"
++    touch "${prefix}/outs/raw_feature_bc_matrix.h5"
++    touch "${prefix}/outs/filtered_feature_bc_matrix.h5"
++    touch "${prefix}/outs/qc_report.html"
++    ${stub_top_level_outputs}
++    ${stub_vdj_top_level}
++    ${stub_create_sample_outs}
++    ${stub_per_sample_outs}
+     touch cellranger_multi_config.csv
+-    echo -n "" >> cellranger_multi_config.csv
+-
+-    cat <<-END_VERSIONS > versions.yml
+-    "${task.process}":
+-        cellranger: \$(echo \$( cellranger --version 2>&1) | sed 's/^.*[^0-9]\\([0-9]*\\.[0-9]*\\.[0-9]*\\).*\$/\\1/' )
+-    END_VERSIONS
+-    """
++    touch versions.yml
++    """
++
+ }
+
+'modules/nf-core/cellranger/multi/templates/cellranger_multi.py' is unchanged
+'modules/nf-core/cellranger/multi/tests/nextflow.config' is unchanged
+'modules/nf-core/cellranger/multi/tests/singleplex_flex.config' is unchanged
+'modules/nf-core/cellranger/multi/tests/main.nf.test.snap' is unchanged
+'modules/nf-core/cellranger/multi/tests/main.nf.test' is unchanged
+************************************************************

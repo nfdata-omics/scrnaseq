@@ -1,0 +1,711 @@
+nextflow_workflow {
+
+    name "Test Workflow ALIGNMENT"
+    script "../main.nf"
+    workflow "ALIGNMENT"
+
+    tag "subworkflows"
+    tag "subworkflows_local"
+    tag "alignment"
+
+    test("Should merge Cell Ranger count and preprocessed matrices") {
+
+        options "-stub-run"
+
+        when {
+            params {
+                aligner = "cellranger"
+                outdir  = "$outputDir"
+            }
+
+            workflow {
+                """
+                def fixture_dir = file("${launchDir}/fixtures")
+                java.nio.file.Files.createDirectories(fixture_dir)
+
+                def create_file = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path.parent)
+                    java.nio.file.Files.write(path, new byte[0])
+                    path
+                }
+                def create_mex = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path)
+                    ["matrix.mtx.gz", "barcodes.tsv.gz", "features.tsv.gz"].each {
+                        java.nio.file.Files.write(path.resolve(it), new byte[0])
+                    }
+                    path
+                }
+                def create_reference = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path)
+                    java.nio.file.Files.write(path.resolve("reference.json"), new byte[0])
+                    path
+                }
+
+                def read_1 = create_file("count_fastq_S1_L001_R1_001.fastq.gz")
+                def read_2 = create_file("count_fastq_S1_L001_R2_001.fastq.gz")
+                def filtered_h5 = create_file("count_h5.filtered.h5")
+                def raw_h5 = create_file("count_h5.raw.h5")
+                def filtered_mex = create_mex("count_mex.filtered")
+                def reference = create_reference("cellranger_reference")
+
+                input[0] = channel.of(
+                    [
+                        [id: "count_fastq", feature_type: "gex", input_type: "fastq", single_end: false],
+                        [read_1, read_2]
+                    ],
+                    [
+                        [id: "count_h5", feature_type: "gex", input_type: "filtered"],
+                        [filtered_h5]
+                    ],
+                    [
+                        [id: "count_h5", feature_type: "gex", input_type: "raw"],
+                        [raw_h5]
+                    ],
+                    [
+                        [id: "count_mex", feature_type: "gex", input_type: "filtered"],
+                        [filtered_mex]
+                    ]
+                )
+                input[1] = channel.empty()
+                input[2] = channel.empty()
+                input[3] = channel.of([[id: "cellranger_reference"], reference])
+                input[4] = "auto"
+                input[5] = []
+                input[6] = []
+                input[7] = []
+                input[8] = []
+                """
+            }
+        }
+
+        then {
+            def observed = workflow.out.mtx_matrices.collect { entry ->
+                def meta = entry[0]
+                [
+                    id          : meta.id,
+                    feature_type: meta.feature_type,
+                    input_type  : meta.input_type,
+                    files       : entry[1].collect { new File(it.toString()).name }.sort()
+                ]
+            }.sort { "${it.id}:${it.input_type}" }
+
+            def expected = [
+                [
+                    id          : "count_fastq",
+                    feature_type: "gex",
+                    input_type  : "filtered",
+                    files       : ["filtered_feature_bc_matrix.h5"]
+                ],
+                [
+                    id          : "count_fastq",
+                    feature_type: "gex",
+                    input_type  : "raw",
+                    files       : ["raw_feature_bc_matrix.h5"]
+                ],
+                [
+                    id          : "count_h5",
+                    feature_type: "gex",
+                    input_type  : "filtered",
+                    files       : ["count_h5.filtered.h5"]
+                ],
+                [
+                    id          : "count_h5",
+                    feature_type: "gex",
+                    input_type  : "raw",
+                    files       : ["count_h5.raw.h5"]
+                ],
+                [
+                    id          : "count_mex",
+                    feature_type: "gex",
+                    input_type  : "filtered",
+                    files       : ["count_mex.filtered"]
+                ]
+            ].sort { "${it.id}:${it.input_type}" }
+
+            def task_names = workflow.trace.tasks()*.name
+
+            assertAll(
+                { assert workflow.success },
+                { assert observed == expected },
+                { assert task_names.count { it.contains("CELLRANGER_COUNT") } == 1 },
+                { assert !task_names.any { it.contains("CELLRANGER_MULTI") || it.contains("CELLRANGERARC_COUNT") } }
+            )
+        }
+    }
+
+    test("Should handle immune profiling with OCM multiplexing") {
+
+        options "-stub-run"
+
+        when {
+            params {
+                aligner                       = "cellrangermulti"
+                outdir                        = "$outputDir"
+                skip_cellrangermulti_vdjref   = false
+                skip_cellranger_renaming      = false
+                save_align_intermeds          = false
+                cellranger_multi_barcodes     = null
+                gex_frna_probe_set            = null
+                gex_target_panel              = null
+                gex_cmo_set                   = null
+                gex_barcode_sample_assignment = null
+                fb_reference                  = null
+                vdj_inner_enrichment_primers  = null
+            }
+
+            workflow {
+                """
+                def fixture_dir = file("${launchDir}/fixtures")
+                java.nio.file.Files.createDirectories(fixture_dir)
+
+                def create_file = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path.parent)
+                    java.nio.file.Files.write(path, new byte[0])
+                    path
+                }
+                def create_reference = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path)
+                    java.nio.file.Files.write(path.resolve("reference.json"), new byte[0])
+                    path
+                }
+
+                def gex_r1 = create_file("multi_gex_S1_L001_R1_001.fastq.gz")
+                def gex_r2 = create_file("multi_gex_S1_L001_R2_001.fastq.gz")
+                def vdj_r1 = create_file("multi_vdj_S1_L001_R1_001.fastq.gz")
+                def vdj_r2 = create_file("multi_vdj_S1_L001_R2_001.fastq.gz")
+                def filtered_h5 = create_file("multi_preprocessed.filtered.h5")
+                def raw_h5 = create_file("multi_preprocessed.raw.h5")
+                def gex_reference = create_reference("cellranger_gex_reference")
+                def vdj_reference = create_reference("cellranger_vdj_reference")
+                def multiplexing_samplesheet = create_file("multi_ocm_samplesheet.csv")
+                multiplexing_samplesheet.text = "sample,multiplexed_sample_id,ocm_ids,description\\n" +
+                    "multi_fastq,multi_sample_1,OB1,First multiplexed sample\\n" +
+                    "multi_fastq,multi_sample_2,OB2,Second multiplexed sample\\n"
+
+                input[0] = channel.of(
+                    [
+                        [id: "multi_fastq", feature_type: "gex", input_type: "fastq", single_end: false],
+                        [gex_r1, gex_r2]
+                    ],
+                    [
+                        [id: "multi_fastq", feature_type: "vdj", input_type: "fastq", single_end: false],
+                        [vdj_r1, vdj_r2]
+                    ],
+                    [
+                        [id: "multi_preprocessed", feature_type: "gex", input_type: "filtered"],
+                        [filtered_h5]
+                    ],
+                    [
+                        [id: "multi_preprocessed", feature_type: "gex", input_type: "raw"],
+                        [raw_h5]
+                    ]
+                )
+                input[1] = channel.empty()
+                input[2] = channel.empty()
+                input[3] = channel.of([[id: "cellranger_gex_reference"], gex_reference])
+                input[4] = "auto"
+                input[5] = []
+                input[6] = []
+                input[7] = vdj_reference
+                input[8] = channel.of(multiplexing_samplesheet)
+                """
+            }
+        }
+
+        then {
+            def observed = workflow.out.mtx_matrices.collect { entry ->
+                def meta = entry[0]
+                [
+                    id          : meta.id,
+                    feature_type: meta.feature_type,
+                    input_type  : meta.input_type,
+                    files       : entry[1].collect { new File(it.toString()).name }.sort()
+                ]
+            }.sort { "${it.id}:${it.input_type}" }
+
+            def expected = [
+                [
+                    id          : "multi_sample_1",
+                    feature_type: "gex",
+                    input_type  : "filtered",
+                    files       : ["sample_filtered_feature_bc_matrix.h5"]
+                ],
+                [
+                    id          : "multi_sample_1",
+                    feature_type: "gex",
+                    input_type  : "raw",
+                    files       : ["sample_raw_feature_bc_matrix.h5"]
+                ],
+                [
+                    id          : "multi_sample_2",
+                    feature_type: "gex",
+                    input_type  : "filtered",
+                    files       : ["sample_filtered_feature_bc_matrix.h5"]
+                ],
+                [
+                    id          : "multi_sample_2",
+                    feature_type: "gex",
+                    input_type  : "raw",
+                    files       : ["sample_raw_feature_bc_matrix.h5"]
+                ],
+                [
+                    id          : "multi_preprocessed",
+                    feature_type: "gex",
+                    input_type  : "filtered",
+                    files       : ["multi_preprocessed.filtered.h5"]
+                ],
+                [
+                    id          : "multi_preprocessed",
+                    feature_type: "gex",
+                    input_type  : "raw",
+                    files       : ["multi_preprocessed.raw.h5"]
+                ]
+            ].sort { "${it.id}:${it.input_type}" }
+
+            def vdj_entries = workflow.out.vdj_file.collectMany { entry ->
+                [entry[0], entry[1]].transpose().collect { meta, path ->
+                    [
+                        id      : meta.id,
+                        vdj_type: meta.vdj_type,
+                        file    : new File(path.toString()).name
+                    ]
+                }
+            }.sort { "${it.id}:${it.vdj_type}" }
+            def expected_vdj_entries = [
+                [id: "multi_sample_1", vdj_type: "vdj_b", file: "filtered_contig_annotations.csv"],
+                [id: "multi_sample_1", vdj_type: "vdj_t", file: "filtered_contig_annotations.csv"],
+                [id: "multi_sample_2", vdj_type: "vdj_b", file: "filtered_contig_annotations.csv"],
+                [id: "multi_sample_2", vdj_type: "vdj_t", file: "filtered_contig_annotations.csv"]
+            ].sort { "${it.id}:${it.vdj_type}" }
+            def task_names = workflow.trace.tasks()*.name
+
+            assertAll(
+                { assert workflow.success },
+                { assert observed == expected },
+                { assert vdj_entries == expected_vdj_entries },
+                { assert task_names.count { it.contains(":CELLRANGER_MULTI (") } == 1 },
+                { assert !task_names.any { it.contains("CELLRANGER_COUNT") || it.contains("CELLRANGERARC_COUNT") } }
+            )
+        }
+    }
+
+    test("Should handle immune profiling singleplex") {
+
+        options "-stub-run"
+
+        when {
+            params {
+                aligner                       = "cellrangermulti"
+                outdir                        = "$outputDir"
+                skip_cellrangermulti_vdjref   = false
+                skip_cellranger_renaming      = false
+                save_align_intermeds          = false
+                cellranger_multi_barcodes     = null
+                gex_frna_probe_set            = null
+                gex_target_panel              = null
+                gex_cmo_set                   = null
+                gex_barcode_sample_assignment = null
+                fb_reference                  = null
+                vdj_inner_enrichment_primers  = null
+            }
+
+            workflow {
+                """
+                def fixture_dir = file("${launchDir}/fixtures")
+                java.nio.file.Files.createDirectories(fixture_dir)
+
+                def create_file = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path.parent)
+                    java.nio.file.Files.write(path, new byte[0])
+                    path
+                }
+                def create_reference = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path)
+                    java.nio.file.Files.write(path.resolve("reference.json"), new byte[0])
+                    path
+                }
+
+                def gex_r1 = create_file("singleplex_gex_S1_L001_R1_001.fastq.gz")
+                def gex_r2 = create_file("singleplex_gex_S1_L001_R2_001.fastq.gz")
+                def vdj_r1 = create_file("singleplex_vdj_S1_L001_R1_001.fastq.gz")
+                def vdj_r2 = create_file("singleplex_vdj_S1_L001_R2_001.fastq.gz")
+                def gex_reference = create_reference("singleplex_gex_reference")
+                def vdj_reference = create_reference("singleplex_vdj_reference")
+
+                input[0] = channel.of(
+                    [
+                        [id: "immune_singleplex", feature_type: "gex", input_type: "fastq", single_end: false],
+                        [gex_r1, gex_r2]
+                    ],
+                    [
+                        [id: "immune_singleplex", feature_type: "vdj", input_type: "fastq", single_end: false],
+                        [vdj_r1, vdj_r2]
+                    ]
+                )
+                input[1] = channel.empty()
+                input[2] = channel.empty()
+                input[3] = channel.of([[id: "singleplex_gex_reference"], gex_reference])
+                input[4] = "auto"
+                input[5] = []
+                input[6] = []
+                input[7] = vdj_reference
+                input[8] = []
+                """
+            }
+        }
+
+        then {
+            def observed = workflow.out.mtx_matrices.collect { entry ->
+                def meta = entry[0]
+                [
+                    id        : meta.id,
+                    input_type: meta.input_type,
+                    files     : entry[1].collect { new File(it.toString()).name }.sort()
+                ]
+            }.sort { it.input_type }
+            def expected = [
+                [id: "immune_singleplex", input_type: "filtered", files: ["sample_filtered_feature_bc_matrix.h5"]],
+                [id: "immune_singleplex", input_type: "raw", files: ["sample_raw_feature_bc_matrix.h5"]]
+            ].sort { it.input_type }
+            def vdj_entries = workflow.out.vdj_file.collectMany { entry ->
+                [entry[0], entry[1]].transpose().collect { meta, path -> [id: meta.id, vdj_type: meta.vdj_type, file: new File(path.toString()).name] }
+            }.sort { "${it.id}:${it.vdj_type}" }
+            def expected_vdj_entries = [
+                [id: "immune_singleplex", vdj_type: "vdj_b", file: "filtered_contig_annotations.csv"],
+                [id: "immune_singleplex", vdj_type: "vdj_t", file: "filtered_contig_annotations.csv"]
+            ].sort { "${it.id}:${it.vdj_type}" }
+            def task_names = workflow.trace.tasks()*.name
+
+            assertAll(
+                { assert workflow.success },
+                { assert observed == expected },
+                { assert vdj_entries == expected_vdj_entries },
+                { assert task_names.count { it.contains(":CELLRANGER_MULTI (") } == 1 }
+            )
+        }
+    }
+
+    test("Should handle Flex multiplexing") {
+
+        options "-stub-run"
+
+        when {
+            params {
+                aligner                       = "cellrangermulti"
+                outdir                        = "$outputDir"
+                skip_cellrangermulti_vdjref   = true
+                skip_cellranger_renaming      = false
+                save_align_intermeds          = false
+                cellranger_multi_barcodes     = null
+                gex_frna_probe_set            = "$projectDir/assets/EMPTY"
+                gex_target_panel              = null
+                gex_cmo_set                   = null
+                gex_barcode_sample_assignment = null
+                fb_reference                  = null
+                vdj_inner_enrichment_primers  = null
+            }
+
+            workflow {
+                """
+                def fixture_dir = file("${launchDir}/fixtures")
+                java.nio.file.Files.createDirectories(fixture_dir)
+
+                def create_file = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path.parent)
+                    java.nio.file.Files.write(path, new byte[0])
+                    path
+                }
+                def create_reference = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path)
+                    java.nio.file.Files.write(path.resolve("reference.json"), new byte[0])
+                    path
+                }
+
+                def gex_r1 = create_file("flex_gex_S1_L001_R1_001.fastq.gz")
+                def gex_r2 = create_file("flex_gex_S1_L001_R2_001.fastq.gz")
+                def gex_reference = create_reference("flex_gex_reference")
+                def multiplexing_samplesheet = create_file("flex_samplesheet.csv")
+                multiplexing_samplesheet.text = "sample,multiplexed_sample_id,probe_barcode_ids,description\\n" +
+                    "flex_run,flex_sample_1,BC001,First Flex sample\\n" +
+                    "flex_run,flex_sample_2,BC002,Second Flex sample\\n"
+
+                input[0] = channel.of([
+                    [id: "flex_run", feature_type: "gex", input_type: "fastq", single_end: false],
+                    [gex_r1, gex_r2]
+                ])
+                input[1] = channel.empty()
+                input[2] = channel.empty()
+                input[3] = channel.of([[id: "flex_gex_reference"], gex_reference])
+                input[4] = "auto"
+                input[5] = []
+                input[6] = []
+                input[7] = []
+                input[8] = channel.of(multiplexing_samplesheet)
+                """
+            }
+        }
+
+        then {
+            def observed = workflow.out.mtx_matrices.collect { entry ->
+                def meta = entry[0]
+                [
+                    id        : meta.id,
+                    input_type: meta.input_type,
+                    files     : entry[1].collect { new File(it.toString()).name }.sort()
+                ]
+            }.sort { "${it.id}:${it.input_type}" }
+            def expected = [
+                [id: "flex_sample_1", input_type: "filtered", files: ["sample_filtered_feature_bc_matrix.h5"]],
+                [id: "flex_sample_1", input_type: "raw", files: ["sample_raw_feature_bc_matrix.h5"]],
+                [id: "flex_sample_2", input_type: "filtered", files: ["sample_filtered_feature_bc_matrix.h5"]],
+                [id: "flex_sample_2", input_type: "raw", files: ["sample_raw_feature_bc_matrix.h5"]]
+            ].sort { "${it.id}:${it.input_type}" }
+            def task_names = workflow.trace.tasks()*.name
+
+            assertAll(
+                { assert workflow.success },
+                { assert observed == expected },
+                { assert task_names.count { it.contains(":CELLRANGER_MULTI (") } == 1 }
+            )
+        }
+    }
+
+    test("Should merge Cell Ranger ARC and preprocessed matrices") {
+
+        options "-stub-run"
+
+        when {
+            params {
+                aligner = "cellrangerarc"
+                outdir  = "$outputDir"
+            }
+
+            workflow {
+                """
+                def fixture_dir = file("${launchDir}/fixtures")
+                java.nio.file.Files.createDirectories(fixture_dir)
+
+                def create_file = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path.parent)
+                    java.nio.file.Files.write(path, new byte[0])
+                    path
+                }
+                def create_reference = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path)
+                    java.nio.file.Files.write(path.resolve("reference.json"), new byte[0])
+                    path
+                }
+
+                def gex_r1 = create_file("arc_gex_S1_L001_R1_001.fastq.gz")
+                def gex_r2 = create_file("arc_gex_S1_L001_R2_001.fastq.gz")
+                def atac_r1 = create_file("arc_atac_S1_L001_R1_001.fastq.gz")
+                def atac_r2 = create_file("arc_atac_S1_L001_R2_001.fastq.gz")
+                def atac_barcode = create_file("arc_atac_S1_L001_R3_001.fastq.gz")
+                def filtered_h5 = create_file("arc_preprocessed.filtered.h5")
+                def raw_h5 = create_file("arc_preprocessed.raw.h5")
+                def reference = create_reference("cellrangerarc_reference")
+
+                input[0] = channel.of(
+                    [
+                        [id: "arc_fastq", feature_type: "gex", input_type: "fastq", single_end: false],
+                        [gex_r1, gex_r2]
+                    ],
+                    [
+                        [
+                            id           : "arc_fastq",
+                            feature_type : "atac",
+                            input_type   : "fastq",
+                            single_end   : false,
+                            fastq_barcode: atac_barcode
+                        ],
+                        [atac_r1, atac_r2, atac_barcode]
+                    ],
+                    [
+                        [id: "arc_preprocessed", feature_type: "gex", input_type: "filtered"],
+                        [filtered_h5]
+                    ],
+                    [
+                        [id: "arc_preprocessed", feature_type: "gex", input_type: "raw"],
+                        [raw_h5]
+                    ]
+                )
+                input[1] = channel.empty()
+                input[2] = channel.empty()
+                input[3] = channel.of([[id: "cellrangerarc_reference"], reference])
+                input[4] = "auto"
+                input[5] = []
+                input[6] = []
+                input[7] = []
+                input[8] = []
+                """
+            }
+        }
+
+        then {
+            def observed = workflow.out.mtx_matrices.collect { entry ->
+                def meta = entry[0]
+                [
+                    id          : meta.id,
+                    feature_type: meta.feature_type,
+                    input_type  : meta.input_type,
+                    files       : entry[1].collect { new File(it.toString()).name }.sort()
+                ]
+            }.sort { "${it.id}:${it.input_type}" }
+
+            def expected = [
+                [
+                    id          : "arc_fastq",
+                    feature_type: null,
+                    input_type  : "filtered",
+                    files       : ["filtered_feature_bc_matrix.h5"]
+                ],
+                [
+                    id          : "arc_fastq",
+                    feature_type: null,
+                    input_type  : "raw",
+                    files       : ["raw_feature_bc_matrix.h5"]
+                ],
+                [
+                    id          : "arc_preprocessed",
+                    feature_type: "gex",
+                    input_type  : "filtered",
+                    files       : ["arc_preprocessed.filtered.h5"]
+                ],
+                [
+                    id          : "arc_preprocessed",
+                    feature_type: "gex",
+                    input_type  : "raw",
+                    files       : ["arc_preprocessed.raw.h5"]
+                ]
+            ].sort { "${it.id}:${it.input_type}" }
+
+            def fragment_files = workflow.out.fragments_file.collectMany { entry ->
+                entry[1].collect { new File(it.toString()).name }
+            }
+            def fragment_indexes = workflow.out.fragments_index.collectMany { entry ->
+                entry[1].collect { new File(it.toString()).name }
+            }
+            def task_names = workflow.trace.tasks()*.name
+
+            assertAll(
+                { assert workflow.success },
+                { assert observed == expected },
+                { assert fragment_files == ["atac_fragments.tsv.gz"] },
+                { assert fragment_indexes == ["atac_fragments.tsv.gz.tbi"] },
+                { assert task_names.count { it.contains("CELLRANGERARC_COUNT") } == 1 },
+                { assert !task_names.any { it.contains("CELLRANGER_COUNT") || it.contains("CELLRANGER_MULTI") } }
+            )
+        }
+    }
+
+    test("Should emit preprocessed matrices without alignment tasks") {
+
+        options "-stub-run"
+
+        when {
+            params {
+                aligner = "cellranger"
+                outdir  = "$outputDir"
+            }
+
+            workflow {
+                """
+                def fixture_dir = file("${launchDir}/fixtures")
+                java.nio.file.Files.createDirectories(fixture_dir)
+
+                def create_file = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path.parent)
+                    java.nio.file.Files.write(path, new byte[0])
+                    path
+                }
+                def create_mex = { String name ->
+                    def path = fixture_dir.resolve(name)
+                    java.nio.file.Files.createDirectories(path)
+                    ["matrix.mtx.gz", "barcodes.tsv.gz", "features.tsv.gz"].each {
+                        java.nio.file.Files.write(path.resolve(it), new byte[0])
+                    }
+                    path
+                }
+
+                def filtered_h5 = create_file("preprocessed_only.filtered.h5")
+                def raw_h5 = create_file("preprocessed_only.raw.h5")
+                def filtered_mex = create_mex("preprocessed_mex.filtered")
+
+                input[0] = channel.of(
+                    [
+                        [id: "preprocessed_only", feature_type: "gex", input_type: "filtered"],
+                        [filtered_h5]
+                    ],
+                    [
+                        [id: "preprocessed_only", feature_type: "gex", input_type: "raw"],
+                        [raw_h5]
+                    ],
+                    [
+                        [id: "preprocessed_mex", feature_type: "gex", input_type: "filtered"],
+                        [filtered_mex]
+                    ]
+                )
+                input[1] = channel.empty()
+                input[2] = channel.empty()
+                input[3] = channel.empty()
+                input[4] = "auto"
+                input[5] = []
+                input[6] = []
+                input[7] = []
+                input[8] = []
+                """
+            }
+        }
+
+        then {
+            def observed = workflow.out.mtx_matrices.collect { entry ->
+                def meta = entry[0]
+                [
+                    id          : meta.id,
+                    feature_type: meta.feature_type,
+                    input_type  : meta.input_type,
+                    files       : entry[1].collect { new File(it.toString()).name }.sort()
+                ]
+            }.sort { "${it.id}:${it.input_type}" }
+
+            def expected = [
+                [
+                    id          : "preprocessed_only",
+                    feature_type: "gex",
+                    input_type  : "filtered",
+                    files       : ["preprocessed_only.filtered.h5"]
+                ],
+                [
+                    id          : "preprocessed_only",
+                    feature_type: "gex",
+                    input_type  : "raw",
+                    files       : ["preprocessed_only.raw.h5"]
+                ],
+                [
+                    id          : "preprocessed_mex",
+                    feature_type: "gex",
+                    input_type  : "filtered",
+                    files       : ["preprocessed_mex.filtered"]
+                ]
+            ].sort { "${it.id}:${it.input_type}" }
+
+            assertAll(
+                { assert workflow.success },
+                { assert observed == expected },
+                { assert workflow.trace.tasks().isEmpty() }
+            )
+        }
+    }
+}

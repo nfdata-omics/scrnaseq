@@ -17,11 +17,9 @@ def read_samplesheet(samplesheet):
     df = pd.read_csv(samplesheet)
     df.set_index("sample")
     if 'feature_type' in df.columns:
-        df['feature_type'] = df['feature_type'].fillna('unknown').astype(str)
-    elif 'sample_type' in df.columns:
-        df['sample_type'] = df['sample_type'].fillna('unknown').astype(str)
+        df['feature_type'] = df['feature_type'].fillna('gex').astype(str)
     else:
-        print("Warning: Neither 'feature_type' nor 'sample_type' found.")
+        df['feature_type'] = 'gex'
 
 
     # samplesheet may contain replicates, when it has,

@@ -18,7 +18,8 @@
                     "cellranger/count": {
                         "branch": "master",
                         "git_sha": "c8dedc22e3d32b7213aac563e04c969b34b496fc",
-                        "installed_by": ["modules"]
+                        "installed_by": ["modules"],
+                        "patch": "modules/nf-core/cellranger/count/cellranger-count.diff"
                     },
                     "cellranger/mkgtf": {
                         "branch": "master",
@@ -37,13 +38,15 @@
                     },
                     "cellranger/multi": {
                         "branch": "master",
-                        "git_sha": "c8dedc22e3d32b7213aac563e04c969b34b496fc",
-                        "installed_by": ["modules"]
+                        "git_sha": "21e4662ae927fdbc5fc04eec9bde38b0689d4954",
+                        "installed_by": ["modules"],
+                        "patch": "modules/nf-core/cellranger/multi/cellranger-multi.diff"
                     },
                     "cellrangerarc/count": {
                         "branch": "master",
                         "git_sha": "21e4662ae927fdbc5fc04eec9bde38b0689d4954",
-                        "installed_by": ["modules"]
+                        "installed_by": ["modules"],
+                        "patch": "modules/nf-core/cellrangerarc/count/cellrangerarc-count.diff"
                     },
                     "cellrangerarc/mkgtf": {
                         "branch": "master",
