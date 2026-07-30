@@ -16,7 +16,7 @@ workflow H5AD_CONVERSION {
     //
     ch_concat_h5ad_input = ch_h5ads
         .map{ meta, file -> [ [id: 'combined', input_type: meta.input_type], file ]}
-        .groupTuple()
+        .groupTuple(sort: true)
 
     CONCAT_H5AD (
         ch_concat_h5ad_input,
