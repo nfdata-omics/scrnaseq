@@ -24,8 +24,10 @@ def read_samplesheet(samplesheet):
 
     # samplesheet may contain replicates, when it has,
     # group information from replicates and collapse with commas
-    # only keep unique values using set()
-    df = df.groupby(["sample"]).agg(lambda column: ",".join(set(column.astype(str))))
+    # Keep unique values in a stable order.
+    df = df.groupby(["sample"]).agg(
+        lambda column: ",".join(sorted(set(column.astype(str))))
+    )
 
     return df
 
@@ -70,7 +72,7 @@ if __name__ == "__main__":
     # find all h5ad and append to dict
     dict_of_h5ad = {}
 
-    for path in Path(".").rglob("*.h5ad"):
+    for path in sorted(Path(".").rglob("*.h5ad")):
         adata_tmp = sc.read_h5ad(path)
 
         if "feature_types" in adata_tmp.var.columns:
