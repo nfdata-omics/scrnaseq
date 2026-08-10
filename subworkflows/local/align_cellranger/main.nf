@@ -32,7 +32,7 @@ workflow CELLRANGER_ALIGN {
         CELLRANGER_COUNT (
             // TODO what is `gem` and why is it needed?
             ch_fastq.map{ meta, reads -> [meta + ["chemistry": protocol, "gem": meta.id, "samples": [meta.id]], reads] },
-            cellranger_index
+            cellranger_index.map { file -> [[:], file] }
         )
 
         //
