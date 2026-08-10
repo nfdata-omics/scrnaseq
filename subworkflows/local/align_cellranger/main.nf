@@ -25,14 +25,16 @@ workflow CELLRANGER_ALIGN {
 
             // Make reference genome
             CELLRANGER_MKREF( fasta, CELLRANGER_MKGTF.out.gtf, "cellranger_reference" )
-            cellranger_index = CELLRANGER_MKREF.out.reference
+            ch_count_reference = CELLRANGER_MKREF.out.reference.collect()
+        } else {
+            ch_count_reference = channel.value([ [:], cellranger_index ])
         }
 
         // Obtain read counts
         CELLRANGER_COUNT (
             // TODO what is `gem` and why is it needed?
             ch_fastq.map{ meta, reads -> [meta + ["chemistry": protocol, "gem": meta.id, "samples": [meta.id]], reads] },
-            cellranger_index.map { file -> [[:], file] }
+            ch_count_reference
         )
 
         //
