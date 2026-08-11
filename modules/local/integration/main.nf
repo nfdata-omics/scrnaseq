@@ -25,7 +25,7 @@ process INTEGRATION {
     task.ext.when == null || task.ext.when
 
     script:
-    def skip_harmony_flag = skip_harmony ? "-skip" : ""
+    def skip_harmony_flag = skip_harmony ? "--skip_harmony" : ""
     """
     export NUMBA_CACHE_DIR=/tmp
     export MPLCONFIGDIR=/tmp
