@@ -77,6 +77,7 @@ nextflow_workflow {
                 input[6] = []
                 input[7] = []
                 input[8] = []
+                input[9] = [has_fastq: false, has_vdj_fastq: false]
                 """
             }
         }
@@ -213,6 +214,7 @@ nextflow_workflow {
                 input[6] = []
                 input[7] = vdj_reference
                 input[8] = channel.of(multiplexing_samplesheet)
+                input[9] = [has_fastq: true, has_vdj_fastq: true]
                 """
             }
         }
@@ -357,6 +359,7 @@ nextflow_workflow {
                 input[6] = []
                 input[7] = vdj_reference
                 input[8] = []
+                input[9] = [has_fastq: true, has_vdj_fastq: false]
                 """
             }
         }
@@ -450,6 +453,7 @@ nextflow_workflow {
                 input[6] = []
                 input[7] = []
                 input[8] = channel.of(multiplexing_samplesheet)
+                input[9] = [has_fastq: true, has_vdj_fastq: true]
                 """
             }
         }
@@ -548,6 +552,7 @@ nextflow_workflow {
                 input[6] = []
                 input[7] = []
                 input[8] = []
+                input[9] = [has_fastq: true, has_vdj_fastq: false]
                 """
             }
         }
@@ -665,6 +670,7 @@ nextflow_workflow {
                 input[6] = []
                 input[7] = []
                 input[8] = []
+                input[9] = [has_fastq: true, has_vdj_fastq: false]
                 """
             }
         }

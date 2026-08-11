@@ -55,6 +55,9 @@ workflow SCRNASEQ {
 
     ch_fastq = ch_samplesheet.filter { meta, _files -> meta.input_type == 'fastq' }
 
+    // Keep the FASTQ modalities available for aligner-specific reference setup.
+    def fastq_modalities = getFastqModalities(params.input)
+
     protocol_config = getProtocol(workflow, log, params.aligner, params.protocol)
     if (protocol_config['protocol'] == 'auto' && params.aligner !in ["cellranger", "cellrangerarc", "cellrangermulti"]) {
         error "Only cellranger supports `protocol = 'auto'`. Please specify the protocol manually!"
@@ -72,10 +75,10 @@ workflow SCRNASEQ {
     ch_input = params.input                ? file(params.input, checkIfExists: true)    : []
     ch_h5ad_matrix = params.h5ad_matrix    ? file(params.h5ad_matrix, checkIfExists: true): []
 
-    //cellranger params
+    // cellranger params
     ch_cellranger_index = cellranger_index ? file(cellranger_index, checkIfExists: true) : []
 
-    //cellrangermulti params
+    // cellrangermulti params
     cellranger_vdj_index = cellranger_vdj_index             ? file(cellranger_vdj_index, checkIfExists: true)             : []
     ch_multi_samplesheet = params.cellranger_multi_barcodes ? file(params.cellranger_multi_barcodes, checkIfExists: true) : []
 
@@ -120,11 +123,10 @@ workflow SCRNASEQ {
     ch_genome_fasta = PREPARE_GENOME.out.fasta
     ch_genome_gtf   = PREPARE_GENOME.out.gtf
 
-    //
-    // Run alignment pipeline
-    //
+    // Pass only FASTQ entries to alignment. Its empty input channel prevents
+    // aligner and reference-preparation tasks for fully preprocessed runs.
     ALIGNMENT(
-        ch_samplesheet,
+        ch_fastq,
         ch_genome_fasta,
         ch_genome_gtf,
         ch_cellranger_index,
@@ -132,14 +134,17 @@ workflow SCRNASEQ {
         ch_motifs,
         ch_cellrangerarc_config,
         cellranger_vdj_index,
-        ch_multi_samplesheet
+        ch_multi_samplesheet,
+        fastq_modalities
     )
+    ch_preprocessed_matrices = ch_samplesheet.filter { meta, _files -> meta.input_type in ['raw', 'filtered'] }
+    ch_mtx_matrices = ch_preprocessed_matrices.mix(ALIGNMENT.out.mtx_matrices)
     ch_multiqc_files = ch_multiqc_files.mix(ALIGNMENT.out.multiqc_files.flatten())
 
     //
     // MODULE: Convert mtx matrices to h5ad
     //
-    def ch_matrix_inputs = ALIGNMENT.out.mtx_matrices.map { meta, matrix_paths ->
+    def ch_matrix_inputs = ch_mtx_matrices.map { meta, matrix_paths ->
         tuple(meta, selectMatrixInput(matrix_paths, meta))
     }
     MTX_TO_H5AD (
@@ -639,4 +644,26 @@ def isMexDirectory(path) {
             java.nio.file.Files.isRegularFile(input_path.resolve(filename))
         }
     }
+}
+
+// Inspect the same unified samplesheet used by PARSE_SAMPLESHEET before the
+// workflow graph is assembled. This lets callers avoid instantiating reference
+// and alignment subworkflows for runs consisting entirely of processed input.
+def getFastqModalities(input) {
+    def modalities = [has_fastq: false, has_gex_fastq: false, has_vdj_fastq: false]
+
+    if (!input) {
+        return modalities
+    }
+
+    file(input, checkIfExists: true).splitCsv(header: true).each { row ->
+        def has_fastq = hasSamplesheetValue(row.fastq_1) || hasSamplesheetValue(row.fastq_2)
+        if (has_fastq) {
+            def feature_type = hasSamplesheetValue(row.feature_type) ? row.feature_type.toString() : 'gex'
+            modalities.has_fastq = true
+            modalities["has_${feature_type}_fastq"] = true
+        }
+    }
+
+    return modalities
 }

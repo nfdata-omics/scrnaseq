@@ -16,6 +16,7 @@ workflow CELLRANGER_MULTI_ALIGN {
         cellranger_gex_index
         cellranger_vdj_index
         ch_multi_samplesheet
+        fastq_modalities
 
     main:
         //
@@ -121,7 +122,7 @@ workflow CELLRANGER_MULTI_ALIGN {
         //
         // Prepare GTF
         //
-        if ( !cellranger_gex_index || (!cellranger_vdj_index && !params.skip_cellrangermulti_vdjref) ) {
+        if ( !cellranger_gex_index || (fastq_modalities.has_vdj_fastq && !cellranger_vdj_index) ) {
 
             // Filter GTF based on gene biotypes passed in params.modules
             CELLRANGER_MKGTF ( ch_gtf )
@@ -174,7 +175,7 @@ workflow CELLRANGER_MULTI_ALIGN {
         //
         // Prepare vdj reference (Special)
         //
-        if ( !cellranger_vdj_index ) {
+        if ( fastq_modalities.has_vdj_fastq && !cellranger_vdj_index ) {
 
             if ( !params.skip_cellrangermulti_vdjref  ) { // if user uses cellranger multi but does not have VDJ data
                 // Make reference genome
@@ -189,8 +190,10 @@ workflow CELLRANGER_MULTI_ALIGN {
                 ch_cellranger_vdj_index = []
             }
 
-        } else {
+        } else if (cellranger_vdj_index) {
             ch_cellranger_vdj_index = cellranger_vdj_index
+        } else {
+            ch_cellranger_vdj_index = []
         }
 
         //

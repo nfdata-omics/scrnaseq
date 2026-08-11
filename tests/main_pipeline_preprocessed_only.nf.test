@@ -1,0 +1,53 @@
+nextflow_pipeline {
+
+    name "Test Workflow main.nf"
+    script "main.nf"
+
+    test("all-preprocessed input creates no reference-preparation or alignment tasks") {
+
+        options "-stub-run"
+
+        when {
+            params {
+                aligner = 'cellranger'
+                input = "$outputDir/preprocessed_only.csv"
+                outdir = "$outputDir"
+
+                // Reference options are deliberately omitted for this run.
+                fasta = null
+                gtf = null
+                gff = null
+                cellranger_index = null
+
+                skip_cellbender = true
+                skip_qcfilters = true
+                skip_fastqc = true
+            }
+
+            workflow {
+                """
+                def fixture_dir = file("${outputDir}/preprocessed_only")
+                java.nio.file.Files.createDirectories(fixture_dir)
+                def filtered_h5 = fixture_dir.resolve("sample.filtered.h5")
+                java.nio.file.Files.write(filtered_h5, new byte[0])
+                def samplesheet = file("${outputDir}/preprocessed_only.csv")
+                java.nio.file.Files.writeString(
+                    samplesheet,
+                    "sample,feature_type,processed_data\\npreprocessed_sample,gex," + filtered_h5 + "\\n"
+                )
+                """
+            }
+        }
+
+        then {
+            def reference_or_alignment_tasks = workflow.trace.succeeded().findAll { task ->
+                task.process ==~ /.*(FASTQC|GUNZIP|GFFREAD|GTFFILTER|GTF_SOURCE_FIX|CELLRANGER|ALIGNMENT).*/
+            }
+
+            assertAll(
+                { assert workflow.success },
+                { assert reference_or_alignment_tasks.isEmpty() }
+            )
+        }
+    }
+}

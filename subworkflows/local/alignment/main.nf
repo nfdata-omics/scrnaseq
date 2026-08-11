@@ -5,7 +5,7 @@ include { cellrangerarcStructure                            } from '../utils_nfc
 
 workflow ALIGNMENT {
     take:
-        ch_samplesheet
+        ch_fastq
         ch_genome_fasta
         ch_genome_gtf
         ch_cellranger_index
@@ -14,6 +14,7 @@ workflow ALIGNMENT {
         ch_cellrangerarc_config
         cellranger_vdj_index
         ch_multi_samplesheet
+        fastq_modalities
 
     main:
 
@@ -24,13 +25,7 @@ workflow ALIGNMENT {
 
         empty_file = file("$projectDir/assets/EMPTY", checkIfExists: true)
 
-        // filter the samplesheet to obtained files that have been already pre-processed
-        ch_samplesheet
-            .filter { meta, _files -> meta.input_type in ['raw', 'filtered'] }
-            .set { ch_mtx_matrices }
-
-        // extract the fastq files from the samplesheet to be used in the alignment subworkflows
-        ch_fastq = ch_samplesheet.filter { meta, _files -> meta.input_type == 'fastq' }
+        ch_mtx_matrices = channel.empty()
 
         if (params.aligner == "cellranger") {
 
@@ -181,7 +176,8 @@ workflow ALIGNMENT {
                 //ch_transformed_fragments_index_channel,
                 ch_cellranger_index,
                 cellranger_vdj_index,
-                ch_multi_samplesheet
+                ch_multi_samplesheet,
+                fastq_modalities
             )
             ch_multiqc_files = ch_multiqc_files.mix( CELLRANGER_MULTI_ALIGN.out.cellrangermulti_out.map{
                 _meta, outs -> outs.findAll{ it -> it.name == "web_summary.html" }
