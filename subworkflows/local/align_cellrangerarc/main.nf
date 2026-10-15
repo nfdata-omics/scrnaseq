@@ -39,13 +39,15 @@ workflow CELLRANGERARC_ALIGN {
                 }
 
             CELLRANGERARC_MKREF( ch_cellrangerarc_mkref )
-            cellranger_index = CELLRANGERARC_MKREF.out.reference
+            ch_count_reference = CELLRANGERARC_MKREF.out.reference.collect()
+        } else {
+            ch_count_reference = channel.value([ [:], cellranger_index ])
         }
 
         // Obtain read counts
         CELLRANGERARC_COUNT (
             ch_fastq,
-            cellranger_index
+            ch_count_reference
         )
 
         // Parse the output channels to obtain filtered and raw matrices
